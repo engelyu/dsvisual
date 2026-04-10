@@ -12,50 +12,37 @@
     <div class="app-container">
         <header>
             <h1>C++ Algorithms Visualizer</h1>
-            <p>Data Structures (Stack, Queue, Graph, Tree, List) & Searches (Linear, Binary).</p>
+            <p>Data Structures (Stack, Queue, Graph, Tree, List) & Validated Algorithm Sandbox.</p>
         </header>
 
         <div class="main-content">
-            <!-- Left Panel: Visualization -->
             <section class="visualization-panel glass-panel">
                 <div class="controls">
                     <div class="mode-toggle">
-                        <input type="radio" id="mode-stack-arr" name="ds-mode" value="stack-array" checked>
-                        <label for="mode-stack-arr">Stack(Arr)</label>
+                        <input type="radio" id="mode-stack-arr" name="ds-mode" value="stack-array" checked> <label for="mode-stack-arr">Stack(Arr)</label>
+                        <input type="radio" id="mode-stack-list" name="ds-mode" value="stack-list"> <label for="mode-stack-list">Stack(List)</label>
+                        <input type="radio" id="mode-queue" name="ds-mode" value="queue"> <label for="mode-queue">Queue</label>
+                        <input type="radio" id="mode-graph" name="ds-mode" value="graph"> <label for="mode-graph">Graph</label>
+                        <input type="radio" id="mode-tree" name="ds-mode" value="tree"> <label for="mode-tree">Tree(BST)</label>
+                        <input type="radio" id="mode-list-arr" name="ds-mode" value="list-array"> <label for="mode-list-arr">List(Arr)</label>
+                        <input type="radio" id="mode-list-list" name="ds-mode" value="list-linked"> <label for="mode-list-list">List(List)</label>
+                        <input type="radio" id="mode-search-linear" name="ds-mode" value="search-linear"> <label for="mode-search-linear">Search(L)</label>
+                        <input type="radio" id="mode-search-binary" name="ds-mode" value="search-binary"> <label for="mode-search-binary">Search(B)</label>
                         
-                        <input type="radio" id="mode-stack-list" name="ds-mode" value="stack-list">
-                        <label for="mode-stack-list">Stack(List)</label>
-
-                        <input type="radio" id="mode-queue" name="ds-mode" value="queue">
-                        <label for="mode-queue">Queue</label>
-
-                        <input type="radio" id="mode-graph" name="ds-mode" value="graph">
-                        <label for="mode-graph">Graph</label>
-
-                        <input type="radio" id="mode-tree" name="ds-mode" value="tree">
-                        <label for="mode-tree">Tree(BST)</label>
-
-                        <input type="radio" id="mode-list-arr" name="ds-mode" value="list-array">
-                        <label for="mode-list-arr">List(Arr)</label>
-
-                        <input type="radio" id="mode-list-list" name="ds-mode" value="list-linked">
-                        <label for="mode-list-list">List(List)</label>
-
-                        <input type="radio" id="mode-search-linear" name="ds-mode" value="search-linear">
-                        <label for="mode-search-linear">Search(Linear)</label>
-
-                        <input type="radio" id="mode-search-binary" name="ds-mode" value="search-binary">
-                        <label for="mode-search-binary">Search(Binary)</label>
+                        <input type="radio" id="mode-sort-bubble" name="ds-mode" value="sort-bubble"> <label for="mode-sort-bubble">Sort(Bubble)</label>
+                        <input type="radio" id="mode-sort-select" name="ds-mode" value="sort-select"> <label for="mode-sort-select">Sort(Select)</label>
+                        <input type="radio" id="mode-sort-insert" name="ds-mode" value="sort-insert"> <label for="mode-sort-insert">Sort(Insert)</label>
+                        <input type="radio" id="mode-sort-quick" name="ds-mode" value="sort-quick"> <label for="mode-sort-quick">Sort(Quick)</label>
+                        <input type="radio" id="mode-sort-merge" name="ds-mode" value="sort-merge"> <label for="mode-sort-merge">Sort(Merge)</label>
+                        <input type="radio" id="mode-sort-shell" name="ds-mode" value="sort-shell"> <label for="mode-sort-shell">Sort(Shell)</label>
                     </div>
                     
-                    <!-- Standard Actions (Stack/Queue) -->
                     <div class="actions" id="std-actions">
                         <input type="number" id="std-value" placeholder="Value" value="10">
                         <button id="btn-std-add" class="btn primary">Push()</button>
                         <button id="btn-std-remove" class="btn secondary">Pop()</button>
                     </div>
 
-                    <!-- Generic List Actions -->
                     <div class="actions hidden" id="list-actions">
                         <input type="number" id="list-idx" placeholder="Index" min="0" style="max-width: 80px;">
                         <input type="number" id="list-val" placeholder="Value">
@@ -63,24 +50,30 @@
                         <button id="btn-list-remove" class="btn secondary">Remove</button>
                     </div>
 
-                    <!-- Graph Actions -->
                     <div class="actions hidden" id="graph-actions">
-                        <input type="number" id="graph-u" placeholder="U (0-4)" min="0" max="4" value="0">
-                        <input type="number" id="graph-v" placeholder="V (0-4)" min="0" max="4" value="1">
+                        <input type="number" id="graph-u" placeholder="U(0-4)" min="0" max="4" value="0">
+                        <input type="number" id="graph-v" placeholder="V(0-4)" min="0" max="4" value="1">
                         <button id="btn-graph-add" class="btn primary">Add Edge</button>
                     </div>
 
-                    <!-- Tree Actions -->
                     <div class="actions hidden" id="tree-actions">
                         <input type="number" id="tree-val" placeholder="Node Value" value="50">
                         <button id="btn-tree-add" class="btn primary">Insert()</button>
                     </div>
 
-                    <!-- Search Actions -->
                     <div class="actions hidden" id="search-actions">
                         <input type="number" id="search-val" placeholder="Target" value="38">
                         <button id="btn-search-go" class="btn primary">Find()</button>
-                        <button id="btn-search-reset" class="btn secondary">Reset Data</button>
+                        <button id="btn-search-reset" class="btn secondary">Reset</button>
+                    </div>
+
+                    <div class="actions hidden" id="sort-actions">
+                        <button id="btn-sort-random" class="btn secondary">Randomize</button>
+                        <button id="btn-sort-start" class="btn primary">Sort()</button>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-left: 10px;">
+                            <span style="font-size: 0.8rem; color: #cbd5e1;">Delay</span>
+                            <input type="range" id="sort-speed" min="10" max="600" value="100" style="width: 100px;">
+                        </div>
                     </div>
                     
                     <div id="status-message" class="status-message">Visualizer initialized.</div>
@@ -122,24 +115,20 @@
                             <div id="tree-nodes-container"></div>
                         </div>
 
-                        <!-- Generic List Array -->
-                        <div id="list-arr-container" class="list-arr-container hidden">
-                        </div>
-
-                        <!-- Generic LinkedLists -->
-                        <div id="list-ll-container" class="list-ll-container hidden">
-                        </div>
+                        <div id="list-arr-container" class="list-arr-container hidden"></div>
+                        <div id="list-ll-container" class="list-ll-container hidden"></div>
 
                         <div id="search-container" class="search-container hidden">
                             <div id="search-array" class="search-array"></div>
                             <div id="search-pointers" class="search-pointers"></div>
                         </div>
 
+                        <div id="sort-container" class="sort-container hidden"></div>
+
                     </div>
                 </div>
             </section>
 
-            <!-- Right Panel: Code Viewer -->
             <section class="code-panel glass-panel">
                 <div class="code-header">
                     <h2 id="code-title">stack_array.cpp</h2>
