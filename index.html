@@ -12,7 +12,7 @@
     <div class="app-container">
         <header>
             <h1>C++ Algorithms Visualizer</h1>
-            <p>Data Structures (Stack, Queue, Graph, Tree) & Searches (Linear, Binary).</p>
+            <p>Data Structures (Stack, Queue, Graph, Tree, List) & Searches (Linear, Binary).</p>
         </header>
 
         <div class="main-content">
@@ -35,6 +35,12 @@
                         <input type="radio" id="mode-tree" name="ds-mode" value="tree">
                         <label for="mode-tree">Tree(BST)</label>
 
+                        <input type="radio" id="mode-list-arr" name="ds-mode" value="list-array">
+                        <label for="mode-list-arr">List(Arr)</label>
+
+                        <input type="radio" id="mode-list-list" name="ds-mode" value="list-linked">
+                        <label for="mode-list-list">List(List)</label>
+
                         <input type="radio" id="mode-search-linear" name="ds-mode" value="search-linear">
                         <label for="mode-search-linear">Search(Linear)</label>
 
@@ -47,6 +53,14 @@
                         <input type="number" id="std-value" placeholder="Value" value="10">
                         <button id="btn-std-add" class="btn primary">Push()</button>
                         <button id="btn-std-remove" class="btn secondary">Pop()</button>
+                    </div>
+
+                    <!-- Generic List Actions -->
+                    <div class="actions hidden" id="list-actions">
+                        <input type="number" id="list-idx" placeholder="Index" min="0" style="max-width: 80px;">
+                        <input type="number" id="list-val" placeholder="Value">
+                        <button id="btn-list-add" class="btn primary">Insert</button>
+                        <button id="btn-list-remove" class="btn secondary">Remove</button>
                     </div>
 
                     <!-- Graph Actions -->
@@ -73,10 +87,8 @@
                 </div>
 
                 <div class="stack-container-wrapper">
-                    <!-- Dynamic stack visualization goes here -->
                     <div id="visualizer-container" class="stack-visualizer">
                         
-                        <!-- Stack/Queue/Graph/Tree containers (hidden/shown by class) -->
                         <div id="array-container" class="array-container">
                             <div class="slot empty"><span>[4]</span></div> <div class="slot empty"><span>[3]</span></div>
                             <div class="slot empty"><span>[2]</span></div> <div class="slot empty"><span>[1]</span></div>
@@ -110,14 +122,17 @@
                             <div id="tree-nodes-container"></div>
                         </div>
 
-                        <!-- Search container -->
+                        <!-- Generic List Array -->
+                        <div id="list-arr-container" class="list-arr-container hidden">
+                        </div>
+
+                        <!-- Generic LinkedLists -->
+                        <div id="list-ll-container" class="list-ll-container hidden">
+                        </div>
+
                         <div id="search-container" class="search-container hidden">
-                            <div id="search-array" class="search-array">
-                                <!-- JS injected slots -->
-                            </div>
-                            <div id="search-pointers" class="search-pointers">
-                                <!-- JS injected pointers -->
-                            </div>
+                            <div id="search-array" class="search-array"></div>
+                            <div id="search-pointers" class="search-pointers"></div>
                         </div>
 
                     </div>
