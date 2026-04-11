@@ -139,6 +139,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnHeapDelete = document.getElementById('btn-heap-delete');
     const btnHeapFindMin = document.getElementById('btn-heap-find-min');
     const btnHeapStats = document.getElementById('btn-heap-stats');
+    const btnHeapTutorial = document.getElementById('btn-heap-tutorial');
+    const heapTutorialPanel = document.getElementById('heap-tutorial-panel');
+    const heapTutorialMode = document.getElementById('heap-tutorial-mode');
+    const heapTutorialProgress = document.getElementById('heap-tutorial-progress');
+    const heapTutorialTitle = document.getElementById('heap-tutorial-title');
+    const heapTutorialText = document.getElementById('heap-tutorial-text');
+    const btnHeapTutorialNext = document.getElementById('btn-heap-tutorial-next');
+    const btnHeapTutorialRestart = document.getElementById('btn-heap-tutorial-restart');
+    const btnHeapTutorialExit = document.getElementById('btn-heap-tutorial-exit');
 
     const hashActions = document.getElementById('hash-actions');
     const btnHashAdd = document.getElementById('btn-hash-add'); const hashVal = document.getElementById('hash-val');
@@ -181,6 +190,65 @@ document.addEventListener('DOMContentLoaded', () => {
         'heap-dary': HeapModels.createHeapModel('heap-dary', heapIsMin),
         'heap-pairing': HeapModels.createHeapModel('heap-pairing', heapIsMin),
     };
+    const heapTutorialProfiles = {
+        'heap-binary': {
+            name: 'Binary Heap',
+            intro: 'Watch the complete-tree shape and how a smaller key bubbles to the root.',
+            merge: 'Merge a second batch to rebuild the complete tree without losing heap order.',
+            change: 'Change a deeper key so you can see heapify restore the root choice.',
+            extract: 'Extract the root and observe the last node move up before reheapifying.',
+            stats: 'Check the size summary after the tree has been reshaped.'
+        },
+        'heap-binomial': {
+            name: 'Binomial Heap',
+            intro: 'Notice how inserts create a forest of degree-labelled trees instead of one fixed shape.',
+            merge: 'Merging here should trigger tree linking by equal degree.',
+            change: 'A key change can bubble through one binomial tree without touching the others.',
+            extract: 'Extracting the root should expose children that rejoin the forest.',
+            stats: 'The stats readout highlights the current mix of tree degrees.'
+        },
+        'heap-fibonacci': {
+            name: 'Fibonacci Heap',
+            intro: 'Use the root list to see how lazy structure differs from a strict binary tree.',
+            merge: 'A merge is cheap here, so focus on the expanded root list before consolidation.',
+            change: 'Changing a key is where cut-style behavior becomes easier to explain.',
+            extract: 'Extraction is the moment consolidation reorganizes the root list.',
+            stats: 'Stats give a quick summary of how deep the current forest can grow.'
+        },
+        'heap-leftist': {
+            name: 'Leftist Heap',
+            intro: 'Watch the null-path-length badges while the heap keeps the heavier spine on the left.',
+            merge: 'Leftist heaps are merge-first structures, so this step is the core operation.',
+            change: 'Changing a key helps show how the merge-based structure adapts.',
+            extract: 'Extracting the root merges the left and right subheaps back together.',
+            stats: 'Use stats after the merge-heavy steps to confirm the heap size.'
+        },
+        'heap-skew': {
+            name: 'Skew Heap',
+            intro: 'This heap self-adjusts by swapping children aggressively after melds.',
+            merge: 'A merge demonstrates the self-adjusting nature of skew heaps immediately.',
+            change: 'Changing a key gives the next meld a chance to rebalance the shape.',
+            extract: 'Extraction melds the two top subtrees back together.',
+            stats: 'Stats are a quick checkpoint after the self-adjusting operations.'
+        },
+        'heap-dary': {
+            name: '4-ary Heap',
+            intro: 'The wider branching factor trades more children per node for fewer levels.',
+            merge: 'After merging, compare the shallower 4-ary layout against the binary version.',
+            change: 'A key change still bubbles up, but across a wider parent-child fanout.',
+            extract: 'Extraction should keep the heap shallow even as the root is replaced.',
+            stats: 'The stats panel calls out the fixed arity and estimated level count.'
+        },
+        'heap-pairing': {
+            name: 'Pairing Heap',
+            intro: 'Pairing heaps organize around repeated melds, so follow the root and its children.',
+            merge: 'This merge step is really a meld showcase for the pairing heap.',
+            change: 'Changing a key prepares the next meld to rearrange the frontier.',
+            extract: 'Extraction triggers pairwise passes over the root children.',
+            stats: 'Stats summarize the rough amount of pair meld work happening in the tree.'
+        }
+    };
+    let heapTutorialState = { active: false, mode: null, name: '', steps: [], stepIndex: 0, completed: false };
 
     const tabBtnDesc = document.getElementById('tab-btn-desc');
     const tabBtnCode = document.getElementById('tab-btn-code');
@@ -223,6 +291,180 @@ document.addEventListener('DOMContentLoaded', () => {
         clearHeapEventMarks();
     }
 
+    function setHeapComparator(isMin) {
+        heapIsMin = isMin;
+        heapOrderSelect.value = heapIsMin ? 'min' : 'max';
+        Object.values(heapModels).forEach(m => m.setOrder(heapIsMin));
+    }
+
+    function buildHeapTutorial(mode) {
+        const profile = heapTutorialProfiles[mode];
+        if (!profile) return null;
+        return {
+            name: profile.name,
+            steps: [
+                {
+                    title: 'Create the first root',
+                    text: 'Insert 12 to seed the ' + profile.name + '. ' + profile.intro,
+                    action: 'insert',
+                    value: '12',
+                    extra: '',
+                    focusIds: ['heap-val', 'btn-heap-insert', 'heap-container']
+                },
+                {
+                    title: 'Bubble up a better key',
+                    text: 'Insert 7 and compare how the active root changes.',
+                    action: 'insert',
+                    value: '7',
+                    extra: '',
+                    focusIds: ['heap-val', 'btn-heap-insert', 'heap-container']
+                },
+                {
+                    title: 'Add a third value',
+                    text: 'Insert 19 so the heap now has enough structure to inspect.',
+                    action: 'insert',
+                    value: '19',
+                    extra: '',
+                    focusIds: ['heap-val', 'btn-heap-insert', 'heap-container']
+                },
+                {
+                    title: 'Inspect the current root',
+                    text: 'Use Peek() to confirm which value is currently at the frontier.',
+                    action: 'peek',
+                    focusIds: ['btn-heap-peek', 'heap-container']
+                },
+                {
+                    title: 'Merge another heap',
+                    text: profile.merge,
+                    action: 'merge',
+                    extra: '3,8,15',
+                    expectedValues: [3, 8, 15],
+                    focusIds: ['heap-extra', 'btn-heap-merge', 'heap-container']
+                },
+                {
+                    title: 'Change one key',
+                    text: profile.change,
+                    action: 'change',
+                    value: '19',
+                    extra: '5',
+                    focusIds: ['heap-val', 'heap-extra', 'btn-heap-change', 'heap-container']
+                },
+                {
+                    title: 'Extract the root',
+                    text: profile.extract,
+                    action: 'extract',
+                    focusIds: ['btn-heap-extract', 'heap-container']
+                },
+                {
+                    title: 'Read the summary',
+                    text: profile.stats,
+                    action: 'stats',
+                    focusIds: ['btn-heap-stats']
+                }
+            ]
+        };
+    }
+
+    function clearHeapTutorialFocus() {
+        document.querySelectorAll('.tutorial-focus').forEach(el => el.classList.remove('tutorial-focus'));
+    }
+
+    function syncHeapTutorialChrome() {
+        const activeForMode = heapTutorialState.active && currentMode === heapTutorialState.mode;
+        btnHeapTutorial.textContent = activeForMode ? 'Restart Tutorial' : 'Start Tutorial';
+        heapContainer.classList.toggle('tutorial-active', activeForMode);
+        if (!activeForMode) {
+            heapTutorialPanel.classList.add('hidden');
+            clearHeapTutorialFocus();
+        }
+        btnHeapTutorialNext.disabled = animState !== 'idle' || !activeForMode || heapTutorialState.completed;
+        btnHeapTutorialRestart.disabled = animState !== 'idle' || !activeForMode;
+        btnHeapTutorialExit.disabled = animState !== 'idle' || !activeForMode;
+    }
+
+    function renderHeapTutorialPanel() {
+        const activeForMode = heapTutorialState.active && currentMode === heapTutorialState.mode;
+        if (!activeForMode) {
+            syncHeapTutorialChrome();
+            return;
+        }
+
+        clearHeapTutorialFocus();
+        heapTutorialPanel.classList.remove('hidden');
+        heapTutorialMode.textContent = heapTutorialState.name;
+
+        if (heapTutorialState.completed) {
+            heapTutorialProgress.textContent = 'Completed';
+            heapTutorialTitle.textContent = heapTutorialState.name + ' tutorial complete';
+            heapTutorialText.textContent = 'You walked through insert, peek, merge, change-key, extract, and stats for this heap. Restart to replay it or switch heap modes for another tutorial.';
+            syncHeapTutorialChrome();
+            return;
+        }
+
+        const step = heapTutorialState.steps[heapTutorialState.stepIndex];
+        heapTutorialProgress.textContent = 'Step ' + (heapTutorialState.stepIndex + 1) + ' / ' + heapTutorialState.steps.length;
+        heapTutorialTitle.textContent = step.title;
+        heapTutorialText.textContent = step.text;
+
+        if (Object.prototype.hasOwnProperty.call(step, 'value')) heapValInput.value = step.value;
+        if (Object.prototype.hasOwnProperty.call(step, 'extra')) heapExtraInput.value = step.extra;
+
+        (step.focusIds || []).forEach(id => document.getElementById(id)?.classList.add('tutorial-focus'));
+        syncHeapTutorialChrome();
+    }
+
+    function startHeapTutorial() {
+        if (!currentMode.includes('heap-')) return;
+        const tutorial = buildHeapTutorial(currentMode);
+        const model = getActiveHeapModel();
+        if (!tutorial || !model) return;
+        setHeapComparator(true);
+        model.clear();
+        clearHeapEventMarks();
+        renderHeap();
+        heapTutorialState = {
+            active: true,
+            mode: currentMode,
+            name: tutorial.name,
+            steps: tutorial.steps,
+            stepIndex: 0,
+            completed: false,
+        };
+        renderHeapTutorialPanel();
+        showStatus('Tutorial ready: ' + tutorial.name, '#fbbf24');
+    }
+
+    function exitHeapTutorial(preserveStatus = false) {
+        const wasActive = heapTutorialState.active;
+        heapTutorialState = { active: false, mode: null, name: '', steps: [], stepIndex: 0, completed: false };
+        syncHeapTutorialChrome();
+        if (wasActive && !preserveStatus) showStatus('Heap tutorial closed.', '#94a3b8');
+    }
+
+    function advanceHeapTutorial() {
+        if (!heapTutorialState.active || heapTutorialState.completed) return;
+        if (heapTutorialState.stepIndex >= heapTutorialState.steps.length - 1) {
+            heapTutorialState.completed = true;
+        } else {
+            heapTutorialState.stepIndex += 1;
+        }
+        renderHeapTutorialPanel();
+    }
+
+    function maybeAdvanceHeapTutorial(action, detail = {}) {
+        if (!heapTutorialState.active || heapTutorialState.completed || currentMode !== heapTutorialState.mode) return;
+        const step = heapTutorialState.steps[heapTutorialState.stepIndex];
+        if (!step || step.action !== action) return;
+        if (action === 'insert' && detail.value !== Number(step.value)) return;
+        if (action === 'merge') {
+            const expected = step.expectedValues || [];
+            if (expected.length !== (detail.values || []).length) return;
+            if (!expected.every((value, index) => value === detail.values[index])) return;
+        }
+        if (action === 'change' && (detail.oldValue !== Number(step.value) || detail.newValue !== Number(step.extra))) return;
+        advanceHeapTutorial();
+    }
+
     function eventToClass(type) {
         if (type === 'SWAP' || type === 'SWAP_CHILDREN') return 'swap';
         if (type === 'CUT') return 'cut';
@@ -258,6 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modeRadios.forEach(radio => {
         radio.addEventListener('change', (e) => {
             if(animState === 'playing' || animState === 'paused') { e.target.checked = false; document.getElementById("mode-" + currentMode).checked = true; return; }
+            if (heapTutorialState.active && e.target.value !== heapTutorialState.mode) exitHeapTutorial(true);
             currentMode = e.target.value;
             stackData = []; qArr = new Array(5).fill(null); qFront = 0; qRear = -1; qCount = 0; edges = []; bstRoot = null; 
             if(currentMode === 'list-array' || currentMode === 'list-linked') mainListData = [];
@@ -307,10 +550,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     heapOrderSelect.addEventListener('change', () => {
-        heapIsMin = heapOrderSelect.value === 'min';
-        Object.values(heapModels).forEach(m => m.setOrder(heapIsMin));
+        setHeapComparator(heapOrderSelect.value === 'min');
         if (currentMode.includes('heap-')) {
             renderHeap();
+            renderHeapTutorialPanel();
             showStatus('Comparator switched to ' + (heapIsMin ? 'Min-Heap' : 'Max-Heap'), '#60a5fa');
         }
     });
@@ -324,6 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderHeap();
             await animateHeapEvents(out.events);
             showStatus('Inserted ' + val, '#34d399');
+            maybeAdvanceHeapTutorial('insert', { value: val });
             return '__KEEP_STATUS__';
         });
     });
@@ -335,6 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!out.ok) return showStatus(out.error, '#f87171');
         renderHeap();
         showStatus('Peek = ' + out.value, '#fbbf24');
+        maybeAdvanceHeapTutorial('peek', { value: out.value });
     });
 
     btnHeapExtract.addEventListener('click', () => {
@@ -346,6 +591,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderHeap();
             await animateHeapEvents(out.events);
             showStatus('Extracted ' + out.value, '#ec4899');
+            maybeAdvanceHeapTutorial('extract', { value: out.value });
             return '__KEEP_STATUS__';
         });
     });
@@ -361,6 +607,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderHeap();
             await animateHeapEvents(out.events);
             showStatus('Merged ' + values.length + ' values', '#34d399');
+            maybeAdvanceHeapTutorial('merge', { values });
             return '__KEEP_STATUS__';
         });
     });
@@ -376,6 +623,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderHeap();
             await animateHeapEvents(out.events);
             showStatus('Key changed: ' + oldVal + ' -> ' + newVal, '#34d399');
+            maybeAdvanceHeapTutorial('change', { oldValue: oldVal, newValue: newVal });
             return '__KEEP_STATUS__';
         });
     });
@@ -437,7 +685,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         showStatus(statsMsg, '#a78bfa');
+        maybeAdvanceHeapTutorial('stats', { size });
     });
+
+    btnHeapTutorial.addEventListener('click', () => {
+        if (!currentMode.includes('heap-')) return;
+        startHeapTutorial();
+    });
+    btnHeapTutorialNext.addEventListener('click', () => advanceHeapTutorial());
+    btnHeapTutorialRestart.addEventListener('click', () => startHeapTutorial());
+    btnHeapTutorialExit.addEventListener('click', () => exitHeapTutorial());
 
     // ----------- TREES -----------
     btnTreeAdd.addEventListener('click', () => {
@@ -550,9 +807,11 @@ document.addEventListener('DOMContentLoaded', () => {
             btnHeapDelete.disabled = isPlaying;
             btnHeapFindMin.disabled = isPlaying;
             btnHeapStats.disabled = isPlaying;
+            btnHeapTutorial.disabled = isPlaying;
             heapOrderSelect.disabled = isPlaying;
         }
         modeRadios.forEach(r => r.disabled = isPlaying);
+        syncHeapTutorialChrome();
     }
     async function executeAnimWrapper(fn) {
         if(animState === 'playing' || animState === 'paused') return; animState = 'playing'; setAnimControls(true);
@@ -678,6 +937,7 @@ document.addEventListener('DOMContentLoaded', () => {
             else if(currentMode === 'heap-dary') { codeTitle.textContent = 'heap_dary.cpp'; codeDisplay.textContent = codeHeapDary; }
             else if(currentMode === 'heap-pairing') { codeTitle.textContent = 'heap_pairing.cpp'; codeDisplay.textContent = codeHeapPairing; }
         }
+        syncHeapTutorialChrome();
         if (window.Prism) Prism.highlightElement(codeDisplay);
     }
     function renderAll() {
@@ -916,6 +1176,7 @@ document.addEventListener('DOMContentLoaded', () => {
             el.style.top = pos.y + 'px';
             heapNodesContainer.appendChild(el);
         });
+        renderHeapTutorialPanel();
     }
     
     async function runBubbleSort() {

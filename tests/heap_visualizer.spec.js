@@ -2,13 +2,13 @@ const { test, expect } = require('@playwright/test');
 const path = require('path');
 
 const heapModes = [
-    { id: 'mode-heap-binary', title: 'heap_binary.cpp', desc: 'Binary Heap' },
-    { id: 'mode-heap-binomial', title: 'heap_binomial.cpp', desc: 'Binomial Queue' },
-    { id: 'mode-heap-fibonacci', title: 'heap_fibonacci.cpp', desc: 'Fibonacci Heap' },
-    { id: 'mode-heap-leftist', title: 'heap_leftist.cpp', desc: 'Leftist Heap' },
-    { id: 'mode-heap-skew', title: 'heap_skew.cpp', desc: 'Skew Heap' },
-    { id: 'mode-heap-dary', title: 'heap_dary.cpp', desc: 'D-ary Heap' },
-    { id: 'mode-heap-pairing', title: 'heap_pairing.cpp', desc: 'Pairing Heap' },
+    { id: 'mode-heap-binary', title: 'heap_binary.cpp', desc: 'Binary Heap', tutorial: 'Binary Heap' },
+    { id: 'mode-heap-binomial', title: 'heap_binomial.cpp', desc: 'Binomial Queue', tutorial: 'Binomial Heap' },
+    { id: 'mode-heap-fibonacci', title: 'heap_fibonacci.cpp', desc: 'Fibonacci Heap', tutorial: 'Fibonacci Heap' },
+    { id: 'mode-heap-leftist', title: 'heap_leftist.cpp', desc: 'Leftist Heap', tutorial: 'Leftist Heap' },
+    { id: 'mode-heap-skew', title: 'heap_skew.cpp', desc: 'Skew Heap', tutorial: 'Skew Heap' },
+    { id: 'mode-heap-dary', title: 'heap_dary.cpp', desc: 'D-ary Heap', tutorial: '4-ary Heap' },
+    { id: 'mode-heap-pairing', title: 'heap_pairing.cpp', desc: 'Pairing Heap', tutorial: 'Pairing Heap' },
 ];
 
 test.describe('Heap Visualizer Suite', () => {
@@ -92,5 +92,41 @@ test.describe('Heap Visualizer Suite', () => {
         }
         await page.click('#btn-heap-extract');
         await expect(page.locator('#status-message')).toContainText('Extracted 9');
+    });
+
+    for (const mode of heapModes) {
+        test(`${mode.id}: tutorial opens and exits`, async ({ page }) => {
+            await page.locator(`label[for="${mode.id}"]`).click();
+            await page.click('#btn-heap-tutorial');
+
+            await expect(page.locator('#heap-tutorial-panel')).toBeVisible();
+            await expect(page.locator('#heap-tutorial-mode')).toContainText(mode.tutorial);
+            await expect(page.locator('#heap-tutorial-title')).toContainText('Create the first root');
+            await expect(page.locator('#heap-tutorial-progress')).toContainText('Step 1 / 8');
+            await expect(page.locator('#heap-val')).toHaveValue('12');
+
+            await page.click('#btn-heap-tutorial-exit');
+            await expect(page.locator('#heap-tutorial-panel')).toBeHidden();
+            await expect(page.locator('#btn-heap-tutorial')).toHaveText('Start Tutorial');
+        });
+    }
+
+    test('Heap tutorial auto-advances and can restart', async ({ page }) => {
+        await page.locator('label[for="mode-heap-binary"]').click();
+        await page.click('#btn-heap-tutorial');
+
+        await expect(page.locator('#heap-tutorial-progress')).toContainText('Step 1 / 8');
+        await page.click('#btn-heap-insert');
+        await expect(page.locator('#heap-tutorial-progress')).toContainText('Step 2 / 8');
+        await expect(page.locator('#heap-val')).toHaveValue('7');
+
+        await page.click('#btn-heap-insert');
+        await expect(page.locator('#heap-tutorial-progress')).toContainText('Step 3 / 8');
+        await expect(page.locator('#heap-val')).toHaveValue('19');
+
+        await page.click('#btn-heap-tutorial-restart');
+        await expect(page.locator('#heap-tutorial-progress')).toContainText('Step 1 / 8');
+        await expect(page.locator('.heap-node')).toHaveCount(0);
+        await expect(page.locator('#heap-val')).toHaveValue('12');
     });
 });
