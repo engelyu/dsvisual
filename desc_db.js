@@ -236,5 +236,45 @@ const descDB = {
             <span class="badge time">Avg Time: O(N^(1.25))</span>
             <span class="badge space">Relative Space: O(1)</span>
         </div>
+    `,
+    'hash-chain': `
+        <h3>Hash Table (Separate Chaining)</h3>
+        <p>A resilient Hash Table avoiding absolute overflow by chaining deeply.</p>
+        <hr>
+        <ul>
+            <li><strong>Core Mechanism:</strong> The memory Array contains simple Pointers to Linked List Heads instead of raw values. When multiple elements target the same Index (Collision), they are harmlessly appended to that index's isolated Linked List chain.</li>
+            <li><strong>Advantage:</strong> The Table conceptually never runs out of physical space, and avoids catastrophic table-wide shifts during heavy clustering. Load Factor can easily exceed 1.0 safely.</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Avg Insert/Lookup: O(1)</span>
+            <span class="badge exception">Clustered Worst: O(N)</span>
+            <span class="badge space">Space: O(N) Pointer Allocations</span>
+        </div>
+    `,
+    'hash-open': `
+        <h3>Hash Table (Open Addressing w/ Linear Probing)</h3>
+        <p>A closed-space array format maximizing computational caching efficiency by keeping all memory physically adjacent.</p>
+        <hr>
+        <ul>
+            <li><strong>Core Mechanism:</strong> Every real Array slot can strictly hold <strong>one</strong> element. Upon attempting to insert and detecting an occupied collision, it will <em>Probe</em> (jump sequentially +1) until discovering an empty adjacent territory.</li>
+            <li><strong>Risk:</strong> Prone to Primary Clustering. If indexes gather consecutively, new collisions suffer severe cascading displacement delays. The Array will structurally fail entirely at Size = Capacity.</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Avg Access: O(1)</span>
+            <span class="badge exception">Strict Clustered Overload: O(N)</span>
+        </div>
+    `,
+    'hash-bucket': `
+        <h3>Hash Table (Closed Addressing w/ N-Buckets)</h3>
+        <p>A fascinating structural hybrid mimicking physical hardware block transfers.</p>
+        <hr>
+        <ul>
+            <li><strong>Core Mechanism:</strong> Transforms standard indices into massive bounded "Blocks" or "Buckets" capable of housing <strong>Multiple Elements</strong> (e.g. 2, 4, 8 spaces per Bucket Address) simultaneously!</li>
+            <li><strong>Collision Logistics:</strong> A collision within a single Index operates harmoniously provided the Bucket capacity isn't fully exhausted. If exhausted, it classically falls back to adjacent Block Probing. It balances cache locality hits against clustered pointer overhead.</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Avg Bounded Insert: O(1)</span>
+            <span class="badge exception">Saturated Block Failure: O(T)</span>
+        </div>
     `
 };

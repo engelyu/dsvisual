@@ -18,7 +18,10 @@ const mappings = {
     'queue.cpp': 'codeQueue',
     'graph.cpp': 'codeGraph',
     'list_array.cpp': 'codeListArray',
-    'list_linked.cpp': 'codeListLinked'
+    'list_linked.cpp': 'codeListLinked',
+    'hash_chaining.cpp': 'codeHashChain',
+    'hash_open_address.cpp': 'codeHashOpen',
+    'hash_bucket.cpp': 'codeHashBucket'
 };
 
 let out = '// Auto-generated code DB for visualization\n';

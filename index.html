@@ -29,6 +29,9 @@
                         <input type="radio" id="mode-tree-splay" name="ds-mode" value="tree-splay"> <label for="mode-tree-splay">Tree(Splay)</label>
                         <input type="radio" id="mode-list-arr" name="ds-mode" value="list-array"> <label for="mode-list-arr">List(Arr)</label>
                         <input type="radio" id="mode-list-list" name="ds-mode" value="list-linked"> <label for="mode-list-list">List(List)</label>
+                        <input type="radio" id="mode-hash-chain" name="ds-mode" value="hash-chain"> <label for="mode-hash-chain">Hash(Chain)</label>
+                        <input type="radio" id="mode-hash-open" name="ds-mode" value="hash-open"> <label for="mode-hash-open">Hash(Open)</label>
+                        <input type="radio" id="mode-hash-bucket" name="ds-mode" value="hash-bucket"> <label for="mode-hash-bucket">Hash(Bucket)</label>
                         <input type="radio" id="mode-search-linear" name="ds-mode" value="search-linear"> <label for="mode-search-linear">Search(L)</label>
                         <input type="radio" id="mode-search-binary" name="ds-mode" value="search-binary"> <label for="mode-search-binary">Search(B)</label>
                         
@@ -57,6 +60,11 @@
                         <input type="number" id="graph-u" placeholder="U(0-4)" min="0" max="4" value="0">
                         <input type="number" id="graph-v" placeholder="V(0-4)" min="0" max="4" value="1">
                         <button id="btn-graph-add" class="btn primary">Add Edge</button>
+                    </div>
+
+                    <div class="actions hidden" id="hash-actions">
+                        <input type="number" id="hash-val" placeholder="Value (e.g. 42)">
+                        <button id="btn-hash-add" class="btn primary">Hash/Insert()</button>
                     </div>
 
                     <div class="actions hidden" id="tree-actions">
@@ -121,6 +129,10 @@
                             <svg id="tree-edges"></svg>
                             <div id="tree-nodes-container"></div>
                         </div>
+
+                        <div id="hash-ch-container" class="hash-ch-container hidden"></div>
+                        <div id="hash-oa-container" class="hash-oa-container hidden"></div>
+                        <div id="hash-bucket-container" class="hash-bucket-container hidden"></div>
 
                         <div id="list-arr-container" class="list-arr-container hidden"></div>
                         <div id="list-ll-container" class="list-ll-container hidden"></div>
