@@ -108,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const stdActions = document.getElementById('std-actions'); const graphActions = document.getElementById('graph-actions');
     const treeActions = document.getElementById('tree-actions'); const searchActions = document.getElementById('search-actions');
     const listActions = document.getElementById('list-actions'); const sortActions = document.getElementById('sort-actions');
+    const heapActions = document.getElementById('heap-actions');
 
     const statusMsg = document.getElementById('status-message');
     const codeDisplay = document.getElementById('code-display'); const codeTitle = document.getElementById('code-title');
@@ -123,6 +124,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSortRandom = document.getElementById('btn-sort-random'); const btnSortStart = document.getElementById('btn-sort-start');
     const btnSortPause = document.getElementById('btn-sort-pause'); const btnSortStop = document.getElementById('btn-sort-stop');
     const sortSpeedInput = document.getElementById('sort-speed');
+
+    const heapContainer = document.getElementById('heap-container');
+    const heapEdges = document.getElementById('heap-edges');
+    const heapNodesContainer = document.getElementById('heap-nodes-container');
+    const heapOrderSelect = document.getElementById('heap-order');
+    const heapValInput = document.getElementById('heap-val');
+    const heapExtraInput = document.getElementById('heap-extra');
+    const btnHeapInsert = document.getElementById('btn-heap-insert');
+    const btnHeapPeek = document.getElementById('btn-heap-peek');
+    const btnHeapExtract = document.getElementById('btn-heap-extract');
+    const btnHeapMerge = document.getElementById('btn-heap-merge');
+    const btnHeapChange = document.getElementById('btn-heap-change');
+    const btnHeapDelete = document.getElementById('btn-heap-delete');
+    const btnHeapFindMin = document.getElementById('btn-heap-find-min');
+    const btnHeapStats = document.getElementById('btn-heap-stats');
 
     const hashActions = document.getElementById('hash-actions');
     const btnHashAdd = document.getElementById('btn-hash-add'); const hashVal = document.getElementById('hash-val');
@@ -149,11 +165,20 @@ document.addEventListener('DOMContentLoaded', () => {
     let hashOaData = new Array(5).fill(null); // Simple array
     let hashBucketData = Array.from({length: 4}, () => []); // 4 buckets, max 2 items each
     let treeDrawLoop = null;
+    let heapEventTimer = null;
 
     let trieRoot = { children: {}, endOfWord: false };
     let radixRoot = { edges: {} };
     let tstRoot = null;
     let btreeData = []; let bplusData = [];
+    let heapIsMin = true;
+    const heapModels = {
+        'heap-binary': HeapModels.createHeapModel('heap-binary', heapIsMin),
+        'heap-binomial': HeapModels.createHeapModel('heap-binomial', heapIsMin),
+        'heap-fibonacci': HeapModels.createHeapModel('heap-fibonacci', heapIsMin),
+        'heap-leftist': HeapModels.createHeapModel('heap-leftist', heapIsMin),
+        'heap-skew': HeapModels.createHeapModel('heap-skew', heapIsMin),
+    };
 
     const tabBtnDesc = document.getElementById('tab-btn-desc');
     const tabBtnCode = document.getElementById('tab-btn-code');
@@ -173,6 +198,57 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.Prism) Prism.highlightElement(codeDisplay);
     });
 
+    function clearHeapEventMarks() {
+        if (heapEventTimer) {
+            clearTimeout(heapEventTimer);
+            heapEventTimer = null;
+        }
+        const classes = ['active', 'swap', 'cut', 'link', 'consolidate'];
+        heapNodesContainer.querySelectorAll('.heap-node').forEach(node => {
+            classes.forEach(cls => node.classList.remove(cls));
+        });
+    }
+
+    function getActiveHeapModel() {
+        return heapModels[currentMode] || null;
+    }
+
+    function resetHeapModels() {
+        Object.values(heapModels).forEach(m => {
+            m.clear();
+            m.setOrder(heapIsMin);
+        });
+        clearHeapEventMarks();
+    }
+
+    function eventToClass(type) {
+        if (type === 'SWAP' || type === 'SWAP_CHILDREN') return 'swap';
+        if (type === 'CUT') return 'cut';
+        if (type === 'MARK') return 'cut';
+        if (type === 'LINK' || type === 'MERGE_START' || type === 'MERGE_DEGREE') return 'link';
+        if (type === 'CONSOLIDATE') return 'consolidate';
+        return 'active';
+    }
+
+    async function animateHeapEvents(events) {
+        if (!events || !events.length) return;
+        for (const ev of events) {
+            if (animState === 'stopped') throw 'STOPPED';
+            clearHeapEventMarks();
+            const cls = eventToClass(ev.type);
+            const ids = [];
+            if (typeof ev.index === 'number') ids.push('h-' + ev.index);
+            if (typeof ev.a === 'number') ids.push('h-' + ev.a);
+            if (typeof ev.b === 'number') ids.push('h-' + ev.b);
+            ids.forEach(id => {
+                const n = document.getElementById(id);
+                if (n) n.classList.add(cls);
+            });
+            await sleep(Math.max(120, Math.floor(getDelay() / 2)));
+        }
+        clearHeapEventMarks();
+    }
+
     function generateSortArray() { sortArrData = []; for(let i=0; i<15; i++) sortArrData.push(Math.floor(Math.random() * 95) + 5); renderSortBars(); showStatus("Generated Random Array.", "#94a3b8"); }
 
     updateLayout();
@@ -187,6 +263,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if(currentMode === 'hash-open') hashOaData = new Array(5).fill(null);
             if(currentMode === 'hash-bucket') hashBucketData = Array.from({length: 4}, () => []);
             trieRoot = { children: {}, endOfWord: false }; radixRoot = { edges: {} }; tstRoot = null; btreeData = []; bplusData = [];
+            if(currentMode.includes('heap-')) {
+                heapOrderSelect.value = heapIsMin ? 'min' : 'max';
+                clearHeapEventMarks();
+                heapModels[currentMode].clear();
+                heapModels[currentMode].setOrder(heapIsMin);
+            }
             if(currentMode.includes('sort-') && sortArrData.length === 0) generateSortArray();
             updateLayout(); renderAll();
             statusMsg.textContent = "Switched to " + currentMode; statusMsg.style.color = '#34d399';
@@ -220,6 +302,133 @@ document.addEventListener('DOMContentLoaded', () => {
         const i = parseInt(listIdx.value); if(isNaN(i)) return showStatus('Invalid input', '#f87171');
         if(i < 0 || i >= mainListData.length) return showStatus('Index out of bounds', '#f87171');
         const v = mainListData[i]; mainListData.splice(i, 1); showStatus("Removed " + v + " from index " + i, '#ec4899'); renderLists();
+    });
+
+    heapOrderSelect.addEventListener('change', () => {
+        heapIsMin = heapOrderSelect.value === 'min';
+        Object.values(heapModels).forEach(m => m.setOrder(heapIsMin));
+        if (currentMode.includes('heap-')) {
+            renderHeap();
+            showStatus('Comparator switched to ' + (heapIsMin ? 'Min-Heap' : 'Max-Heap'), '#60a5fa');
+        }
+    });
+
+    btnHeapInsert.addEventListener('click', () => {
+        const model = getActiveHeapModel();
+        const val = parseInt(heapValInput.value);
+        if (!model || isNaN(val)) return showStatus('Enter a valid heap value.', '#f87171');
+        executeAnimWrapper(async () => {
+            const out = model.insert(val);
+            renderHeap();
+            await animateHeapEvents(out.events);
+            showStatus('Inserted ' + val, '#34d399');
+            return '__KEEP_STATUS__';
+        });
+    });
+
+    btnHeapPeek.addEventListener('click', () => {
+        const model = getActiveHeapModel();
+        if (!model) return;
+        const out = model.peek();
+        if (!out.ok) return showStatus(out.error, '#f87171');
+        renderHeap();
+        showStatus('Peek = ' + out.value, '#fbbf24');
+    });
+
+    btnHeapExtract.addEventListener('click', () => {
+        const model = getActiveHeapModel();
+        if (!model) return;
+        executeAnimWrapper(async () => {
+            const out = model.extract();
+            if (!out.ok) return showStatus(out.error, '#f87171');
+            renderHeap();
+            await animateHeapEvents(out.events);
+            showStatus('Extracted ' + out.value, '#ec4899');
+            return '__KEEP_STATUS__';
+        });
+    });
+
+    btnHeapMerge.addEventListener('click', () => {
+        const model = getActiveHeapModel();
+        const source = heapExtraInput.value.trim();
+        if (!model || !source) return showStatus('Set extra values: e.g. 9,4,15', '#f87171');
+        const values = source.split(/[,\s]+/).map(v => parseInt(v)).filter(v => !isNaN(v));
+        executeAnimWrapper(async () => {
+            const out = model.merge(values);
+            if (!out.ok) return showStatus(out.error, '#f87171');
+            renderHeap();
+            await animateHeapEvents(out.events);
+            showStatus('Merged ' + values.length + ' values', '#34d399');
+            return '__KEEP_STATUS__';
+        });
+    });
+
+    btnHeapChange.addEventListener('click', () => {
+        const model = getActiveHeapModel();
+        const oldVal = parseInt(heapValInput.value);
+        const newVal = parseInt(heapExtraInput.value);
+        if (!model || isNaN(oldVal) || isNaN(newVal)) return showStatus('Provide old value + new value.', '#f87171');
+        executeAnimWrapper(async () => {
+            const out = model.changeKey(oldVal, newVal);
+            if (!out.ok) return showStatus(out.error, '#f87171');
+            renderHeap();
+            await animateHeapEvents(out.events);
+            showStatus('Key changed: ' + oldVal + ' -> ' + newVal, '#34d399');
+            return '__KEEP_STATUS__';
+        });
+    });
+
+    btnHeapDelete.addEventListener('click', () => {
+        const model = getActiveHeapModel();
+        const val = parseInt(heapValInput.value);
+        if (!model || isNaN(val)) return showStatus('Provide value to delete.', '#f87171');
+        executeAnimWrapper(async () => {
+            const out = model.deleteValue(val);
+            if (!out.ok) return showStatus(out.error, '#f87171');
+            renderHeap();
+            await animateHeapEvents(out.events);
+            showStatus('Deleted value ' + val, '#34d399');
+            return '__KEEP_STATUS__';
+        });
+    });
+
+    btnHeapFindMin.addEventListener('click', () => {
+        const model = getActiveHeapModel();
+        if (!model) return;
+        const out = model.peek();
+        if (!out.ok) return showStatus(out.error, '#f87171');
+        const minVal = out.value;
+        document.getElementById('h-0')?.classList.add('active');
+        setTimeout(() => document.getElementById('h-0')?.classList.remove('active'), 500);
+        showStatus('Min element: ' + minVal, '#60a5fa');
+    });
+
+    btnHeapStats.addEventListener('click', () => {
+        const model = getActiveHeapModel();
+        if (!model) return;
+        const size = model.data.length;
+        const isMin = model.isMin;
+        const mode = currentMode;
+        let statsMsg = `Size: ${size}, Order: ${isMin ? 'Min-Heap' : 'Max-Heap'}`;
+        
+        if (mode === 'heap-binomial') {
+            const degreeCount = {};
+            let idx = 0;
+            let degree = 0;
+            while (idx < size) {
+                const deg = Math.min(degree, Math.floor(Math.log2(size - idx)));
+                degreeCount[deg] = (degreeCount[deg] || 0) + 1;
+                idx += Math.max(1, 1 << deg);
+                degree++;
+            }
+            const degrees = Object.keys(degreeCount).map(d => `B${d}:${degreeCount[d]}`).join(', ');
+            statsMsg += ` | Trees: ${degrees}`;
+        } else if (mode === 'heap-fibonacci') {
+            const depth = Math.ceil(Math.log2(size + 1));
+            statsMsg += ` | MaxDepth: ${depth}`;
+        }
+        
+        showStatus(statsMsg, '#a78bfa');
     });
 
     // ----------- TREES -----------
@@ -319,16 +528,34 @@ document.addEventListener('DOMContentLoaded', () => {
     // (Search, Sort layout bindings omitted for strictness matching original JS...)
     function handlePauseClick() { if (animState === 'playing') { animState = 'paused'; setAnimControls(true); showStatus('Paused', '#fbbf24'); } else if (animState === 'paused') { animState = 'playing'; setAnimControls(true); showStatus('Resumed', '#34d399'); } }
     btnSearchPause.addEventListener('click', handlePauseClick); btnSortPause.addEventListener('click', handlePauseClick);
-    function handleStopClick() { if(animState === 'playing' || animState === 'paused') { animState = 'stopped'; setTimeout(() => { animState = 'idle'; setAnimControls(false); if(currentMode.includes('sort')) renderSortBars(); else renderSearchArray(currentMode === 'search-binary' ? arrBinary : arrLinear); showStatus('Stopped & Reset.', '#f87171'); }, 100); } }
+    function handleStopClick() { if(animState === 'playing' || animState === 'paused') { animState = 'stopped'; setTimeout(() => { animState = 'idle'; setAnimControls(false); if(currentMode.includes('sort')) renderSortBars(); else if(currentMode.includes('search')) renderSearchArray(currentMode === 'search-binary' ? arrBinary : arrLinear); else if(currentMode.includes('heap-')) renderHeap(); showStatus('Stopped & Reset.', '#f87171'); }, 100); } }
     btnSearchStop.addEventListener('click', handleStopClick); btnSortStop.addEventListener('click', handleStopClick);
     function setAnimControls(isPlaying) {
         if(currentMode.includes('search')) { btnSearchGo.disabled = isPlaying; btnSearchPause.disabled = !isPlaying; btnSearchStop.disabled = !isPlaying; btnSearchPause.textContent = animState === 'paused' ? 'Resume' : 'Pause'; }
         else if (currentMode.includes('sort')) { btnSortStart.disabled = isPlaying; btnSortRandom.disabled = isPlaying; btnSortPause.disabled = !isPlaying; btnSortStop.disabled = !isPlaying; btnSortPause.textContent = animState === 'paused' ? 'Resume' : 'Pause'; }
+        else if (currentMode.includes('heap-')) {
+            btnHeapInsert.disabled = isPlaying;
+            btnHeapPeek.disabled = isPlaying;
+            btnHeapExtract.disabled = isPlaying;
+            btnHeapMerge.disabled = isPlaying;
+            btnHeapChange.disabled = isPlaying;
+            btnHeapDelete.disabled = isPlaying;
+            btnHeapFindMin.disabled = isPlaying;
+            btnHeapStats.disabled = isPlaying;
+            heapOrderSelect.disabled = isPlaying;
+        }
         modeRadios.forEach(r => r.disabled = isPlaying);
     }
     async function executeAnimWrapper(fn) {
         if(animState === 'playing' || animState === 'paused') return; animState = 'playing'; setAnimControls(true);
-        try { await fn(); if(animState === 'playing') { animState = 'idle'; setAnimControls(false); showStatus("Execution Complete!", "#34d399"); } } catch (e) { if (e === 'STOPPED') return; else throw e; }
+        try {
+            const result = await fn();
+            if(animState === 'playing') {
+                animState = 'idle';
+                setAnimControls(false);
+                if(result !== '__KEEP_STATUS__') showStatus("Execution Complete!", "#34d399");
+            }
+        } catch (e) { if (e === 'STOPPED') return; else throw e; }
     }
 
     btnSearchGo.addEventListener('click', () => { const target = parseInt(searchVal.value); if(isNaN(target)) return showStatus('Enter valid target.', '#f87171'); if (currentMode === 'search-linear') executeAnimWrapper(async () => await runLinearSearch(target)); else if (currentMode === 'search-binary') executeAnimWrapper(async () => await runBinarySearch(target)); });
@@ -379,8 +606,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function showStatus(msg, color) { statusMsg.textContent = msg; statusMsg.style.color = color; }
     function getDelay() { return 610 - parseInt(sortSpeedInput.value); } 
     function updateLayout() {
-        const containers = [arrayContainer, linkedListContainer, queueContainer, graphContainer, treeContainer, advTreeContainer, searchContainer, listArrContainer, listLLContainer, sortContainer, hashChContainer, hashOaContainer, hashBucketContainer];
-        const actions = [stdActions, graphActions, treeActions, textTreeActions, searchActions, listActions, sortActions, hashActions];
+        const containers = [arrayContainer, linkedListContainer, queueContainer, graphContainer, treeContainer, advTreeContainer, searchContainer, listArrContainer, listLLContainer, sortContainer, hashChContainer, hashOaContainer, hashBucketContainer, heapContainer];
+        const actions = [stdActions, graphActions, treeActions, textTreeActions, searchActions, listActions, sortActions, hashActions, heapActions];
         containers.forEach(c => c.classList.add('hidden')); actions.forEach(a => a.classList.add('hidden'));
         if(treeDrawLoop) { cancelAnimationFrame(treeDrawLoop); treeDrawLoop = null; }
 
@@ -431,6 +658,16 @@ document.addEventListener('DOMContentLoaded', () => {
             else if(currentMode === 'sort-radix') { codeTitle.textContent = 'sort_radix.cpp'; codeDisplay.textContent = codeSortRadix; }
             else if(currentMode === 'sort-heap') { codeTitle.textContent = 'sort_heap.cpp'; codeDisplay.textContent = codeSortHeap; }
         }
+        else if (currentMode.includes('heap-')) {
+            heapContainer.classList.remove('hidden');
+            heapActions.classList.remove('hidden');
+            heapOrderSelect.value = heapIsMin ? 'min' : 'max';
+            if(currentMode === 'heap-binary') { codeTitle.textContent = 'heap_binary.cpp'; codeDisplay.textContent = codeHeapBinary; }
+            else if(currentMode === 'heap-binomial') { codeTitle.textContent = 'heap_binomial.cpp'; codeDisplay.textContent = codeHeapBinomial; }
+            else if(currentMode === 'heap-fibonacci') { codeTitle.textContent = 'heap_fibonacci.cpp'; codeDisplay.textContent = codeHeapFibonacci; }
+            else if(currentMode === 'heap-leftist') { codeTitle.textContent = 'heap_leftist.cpp'; codeDisplay.textContent = codeHeapLeftist; }
+            else if(currentMode === 'heap-skew') { codeTitle.textContent = 'heap_skew.cpp'; codeDisplay.textContent = codeHeapSkew; }
+        }
         if (window.Prism) Prism.highlightElement(codeDisplay);
     }
     function renderAll() {
@@ -443,6 +680,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (currentMode.includes('list-')) renderLists();
         else if (currentMode.includes('hash-')) renderHashes();
         else if (currentMode.includes('sort-')) renderSortBars();
+        else if (currentMode.includes('heap-')) renderHeap();
     }
 
     // Sort renderers omitted mapping exactly to previous standard block 
@@ -452,6 +690,181 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function setBarVal(index, val) { sortArrData[index] = val; const bar = document.getElementById('sb-' + index); if(bar) { bar.style.height = (val * 2.5) + 'px'; bar.innerHTML = '<span>' + val + '</span>'; } }
     function setBarColor(index, classN) { const bar = document.getElementById('sb-' + index); if(bar) bar.className = 'sort-bar ' + classN; }
+
+    function renderHeap() {
+        const model = getActiveHeapModel();
+        if (!model) return;
+
+        const snap = model.snapshot();
+        heapNodesContainer.innerHTML = '';
+        heapEdges.innerHTML = '';
+
+        const positionById = {};
+        const heapMode = currentMode;
+        
+        if (snap.kind === 'tree') {
+            // Binary, Leftist, Skew: complete binary tree layout
+            snap.nodes.forEach((node, i) => {
+                const level = Math.floor(Math.log2(i + 1));
+                const first = Math.pow(2, level) - 1;
+                const posInLevel = i - first;
+                const count = Math.pow(2, level);
+                const x = ((posInLevel + 1) / (count + 1)) * heapContainer.clientWidth;
+                const y = 42 + level * 62;
+                positionById[node.id] = { x, y };
+            });
+        } else if (heapMode === 'heap-binomial') {
+            // Enhanced Binomial heap layout: group by degree
+            const trees = [];
+            snap.roots.forEach((rootId, idx) => {
+                const degree = idx;
+                const treeSize = Math.pow(2, degree);
+                trees.push({ id: rootId, degree, size: treeSize });
+            });
+            
+            let xOffset = 20;
+            trees.forEach((tree) => {
+                const treeWidth = Math.min(tree.size * 35, 120);
+                const treeCenterX = xOffset + treeWidth / 2;
+                
+                // Layout tree using BFS
+                const queue = [{ id: tree.id, level: 0, x: treeCenterX }];
+                const visited = new Set();
+                
+                while (queue.length > 0) {
+                    const { id, level, x } = queue.shift();
+                    if (visited.has(id)) continue;
+                    visited.add(id);
+                    
+                    const nodeIdx = parseInt(id.replace('h-', ''));
+                    const y = 48 + level * 60;
+                    positionById[id] = { x, y };
+                    
+                    const left = 2 * nodeIdx + 1;
+                    const right = 2 * nodeIdx + 2;
+                    if (left < snap.nodes.length) {
+                        const childX = x - (treeWidth / Math.pow(2, level + 2));
+                        queue.push({ id: 'h-' + left, level: level + 1, x: childX });
+                    }
+                    if (right < snap.nodes.length) {
+                        const childX = x + (treeWidth / Math.pow(2, level + 2));
+                        queue.push({ id: 'h-' + right, level: level + 1, x: childX });
+                    }
+                }
+                
+                xOffset += treeWidth + 30;
+            });
+            
+            // Fallback for disconnected nodes
+            snap.nodes.forEach((node, i) => {
+                if (!positionById[node.id]) {
+                    const col = i % 5;
+                    positionById[node.id] = {
+                        x: 40 + col * ((heapContainer.clientWidth - 80) / 4),
+                        y: 200,
+                    };
+                }
+            });
+        } else if (heapMode === 'heap-fibonacci') {
+            // Enhanced Fibonacci heap: root list at top, cut trees below
+            const roots = snap.roots;
+            const rootCount = roots.length;
+            const rootSpacing = heapContainer.clientWidth / (rootCount + 1);
+            
+            roots.forEach((rootId, ridx) => {
+                const rootX = (ridx + 1) * rootSpacing;
+                const rootY = 40;
+                positionById[rootId] = { x: rootX, y: rootY };
+                
+                // Layout subtree rooted at this root
+                const queue = [{ id: rootId, level: 0, x: rootX }];
+                const visited = new Set([rootId]);
+                
+                while (queue.length > 0) {
+                    const { id, level, x } = queue.shift();
+                    const nodeIdx = parseInt(id.replace('h-', ''));
+                    
+                    const y = rootY + 60 + level * 55;
+                    positionById[id] = { x, y };
+                    
+                    const left = 2 * nodeIdx + 1;
+                    const right = 2 * nodeIdx + 2;
+                    const childSpread = 50 / Math.pow(1.5, level);
+                    
+                    if (left < snap.nodes.length && !visited.has('h-' + left)) {
+                        visited.add('h-' + left);
+                        queue.push({ id: 'h-' + left, level: level + 1, x: x - childSpread });
+                    }
+                    if (right < snap.nodes.length && !visited.has('h-' + right)) {
+                        visited.add('h-' + right);
+                        queue.push({ id: 'h-' + right, level: level + 1, x: x + childSpread });
+                    }
+                }
+            });
+        } else {
+            // Fallback forest layout
+            const roots = snap.roots || [];
+            roots.forEach((rootId, ridx) => {
+                const rootX = ((ridx + 1) / (roots.length + 1)) * heapContainer.clientWidth;
+                const rootY = 48;
+                positionById[rootId] = { x: rootX, y: rootY };
+
+                const rootIndex = parseInt(rootId.replace('h-', ''), 10);
+                const left = 2 * rootIndex + 1;
+                const right = 2 * rootIndex + 2;
+                if (left < snap.nodes.length) positionById['h-' + left] = { x: rootX - 35, y: 110 };
+                if (right < snap.nodes.length) positionById['h-' + right] = { x: rootX + 35, y: 110 };
+            });
+
+            snap.nodes.forEach((node, i) => {
+                if (!positionById[node.id]) {
+                    const row = 3 + Math.floor(i / 6);
+                    const col = i % 6;
+                    positionById[node.id] = {
+                        x: 40 + col * ((heapContainer.clientWidth - 80) / 5),
+                        y: 90 + row * 55,
+                    };
+                }
+            });
+        }
+
+        snap.edges.forEach(edge => {
+            const from = positionById[edge.from];
+            const to = positionById[edge.to];
+            if (!from || !to) return;
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', from.x);
+            line.setAttribute('y1', from.y);
+            line.setAttribute('x2', to.x);
+            line.setAttribute('y2', to.y);
+            line.setAttribute('class', 'heap-edge');
+            heapEdges.appendChild(line);
+        });
+
+        snap.nodes.forEach((node, idx) => {
+            const pos = positionById[node.id];
+            if (!pos) return;
+            const el = document.createElement('div');
+            el.id = node.id;
+            let className = 'heap-node';
+            if (node.root) className += ' root';
+            if (node.npl !== null) className += ' npl';
+            if (heapMode === 'heap-binomial' && node.root) className += ' degree';
+            if (node.marked) className += ' marked';
+            el.className = className;
+            
+            if (node.npl !== null) el.setAttribute('data-npl', node.npl);
+            if (heapMode === 'heap-binomial' && node.root) {
+                const rootIdx = snap.roots.indexOf(node.id);
+                if (rootIdx >= 0) el.setAttribute('data-degree', 'B' + rootIdx);
+            }
+            
+            el.textContent = node.value;
+            el.style.left = pos.x + 'px';
+            el.style.top = pos.y + 'px';
+            heapNodesContainer.appendChild(el);
+        });
+    }
     
     async function runBubbleSort() {
         showStatus("Bubble Sort", "#60a5fa"); const n = sortArrData.length;

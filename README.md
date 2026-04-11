@@ -13,7 +13,7 @@ open index.html
 - Side-by-side **animated visualization** and **C++ source code** display
 - Step-through animation with **pause / stop** controls
 - Algorithm descriptions with **time & space complexity**
-- Covers **30+ data structures and algorithms**
+- Covers **35+ data structures and algorithms**
 
 ## Supported Algorithms
 
@@ -25,6 +25,7 @@ open index.html
 | **List** | Array-based, Linked List |
 | **Graph** | Adjacency representation, traversal |
 | **Hash Table** | Chaining, Open Addressing, Bucket Hashing |
+| **Heap / Priority Queue** | Binary Heap, Binomial Queue, Fibonacci Heap, Leftist Heap, Skew Heap |
 
 ### Trees
 | Type | Description |
@@ -67,9 +68,13 @@ dsvisual/
 ├── code_db.js          # Auto-generated: C++ source strings for display (do not edit manually)
 ├── desc_db.js          # Algorithm descriptions and complexity notes
 ├── build_db.js         # Node.js script: rebuilds code_db.js from .cpp files
+├── heap_models.js      # Shared heap logic used by UI and unit tests
 ├── *.cpp               # C++ source files (one per algorithm/data structure)
 ├── tests/
-│   └── visualizer.spec.js   # Playwright end-to-end tests
+│   ├── visualizer.spec.js       # Core Playwright suite
+│   ├── heap_visualizer.spec.js  # Heap E2E suite
+│   └── unit/
+│       └── heap_models.test.js  # Node unit tests for heap invariants
 └── playwright.config.js
 ```
 
@@ -109,7 +114,9 @@ npm install
 ### Run tests
 
 ```bash
-npm test
+npm test                # Playwright E2E
+npm run test:unit       # Heap model unit tests (node:test)
+npm run test:all        # Unit + E2E
 # or
 npx playwright test
 ```

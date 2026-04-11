@@ -45,6 +45,91 @@ const descDB = {
     'sort-count': `<h3>Counting Sort</h3><p>An integer sorting algorithm that operates by counting the number of objects that have distinct key values (a kind of hashing). Then uses those counts to determine the positions of each key value in the output sequence.</p><div class="complexity">Time: <span class="badge badge-green">O(n + k)</span> Space: <span class="badge badge-red">O(k)</span></div>`,
     'sort-radix': `<h3>Radix Sort</h3><p>A non-comparative sorting algorithm that avoids comparison by creating and distributing elements into buckets according to their radix. For elements with more than one significant digit, this logical grouping process is repeated for each digit from right to left.</p><div class="complexity">Time: <span class="badge badge-green">O(d * (n + k))</span> Space: <span class="badge badge-red">O(n + k)</span></div>`,
     'sort-heap': `<h3>Heap Sort</h3><p>A comparison-based sorting algorithm based on the Binary Heap data structure. It divides its input into a sorted and an unsorted region, and it iteratively shrinks the unsorted region by extracting the largest element from a Max-Heap and inserting it into the sorted region.</p><div class="complexity">Time: <span class="badge badge-yellow">O(n log n)</span> Space: <span class="badge badge-green">O(1)</span></div>`,
+    'heap-binary': `
+        <h3>Binary Heap (Priority Queue)</h3>
+        <p>A complete binary tree stored in an array, optimized for fast top-priority access.</p>
+        <hr>
+        <ul>
+            <li><strong>Core Mechanism:</strong> Parent-child ordering is maintained by <code>sift up</code> and <code>sift down</code>. You can switch between Min-Heap and Max-Heap comparator modes.</li>
+            <li><strong>Use Cases:</strong> Priority scheduling, Dijkstra/Prim support structures, streaming top-k.</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Insert: O(log N)</span>
+            <span class="badge time">Peek: O(1)</span>
+            <span class="badge time">Extract: O(log N)</span>
+            <span class="badge time">Merge: O((N+M) log(N+M))</span>
+            <span class="badge time">Decrease/Increase: O(log N)</span>
+            <span class="badge time">Delete: O(log N)</span>
+        </div>
+    `,
+    'heap-binomial': `
+        <h3>Binomial Queue</h3>
+        <p>A forest of binomial trees where each degree appears at most once.</p>
+        <hr>
+        <ul>
+            <li><strong>Core Mechanism:</strong> Merge resembles binary addition over tree degrees; linking trees of equal rank is the central operation.</li>
+            <li><strong>Strength:</strong> Efficient meld/merge compared to classic binary heap workflows.</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Insert: O(1) amortized</span>
+            <span class="badge time">Peek: O(log N)</span>
+            <span class="badge time">Extract: O(log N)</span>
+            <span class="badge time">Merge: O(log N)</span>
+            <span class="badge time">Decrease/Increase: O(log N)</span>
+            <span class="badge time">Delete: O(log N)</span>
+        </div>
+    `,
+    'heap-fibonacci': `
+        <h3>Fibonacci Heap</h3>
+        <p>A lazy-merge heap family with very strong amortized bounds for advanced graph algorithms.</p>
+        <hr>
+        <ul>
+            <li><strong>Core Mechanism:</strong> Root-list + deferred consolidation, with <code>cut</code> and <code>cascading cut</code> during key updates.</li>
+            <li><strong>Use Cases:</strong> Theoretical optimum for heavy decrease-key workloads.</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Insert: O(1) amortized</span>
+            <span class="badge time">Peek: O(1)</span>
+            <span class="badge time">Extract: O(log N) amortized</span>
+            <span class="badge time">Merge: O(1) amortized</span>
+            <span class="badge time">Decrease/Increase: O(1) amortized</span>
+            <span class="badge time">Delete: O(log N) amortized</span>
+        </div>
+    `,
+    'heap-leftist': `
+        <h3>Leftist Heap</h3>
+        <p>A merge-friendly heap that keeps a short right spine using null-path-length (NPL) constraints.</p>
+        <hr>
+        <ul>
+            <li><strong>Core Mechanism:</strong> After each merge step, children may swap so that <code>NPL(left) >= NPL(right)</code>.</li>
+            <li><strong>Strength:</strong> Merge is the primitive; insert/delete are defined in terms of merge.</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Insert: O(log N)</span>
+            <span class="badge time">Peek: O(1)</span>
+            <span class="badge time">Extract: O(log N)</span>
+            <span class="badge time">Merge: O(log N)</span>
+            <span class="badge time">Decrease/Increase: O(log N)</span>
+            <span class="badge time">Delete: O(log N)</span>
+        </div>
+    `,
+    'heap-skew': `
+        <h3>Skew Heap</h3>
+        <p>A self-adjusting merge heap with no explicit rank bookkeeping.</p>
+        <hr>
+        <ul>
+            <li><strong>Core Mechanism:</strong> Every merge step swaps children unconditionally, yielding amortized balancing behavior.</li>
+            <li><strong>Strength:</strong> Very simple implementation with strong practical merge behavior.</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Insert: O(log N) amortized</span>
+            <span class="badge time">Peek: O(1)</span>
+            <span class="badge time">Extract: O(log N) amortized</span>
+            <span class="badge time">Merge: O(log N) amortized</span>
+            <span class="badge time">Decrease/Increase: O(log N) amortized</span>
+            <span class="badge time">Delete: O(log N) amortized</span>
+        </div>
+    `,
     'graph': `
         <h3>Undirected Graph (Adjacency Matrix)</h3>
         <p>A foundational topological structure meant for connecting generic Nodes (Vertices) using Edges.</p>

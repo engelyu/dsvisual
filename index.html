@@ -50,7 +50,12 @@
                         <input type="radio" id="mode-sort-count" name="ds-mode" value="sort-count"> <label for="mode-sort-count" style="color:#fb7185">Counting S.</label>
                         <input type="radio" id="mode-sort-radix" name="ds-mode" value="sort-radix"> <label for="mode-sort-radix" style="color:#fb7185">Radix S.</label>
                         <input type="radio" id="mode-sort-heap" name="ds-mode" value="sort-heap"> <label for="mode-sort-heap" style="color:#fb7185">Heap S.</label>
-                    <div class="subtitle">Graphs / Hash</div>
+                        <input type="radio" id="mode-heap-binary" name="ds-mode" value="heap-binary"> <label for="mode-heap-binary" style="color:#facc15">Heap(Binary)</label>
+                        <input type="radio" id="mode-heap-binomial" name="ds-mode" value="heap-binomial"> <label for="mode-heap-binomial" style="color:#facc15">Heap(Binomial)</label>
+                        <input type="radio" id="mode-heap-fibonacci" name="ds-mode" value="heap-fibonacci"> <label for="mode-heap-fibonacci" style="color:#facc15">Heap(Fibonacci)</label>
+                        <input type="radio" id="mode-heap-leftist" name="ds-mode" value="heap-leftist"> <label for="mode-heap-leftist" style="color:#facc15">Heap(Leftist)</label>
+                        <input type="radio" id="mode-heap-skew" name="ds-mode" value="heap-skew"> <label for="mode-heap-skew" style="color:#facc15">Heap(Skew)</label>
+                    </div>
                     
                     <div class="actions" id="std-actions">
                         <input type="number" id="std-value" placeholder="Value" value="10">
@@ -103,6 +108,23 @@
                             <span style="font-size: 0.8rem; color: #cbd5e1;">Delay</span>
                             <input type="range" id="sort-speed" min="10" max="600" value="100" style="width: 100px;">
                         </div>
+                    </div>
+
+                    <div class="actions hidden" id="heap-actions">
+                        <select id="heap-order" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 0.7rem; border-radius: 8px;">
+                            <option value="min">Min-Heap</option>
+                            <option value="max">Max-Heap</option>
+                        </select>
+                        <input type="number" id="heap-val" placeholder="Value">
+                        <input type="text" id="heap-extra" placeholder="Extra list or new value">
+                        <button id="btn-heap-insert" class="btn primary">Insert()</button>
+                        <button id="btn-heap-peek" class="btn secondary">Peek()</button>
+                        <button id="btn-heap-extract" class="btn secondary">Extract()</button>
+                        <button id="btn-heap-merge" class="btn secondary">Merge(+extra)</button>
+                        <button id="btn-heap-change" class="btn secondary">Decrease/Increase</button>
+                        <button id="btn-heap-delete" class="btn exception">Delete(value)</button>
+                        <button id="btn-heap-find-min" class="btn secondary" style="font-size: 0.8rem;">Find-Min</button>
+                        <button id="btn-heap-stats" class="btn secondary" style="font-size: 0.8rem;">Heap Stats</button>
                     </div>
                     
                     <div id="status-message" class="status-message">Visualizer initialized.</div>
@@ -162,6 +184,11 @@
 
                         <div id="sort-container" class="sort-container hidden"></div>
 
+                        <div id="heap-container" class="heap-container hidden">
+                            <svg id="heap-edges"></svg>
+                            <div id="heap-nodes-container"></div>
+                        </div>
+
                     </div>
                 </div>
             </section>
@@ -193,6 +220,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
     <script src="desc_db.js"></script>
     <script src="code_db.js"></script>
+    <script src="heap_models.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

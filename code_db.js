@@ -889,6 +889,50 @@ int main() {
 }
 `;
 
+const codeListArray = `#include <iostream>
+using namespace std;
+
+class ArrayList {
+private:
+    int* arr;
+    int capacity;
+    int size;
+
+public:
+    ArrayList(int cap = 10) {
+        capacity = cap;
+        size = 0;
+        arr = new int[capacity];
+    }
+    ~ArrayList() { delete[] arr; }
+
+    void insert(int index, int val) {
+        if (index < 0 || index > size || size >= capacity) return;
+        for (int i = size; i > index; i--) {
+            arr[i] = arr[i - 1]; // Shift right
+        }
+        arr[index] = val;
+        size++;
+    }
+
+    void remove(int index) {
+        if (index < 0 || index >= size) return;
+        for (int i = index; i < size - 1; i++) {
+            arr[i] = arr[i + 1]; // Shift left
+        }
+        size--;
+    }
+};
+
+int main() {
+    ArrayList list(10);
+    list.insert(0, 10);
+    list.insert(1, 20);
+    list.remove(0);
+    return 0;
+}
+`;
+
 const codeListLinked = `#include <iostream>
 using namespace std;
 
@@ -1125,6 +1169,743 @@ int main() {
     ht.insert(10);
     ht.insert(14); // Collision? 14%4=2, 10%4=2. Fills Bucket 2 nicely.
     ht.insert(22); // 22%4=2! Bucket 2 is FULL! This will overflow to Bucket 3.
+    return 0;
+}
+`;
+
+const codeHeapBinary = `#include <iostream>
+#include <vector>
+#include <stdexcept>
+using namespace std;
+
+class BinaryHeap {
+private:
+    vector<int> data;
+    bool isMinHeap;
+
+    bool cmp(int a, int b) const {
+        return isMinHeap ? (a < b) : (a > b);
+    }
+
+    void siftUp(int i) {
+        while (i > 0) {
+            int p = (i - 1) / 2;
+            if (!cmp(data[i], data[p])) break;
+            swap(data[i], data[p]);
+            i = p;
+        }
+    }
+
+    void siftDown(int i) {
+        int n = static_cast<int>(data.size());
+        while (true) {
+            int left = 2 * i + 1;
+            int right = 2 * i + 2;
+            int best = i;
+
+            if (left < n && cmp(data[left], data[best])) best = left;
+            if (right < n && cmp(data[right], data[best])) best = right;
+            if (best == i) break;
+
+            swap(data[i], data[best]);
+            i = best;
+        }
+    }
+
+public:
+    explicit BinaryHeap(bool minHeap = true) : isMinHeap(minHeap) {}
+
+    void insert(int x) {
+        data.push_back(x);
+        siftUp(static_cast<int>(data.size()) - 1);
+    }
+
+    int peek() const {
+        if (data.empty()) throw runtime_error("Heap is empty");
+        return data[0];
+    }
+
+    int extractTop() {
+        if (data.empty()) throw runtime_error("Heap is empty");
+        int top = data[0];
+        data[0] = data.back();
+        data.pop_back();
+        if (!data.empty()) siftDown(0);
+        return top;
+    }
+
+    void decreaseOrIncreaseKey(int idx, int newVal) {
+        if (idx < 0 || idx >= static_cast<int>(data.size())) {
+            throw runtime_error("Index out of range");
+        }
+        int oldVal = data[idx];
+        data[idx] = newVal;
+        if (cmp(newVal, oldVal)) siftUp(idx);
+        else siftDown(idx);
+    }
+
+    void eraseAt(int idx) {
+        if (idx < 0 || idx >= static_cast<int>(data.size())) {
+            throw runtime_error("Index out of range");
+        }
+        data[idx] = data.back();
+        data.pop_back();
+        if (idx < static_cast<int>(data.size())) {
+            siftUp(idx);
+            siftDown(idx);
+        }
+    }
+
+    void mergeFrom(const vector<int>& other) {
+        for (int v : other) insert(v);
+    }
+
+    void printArray() const {
+        cout << (isMinHeap ? "MinHeap" : "MaxHeap") << " array: ";
+        for (int v : data) cout << v << " ";
+        cout << "\\n";
+    }
+};
+
+int main() {
+    BinaryHeap h(true);
+    h.insert(20);
+    h.insert(7);
+    h.insert(3);
+    h.insert(12);
+    h.printArray();
+
+    cout << "Peek: " << h.peek() << "\\n";
+    cout << "Extract: " << h.extractTop() << "\\n";
+
+    h.decreaseOrIncreaseKey(1, 1);
+    h.printArray();
+
+    h.eraseAt(0);
+    h.printArray();
+
+    h.mergeFrom({9, 4, 15});
+    h.printArray();
+
+    return 0;
+}
+`;
+
+const codeHeapBinomial = `#include <iostream>
+#include <vector>
+#include <climits>
+using namespace std;
+
+struct BNode {
+    int key;
+    int degree;
+    BNode* parent;
+    BNode* child;
+    BNode* sibling;
+    explicit BNode(int k) : key(k), degree(0), parent(nullptr), child(nullptr), sibling(nullptr) {}
+};
+
+class BinomialHeap {
+private:
+    BNode* head = nullptr;
+    bool isMinHeap;
+
+    bool cmp(int a, int b) const {
+        return isMinHeap ? (a < b) : (a > b);
+    }
+
+    BNode* mergeRootLists(BNode* h1, BNode* h2) {
+        if (!h1) return h2;
+        if (!h2) return h1;
+
+        BNode* newHead = nullptr;
+        BNode* tail = nullptr;
+
+        while (h1 && h2) {
+            BNode* pick;
+            if (h1->degree <= h2->degree) {
+                pick = h1;
+                h1 = h1->sibling;
+            } else {
+                pick = h2;
+                h2 = h2->sibling;
+            }
+
+            if (!newHead) {
+                newHead = tail = pick;
+            } else {
+                tail->sibling = pick;
+                tail = pick;
+            }
+        }
+        tail->sibling = h1 ? h1 : h2;
+        return newHead;
+    }
+
+    void linkTrees(BNode* rootY, BNode* rootZ) {
+        rootY->parent = rootZ;
+        rootY->sibling = rootZ->child;
+        rootZ->child = rootY;
+        rootZ->degree++;
+    }
+
+    BNode* unionHeaps(BNode* h1, BNode* h2) {
+        BNode* newHead = mergeRootLists(h1, h2);
+        if (!newHead) return nullptr;
+
+        BNode* prev = nullptr;
+        BNode* curr = newHead;
+        BNode* next = curr->sibling;
+
+        while (next) {
+            bool degreeDiff = curr->degree != next->degree;
+            bool tripleSame = next->sibling && next->sibling->degree == curr->degree;
+
+            if (degreeDiff || tripleSame) {
+                prev = curr;
+                curr = next;
+            } else if (cmp(curr->key, next->key)) {
+                curr->sibling = next->sibling;
+                linkTrees(next, curr);
+            } else {
+                if (!prev) newHead = next;
+                else prev->sibling = next;
+                linkTrees(curr, next);
+                curr = next;
+            }
+            next = curr->sibling;
+        }
+
+        return newHead;
+    }
+
+public:
+    explicit BinomialHeap(bool minHeap = true) : isMinHeap(minHeap) {}
+
+    void insert(int key) {
+        BNode* single = new BNode(key);
+        head = unionHeaps(head, single);
+    }
+
+    int peek() const {
+        if (!head) return isMinHeap ? INT_MAX : INT_MIN;
+        BNode* best = head;
+        for (BNode* p = head->sibling; p; p = p->sibling) {
+            if (cmp(p->key, best->key)) best = p;
+        }
+        return best->key;
+    }
+
+    int extractTop() {
+        if (!head) return isMinHeap ? INT_MAX : INT_MIN;
+
+        BNode* prevBest = nullptr;
+        BNode* best = head;
+        BNode* prev = nullptr;
+
+        for (BNode* p = head; p; p = p->sibling) {
+            if (cmp(p->key, best->key)) {
+                best = p;
+                prevBest = prev;
+            }
+            prev = p;
+        }
+
+        if (prevBest) prevBest->sibling = best->sibling;
+        else head = best->sibling;
+
+        BNode* child = best->child;
+        BNode* rev = nullptr;
+        while (child) {
+            BNode* nxt = child->sibling;
+            child->sibling = rev;
+            child->parent = nullptr;
+            rev = child;
+            child = nxt;
+        }
+
+        int out = best->key;
+        delete best;
+        head = unionHeaps(head, rev);
+        return out;
+    }
+
+    void merge(BinomialHeap& other) {
+        head = unionHeaps(head, other.head);
+        other.head = nullptr;
+    }
+
+    void printRoots() const {
+        cout << (isMinHeap ? "Min" : "Max") << " Binomial roots: ";
+        for (BNode* p = head; p; p = p->sibling) {
+            cout << "(k=" << p->key << ",d=" << p->degree << ") ";
+        }
+        cout << "\\n";
+    }
+};
+
+int main() {
+    BinomialHeap h1(true), h2(true);
+    h1.insert(10); h1.insert(3); h1.insert(18);
+    h2.insert(7); h2.insert(1); h2.insert(25);
+
+    h1.printRoots();
+    h2.printRoots();
+
+    h1.merge(h2);
+    h1.printRoots();
+
+    cout << "Peek: " << h1.peek() << "\\n";
+    cout << "Extract: " << h1.extractTop() << "\\n";
+    h1.printRoots();
+    return 0;
+}
+`;
+
+const codeHeapFibonacci = `#include <iostream>
+#include <vector>
+#include <unordered_map>
+#include <climits>
+using namespace std;
+
+struct FNode {
+    int key;
+    int degree;
+    bool mark;
+    FNode* parent;
+    FNode* child;
+    FNode* left;
+    FNode* right;
+
+    explicit FNode(int k)
+        : key(k), degree(0), mark(false), parent(nullptr), child(nullptr), left(this), right(this) {}
+};
+
+class FibonacciHeap {
+private:
+    FNode* root = nullptr;
+    FNode* best = nullptr;
+    int n = 0;
+    bool isMinHeap;
+
+    bool cmp(int a, int b) const {
+        return isMinHeap ? (a < b) : (a > b);
+    }
+
+    static void spliceRight(FNode* a, FNode* b) {
+        b->left = a;
+        b->right = a->right;
+        a->right->left = b;
+        a->right = b;
+    }
+
+    static void removeNode(FNode* x) {
+        x->left->right = x->right;
+        x->right->left = x->left;
+        x->left = x->right = x;
+    }
+
+    void addToRootList(FNode* x) {
+        x->parent = nullptr;
+        x->mark = false;
+        if (!root) {
+            root = x;
+            best = x;
+            return;
+        }
+        spliceRight(root, x);
+        if (cmp(x->key, best->key)) best = x;
+    }
+
+    void link(FNode* y, FNode* x) {
+        removeNode(y);
+        y->parent = x;
+        if (!x->child) {
+            x->child = y;
+        } else {
+            spliceRight(x->child, y);
+        }
+        x->degree++;
+        y->mark = false;
+    }
+
+    void consolidate() {
+        if (!root) return;
+
+        vector<FNode*> roots;
+        FNode* p = root;
+        do {
+            roots.push_back(p);
+            p = p->right;
+        } while (p != root);
+
+        vector<FNode*> A(64, nullptr);
+        for (FNode* w : roots) {
+            FNode* x = w;
+            int d = x->degree;
+            while (A[d]) {
+                FNode* y = A[d];
+                if (cmp(y->key, x->key)) swap(x, y);
+                link(y, x);
+                A[d] = nullptr;
+                d++;
+            }
+            A[d] = x;
+        }
+
+        root = nullptr;
+        best = nullptr;
+        for (FNode* x : A) {
+            if (!x) continue;
+            x->left = x->right = x;
+            if (!root) {
+                root = best = x;
+            } else {
+                spliceRight(root, x);
+                if (cmp(x->key, best->key)) best = x;
+            }
+        }
+    }
+
+    void cut(FNode* x, FNode* y) {
+        if (y->child == x) y->child = (x->right != x) ? x->right : nullptr;
+        y->degree--;
+        removeNode(x);
+        addToRootList(x);
+    }
+
+    void cascadingCut(FNode* y) {
+        FNode* z = y->parent;
+        if (!z) return;
+        if (!y->mark) {
+            y->mark = true;
+        } else {
+            cut(y, z);
+            cascadingCut(z);
+        }
+    }
+
+public:
+    explicit FibonacciHeap(bool minHeap = true) : isMinHeap(minHeap) {}
+
+    FNode* insert(int key) {
+        FNode* x = new FNode(key);
+        addToRootList(x);
+        n++;
+        return x;
+    }
+
+    int peek() const {
+        if (!best) return isMinHeap ? INT_MAX : INT_MIN;
+        return best->key;
+    }
+
+    int extractTop() {
+        if (!best) return isMinHeap ? INT_MAX : INT_MIN;
+        FNode* z = best;
+
+        if (z->child) {
+            vector<FNode*> children;
+            FNode* c = z->child;
+            do {
+                children.push_back(c);
+                c = c->right;
+            } while (c != z->child);
+
+            for (FNode* x : children) {
+                removeNode(x);
+                addToRootList(x);
+                x->parent = nullptr;
+            }
+        }
+
+        if (z->right == z) {
+            root = best = nullptr;
+        } else {
+            if (root == z) root = z->right;
+            removeNode(z);
+            best = root;
+            consolidate();
+        }
+
+        int out = z->key;
+        delete z;
+        n--;
+        return out;
+    }
+
+    void decreaseOrIncreaseKey(FNode* x, int newKey) {
+        if (!x) return;
+        int old = x->key;
+        x->key = newKey;
+        FNode* y = x->parent;
+
+        bool violates = y && cmp(x->key, y->key);
+        if (violates) {
+            cut(x, y);
+            cascadingCut(y);
+        }
+
+        if (!best || cmp(x->key, best->key)) best = x;
+        (void)old;
+    }
+
+    void erase(FNode* x) {
+        if (!x) return;
+        decreaseOrIncreaseKey(x, isMinHeap ? INT_MIN : INT_MAX);
+        extractTop();
+    }
+
+    void merge(FibonacciHeap& other) {
+        if (!other.root) return;
+        if (!root) {
+            root = other.root;
+            best = other.best;
+            n = other.n;
+        } else {
+            FNode* aRight = root->right;
+            FNode* bLeft = other.root->left;
+            root->right = other.root;
+            other.root->left = root;
+            aRight->left = bLeft;
+            bLeft->right = aRight;
+            if (cmp(other.best->key, best->key)) best = other.best;
+            n += other.n;
+        }
+        other.root = other.best = nullptr;
+        other.n = 0;
+    }
+
+    void printTop() const {
+        if (!best) cout << "Heap empty\\n";
+        else cout << (isMinHeap ? "Min" : "Max") << " top: " << best->key << "\\n";
+    }
+};
+
+int main() {
+    FibonacciHeap h(true);
+    auto* a = h.insert(20);
+    auto* b = h.insert(7);
+    auto* c = h.insert(3);
+    h.printTop();
+
+    h.decreaseOrIncreaseKey(a, 2);
+    h.printTop();
+
+    cout << "Extract: " << h.extractTop() << "\\n";
+    h.printTop();
+
+    h.erase(c);
+    h.printTop();
+
+    FibonacciHeap other(true);
+    other.insert(5);
+    other.insert(1);
+    h.merge(other);
+    h.printTop();
+    (void)b;
+    return 0;
+}
+`;
+
+const codeHeapLeftist = `#include <iostream>
+#include <climits>
+using namespace std;
+
+struct LNode {
+    int key;
+    int npl;
+    LNode* left;
+    LNode* right;
+    explicit LNode(int k) : key(k), npl(0), left(nullptr), right(nullptr) {}
+};
+
+class LeftistHeap {
+private:
+    LNode* root = nullptr;
+    bool isMinHeap;
+
+    bool cmp(int a, int b) const {
+        return isMinHeap ? (a < b) : (a > b);
+    }
+
+    static int getNpl(LNode* n) {
+        return n ? n->npl : -1;
+    }
+
+    LNode* mergeNodes(LNode* a, LNode* b) {
+        if (!a) return b;
+        if (!b) return a;
+        if (!cmp(a->key, b->key)) swap(a, b);
+
+        a->right = mergeNodes(a->right, b);
+        if (getNpl(a->left) < getNpl(a->right)) swap(a->left, a->right);
+        a->npl = getNpl(a->right) + 1;
+        return a;
+    }
+
+public:
+    explicit LeftistHeap(bool minHeap = true) : isMinHeap(minHeap) {}
+
+    void insert(int x) {
+        root = mergeNodes(root, new LNode(x));
+    }
+
+    int peek() const {
+        if (!root) return isMinHeap ? INT_MAX : INT_MIN;
+        return root->key;
+    }
+
+    int extractTop() {
+        if (!root) return isMinHeap ? INT_MAX : INT_MIN;
+        int out = root->key;
+        LNode* l = root->left;
+        LNode* r = root->right;
+        delete root;
+        root = mergeNodes(l, r);
+        return out;
+    }
+
+    void merge(LeftistHeap& other) {
+        root = mergeNodes(root, other.root);
+        other.root = nullptr;
+    }
+
+    void clearNode(LNode* n) {
+        if (!n) return;
+        clearNode(n->left);
+        clearNode(n->right);
+        delete n;
+    }
+
+    ~LeftistHeap() { clearNode(root); }
+
+    void printPreorder(LNode* n) const {
+        if (!n) return;
+        cout << "(" << n->key << ",npl=" << n->npl << ") ";
+        printPreorder(n->left);
+        printPreorder(n->right);
+    }
+
+    void print() const {
+        cout << (isMinHeap ? "Min" : "Max") << " Leftist: ";
+        printPreorder(root);
+        cout << "\\n";
+    }
+};
+
+int main() {
+    LeftistHeap h1(true), h2(true);
+    h1.insert(10); h1.insert(3); h1.insert(17);
+    h2.insert(8); h2.insert(1); h2.insert(6);
+
+    h1.print();
+    h2.print();
+
+    h1.merge(h2);
+    h1.print();
+
+    cout << "Peek: " << h1.peek() << "\\n";
+    cout << "Extract: " << h1.extractTop() << "\\n";
+    h1.print();
+    return 0;
+}
+`;
+
+const codeHeapSkew = `#include <iostream>
+#include <climits>
+using namespace std;
+
+struct SNode {
+    int key;
+    SNode* left;
+    SNode* right;
+    explicit SNode(int k) : key(k), left(nullptr), right(nullptr) {}
+};
+
+class SkewHeap {
+private:
+    SNode* root = nullptr;
+    bool isMinHeap;
+
+    bool cmp(int a, int b) const {
+        return isMinHeap ? (a < b) : (a > b);
+    }
+
+    SNode* mergeNodes(SNode* a, SNode* b) {
+        if (!a) return b;
+        if (!b) return a;
+        if (!cmp(a->key, b->key)) swap(a, b);
+
+        a->right = mergeNodes(a->right, b);
+        swap(a->left, a->right);
+        return a;
+    }
+
+    void clearNode(SNode* n) {
+        if (!n) return;
+        clearNode(n->left);
+        clearNode(n->right);
+        delete n;
+    }
+
+public:
+    explicit SkewHeap(bool minHeap = true) : isMinHeap(minHeap) {}
+
+    void insert(int x) {
+        root = mergeNodes(root, new SNode(x));
+    }
+
+    int peek() const {
+        if (!root) return isMinHeap ? INT_MAX : INT_MIN;
+        return root->key;
+    }
+
+    int extractTop() {
+        if (!root) return isMinHeap ? INT_MAX : INT_MIN;
+        int out = root->key;
+        SNode* l = root->left;
+        SNode* r = root->right;
+        delete root;
+        root = mergeNodes(l, r);
+        return out;
+    }
+
+    void merge(SkewHeap& other) {
+        root = mergeNodes(root, other.root);
+        other.root = nullptr;
+    }
+
+    ~SkewHeap() { clearNode(root); }
+
+    void printPreorder(SNode* n) const {
+        if (!n) return;
+        cout << n->key << " ";
+        printPreorder(n->left);
+        printPreorder(n->right);
+    }
+
+    void print() const {
+        cout << (isMinHeap ? "Min" : "Max") << " Skew: ";
+        printPreorder(root);
+        cout << "\\n";
+    }
+};
+
+int main() {
+    SkewHeap h1(true), h2(true);
+    h1.insert(12); h1.insert(5); h1.insert(30);
+    h2.insert(7); h2.insert(2); h2.insert(18);
+
+    h1.print();
+    h2.print();
+
+    h1.merge(h2);
+    h1.print();
+
+    cout << "Peek: " << h1.peek() << "\\n";
+    cout << "Extract: " << h1.extractTop() << "\\n";
+    h1.print();
     return 0;
 }
 `;
