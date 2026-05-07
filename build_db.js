@@ -13,6 +13,7 @@ const mappings = {
     'sort_counting.cpp': 'codeSortCounting',
     'sort_radix.cpp': 'codeSortRadix',
     'sort_heap.cpp': 'codeSortHeap',
+    'sort_shaker.cpp': 'codeSortShaker',
     'tree_bst.cpp': 'codeTreeBST',
     'tree_avl.cpp': 'codeTreeAVL',
     'tree_rb.cpp': 'codeTreeRB',

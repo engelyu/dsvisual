@@ -868,6 +868,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (currentMode === 'sort-count') executeAnimWrapper(async () => { await runCountingSort(); if(animState!=='stopped') {for(let i=0;i<sortArrData.length;i++) setBarColor(i, 'sorted');} });
         else if (currentMode === 'sort-radix') executeAnimWrapper(async () => { await runRadixSort(); if(animState!=='stopped') {for(let i=0;i<sortArrData.length;i++) setBarColor(i, 'sorted');} });
         else if (currentMode === 'sort-heap') executeAnimWrapper(async () => { await runHeapSort(); if(animState!=='stopped') {for(let i=0;i<sortArrData.length;i++) setBarColor(i, 'sorted');} });
+        else if (currentMode === 'sort-shaker') executeAnimWrapper(async () => { await runShakerSort(); if(animState!=='stopped') {for(let i=0;i<sortArrData.length;i++) setBarColor(i, 'sorted');} });
     });
 
     function showStatus(msg, color) { statusMsg.textContent = msg; statusMsg.style.color = color; }
@@ -924,6 +925,7 @@ document.addEventListener('DOMContentLoaded', () => {
             else if(currentMode === 'sort-count') { codeTitle.textContent = 'sort_counting.cpp'; codeDisplay.textContent = codeSortCounting; }
             else if(currentMode === 'sort-radix') { codeTitle.textContent = 'sort_radix.cpp'; codeDisplay.textContent = codeSortRadix; }
             else if(currentMode === 'sort-heap') { codeTitle.textContent = 'sort_heap.cpp'; codeDisplay.textContent = codeSortHeap; }
+            else if(currentMode === 'sort-shaker') { codeTitle.textContent = 'sort_shaker.cpp'; codeDisplay.textContent = codeSortShaker; }
         }
         else if (currentMode.includes('heap-')) {
             heapContainer.classList.remove('hidden');
@@ -1341,6 +1343,61 @@ document.addEventListener('DOMContentLoaded', () => {
             renderSortBars(); setBarColor(i, 'sorted'); await sleep(getDelay()); await heapify(i, 0);
         }
         setBarColor(0, 'sorted');
+    }
+
+
+
+    async function runShakerSort() {
+        showStatus('Shaker Sort: Starting bidirectional bubble passes', '#fbbf24');
+        let n = sortArrData.length;
+        let left = 0, right = n - 1;
+        let swapped;
+
+        while (left < right) {
+            // Forward pass (left to right)
+            swapped = false;
+            for (let i = left; i < right; i++) {
+                setBarColor(i, 'comparing'); setBarColor(i + 1, 'comparing'); await sleep(getDelay());
+                if (sortArrData[i] > sortArrData[i + 1]) {
+                    setBarColor(i, 'swapping'); setBarColor(i + 1, 'swapping');
+                    let temp = sortArrData[i]; setBarVal(i, sortArrData[i + 1]); setBarVal(i + 1, temp);
+                    await sleep(getDelay());
+                    swapped = true;
+                }
+                setBarColor(i, ''); setBarColor(i + 1, '');
+            }
+            // Largest element is now at 'right'
+            setBarColor(right, 'sorted');
+            right--;
+
+            // If no swap occurred, array is sorted
+            if (!swapped) break;
+
+            // Backward pass (right to left)
+            swapped = false;
+            for (let i = right; i > left; i--) {
+                setBarColor(i - 1, 'comparing'); setBarColor(i, 'comparing'); await sleep(getDelay());
+                if (sortArrData[i - 1] > sortArrData[i]) {
+                    setBarColor(i - 1, 'swapping'); setBarColor(i, 'swapping');
+                    let temp = sortArrData[i - 1]; setBarVal(i - 1, sortArrData[i]); setBarVal(i, temp);
+                    await sleep(getDelay());
+                    swapped = true;
+                }
+                setBarColor(i - 1, ''); setBarColor(i, '');
+            }
+            // Smallest element is now at 'left'
+            setBarColor(left, 'sorted');
+            left++;
+
+            // If no swap occurred, array is sorted
+            if (!swapped) break;
+        }
+
+        // Mark remaining unsorted as sorted
+        for (let i = left; i <= right; i++) {
+            setBarColor(i, 'sorted');
+        }
+        showStatus('Shaker Sort complete!', '#34d399');
     }
 
     async function runLinearSearch(target) {

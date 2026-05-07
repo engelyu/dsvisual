@@ -73,4 +73,19 @@ test.describe('Data Structure Visualizer Full Suite', () => {
         await page.click('#btn-sort-start');
         await expect(page.locator('#status-message')).toContainText('Radix Sort', { timeout: 15000 });
     });
+
+    test('Shaker Sort: Bidirectional bubble sort completes correctly', async ({ page }) => {
+        await page.locator('label[for="mode-sort-shaker"]').click();
+        await expect(page.locator('#code-title')).toHaveText('sort_shaker.cpp');
+        await expect(page.locator('#desc-view h3')).toContainText('Shaker Sort');
+        
+        await page.click('#btn-sort-random');
+        await expect(page.locator('.sort-bar')).toHaveCount(15);
+        await page.locator('#sort-speed').fill('600');
+
+        await page.click('#btn-sort-start');
+        await expect(page.locator('#status-message')).toContainText('Shaker Sort', { timeout: 15000 });
+        await expect(page.locator('#status-message')).toHaveText('Execution Complete!', { timeout: 15000 });
+    });
+
 });
