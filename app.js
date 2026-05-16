@@ -294,10 +294,14 @@ document.addEventListener('DOMContentLoaded', () => {
         methodSections.appendChild(heading);
 
         group.methods.forEach((method) => {
+            const runtimeState = method.id === visualizerRuntime.activeMode
+                ? 'active'
+                : visualizerRuntime.loadedMethods.has(method.id) ? 'loaded' : 'idle';
             const section = document.createElement('section');
             section.className = 'method-section-card';
             section.dataset.methodSection = method.id;
-            section.classList.toggle('active', method.id === currentMode);
+            section.dataset.runtimeState = runtimeState;
+            section.classList.toggle('active', runtimeState === 'active');
             section.innerHTML = `
                 <div class="method-section-header">
                     <div>
@@ -305,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h3>${method.title}</h3>
                     </div>
                     <button type="button" class="btn primary method-load-btn" data-method="${method.id}">
-                        ${method.id === currentMode ? 'Active' : 'Load'}
+                        ${runtimeState === 'active' ? 'Active' : 'Load'}
                     </button>
                 </div>
                 <div class="method-section-grid">
@@ -333,6 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
             radio.checked = true;
             radio.dispatchEvent(new Event('change', { bubbles: true }));
         } else {
+            visualizerRuntime.setMode(methodId);
             renderMethodSections(group.id);
         }
     }
@@ -464,6 +469,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const patternVisualization = document.getElementById('pattern-visualization');
 
     let currentMode = 'stack-array';
+    const visualizerRuntime = {
+        activeMode: currentMode,
+        activeGroupId: getMethodGroupForMode(currentMode).id,
+        loadedMethods: new Set([currentMode]),
+        setMode(mode) {
+            this.activeMode = mode;
+            this.activeGroupId = getMethodGroupForMode(mode).id;
+            this.loadedMethods.add(mode);
+            currentMode = mode;
+        },
+    };
     renderMethodSections(getMethodGroupForMode(currentMode).id);
     const MAX_SIZE = 5;
 
@@ -816,7 +832,7 @@ document.addEventListener('DOMContentLoaded', () => {
         radio.addEventListener('change', (e) => {
             if(animState === 'playing' || animState === 'paused') { e.target.checked = false; document.getElementById("mode-" + currentMode).checked = true; return; }
             if (heapTutorialState.active && e.target.value !== heapTutorialState.mode) exitHeapTutorial(true);
-            currentMode = e.target.value;
+            visualizerRuntime.setMode(e.target.value);
             stackData = []; qArr = new Array(5).fill(null); qFront = 0; qRear = -1; qCount = 0; edges = []; weightedEdges = []; mstEdgeKeys.clear(); graphCandidateEdgeKey = null; bstRoot = null; 
             if(currentMode === 'list-array' || currentMode === 'list-linked') mainListData = [];
             if(currentMode === 'hash-chain') hashChData = Array.from({length: 5}, () => []);

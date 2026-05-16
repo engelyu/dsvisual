@@ -45,6 +45,17 @@ test.describe('Data Structure Visualizer Full Suite', () => {
         await expect(methodSections.locator('[data-method-section="sort-bubble"]')).toHaveClass(/active/);
     });
 
+    test('Phase 3 runtime boundary: method sections track active and loaded states', async ({ page }) => {
+        const methodSections = page.locator('[data-testid="method-sections"]');
+        await expect(methodSections.locator('[data-method-section="stack-array"]')).toHaveAttribute('data-runtime-state', 'active');
+        await expect(methodSections.locator('[data-method-section="queue"]')).toHaveAttribute('data-runtime-state', 'idle');
+
+        await methodSections.locator('[data-method-section="queue"] .method-load-btn').click();
+        await expect(page.locator('#code-title')).toHaveText('queue.cpp');
+        await expect(methodSections.locator('[data-method-section="queue"]')).toHaveAttribute('data-runtime-state', 'active');
+        await expect(methodSections.locator('[data-method-section="stack-array"]')).toHaveAttribute('data-runtime-state', 'loaded');
+    });
+
     test('Trie Trees: Submits string prefix and generates character-marked edges', async ({ page }) => {
         // Expand Non-Linear group
         const nonLinearGroup = page.locator('.mode-group').nth(2);

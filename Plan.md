@@ -125,6 +125,9 @@ Header 下方新增 stvisual 风格的 top-level nav：
 - 初期可以只让当前 active method 具备完整互动，其余 section 先静态显示标题与程式码，逐步迁移。
 
 #### Phase 3: 拆分 visualizer instance
+- **Status**: In progress
+- **Issue #29**: https://github.com/skhuang/dsvisual/issues/29
+- **Branch**: `feature/ui-phase-3-runtime-boundary`
 - 将目前依赖全域 DOM id 的逻辑改为区块内 scope 查找。
 - 每个 method block 拥有自己的状态：
   - stack/list/queue data

@@ -111,6 +111,9 @@ header p { color: rgba(255,255,255,0.72); font-size: 0.95rem; }
     border-color: var(--primary-color);
     box-shadow: var(--app-shadow-lg);
 }
+.method-section-card[data-runtime-state="loaded"]:not(.active) {
+    border-color: rgba(52, 152, 219, 0.45);
+}
 .method-section-header {
     display: flex;
     align-items: flex-start;
