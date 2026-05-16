@@ -309,13 +309,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const descDisplay = document.getElementById('desc-display');
 
     tabBtnDesc.addEventListener('click', () => {
-        tabBtnDesc.classList.add('active'); tabBtnDesc.style.borderBottomColor = '#34d399'; tabBtnDesc.style.color = '#34d399';
-        tabBtnCode.classList.remove('active'); tabBtnCode.style.borderBottomColor = 'transparent'; tabBtnCode.style.color = '#94a3b8';
+        tabBtnDesc.classList.add('active'); tabBtnDesc.style.borderBottomColor = '#3498db'; tabBtnDesc.style.color = '#1f2937';
+        tabBtnCode.classList.remove('active'); tabBtnCode.style.borderBottomColor = 'transparent'; tabBtnCode.style.color = '#64748b';
         descView.style.display = 'block'; codeView.style.display = 'none';
     });
     tabBtnCode.addEventListener('click', () => {
-        tabBtnCode.classList.add('active'); tabBtnCode.style.borderBottomColor = '#34d399'; tabBtnCode.style.color = '#34d399';
-        tabBtnDesc.classList.remove('active'); tabBtnDesc.style.borderBottomColor = 'transparent'; tabBtnDesc.style.color = '#94a3b8';
+        tabBtnCode.classList.add('active'); tabBtnCode.style.borderBottomColor = '#3498db'; tabBtnCode.style.color = '#1f2937';
+        tabBtnDesc.classList.remove('active'); tabBtnDesc.style.borderBottomColor = 'transparent'; tabBtnDesc.style.color = '#64748b';
         codeView.style.display = 'flex'; descView.style.display = 'none';
         if (window.Prism) Prism.highlightElement(codeDisplay);
     });
@@ -2920,4 +2920,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
-

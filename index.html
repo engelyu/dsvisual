@@ -1,18 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>C++ Data Structures & Algorithms Visualizer</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
 </head>
 <body>
     <div class="app-container">
-        <header>
-            <h1>C++ Algorithms Visualizer</h1>
-            <p>Data Structures (Stack, Queue, Graph, Tree, List) & Validated Algorithm Sandbox.</p>
+        <header class="app-header">
+            <div class="app-header__text">
+                <h1>C++ Algorithms Visualizer</h1>
+                <p>Data Structures (Stack, Queue, Graph, Tree, List) & Validated Algorithm Sandbox.</p>
+            </div>
         </header>
 
         <div class="main-content">
@@ -394,9 +397,9 @@
             </section>
 
             <section class="code-panel glass-panel" style="display: flex; flex-direction: column;">
-                <div class="panel-tabs" style="display: flex; border-bottom: 2px solid rgba(255,255,255,0.1); margin-bottom: 12px; gap: 20px;">
-                    <button id="tab-btn-desc" class="tab-btn active" style="background: none; border: none; padding-bottom: 8px; color: #34d399; font-size: 16px; font-weight: bold; cursor: pointer; border-bottom: 2px solid #34d399;">💡 Explanation</button>
-                    <button id="tab-btn-code" class="tab-btn" style="background: none; border: none; padding-bottom: 8px; color: #94a3b8; font-size: 16px; font-weight: bold; cursor: pointer; border-bottom: 2px solid transparent;">&lt;/&gt; C++ Source</button>
+                <div class="panel-tabs">
+                    <button id="tab-btn-desc" class="tab-btn active">Explanation</button>
+                    <button id="tab-btn-code" class="tab-btn">&lt;/&gt; C++ Source</button>
                 </div>
                 
                 <div id="desc-view" class="panel-view" style="flex: 1; overflow-y: auto;">
