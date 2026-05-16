@@ -258,6 +258,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const slidePrev = document.getElementById('slide-prev');
     const slideNext = document.getElementById('slide-next');
     const slideCloseButtons = document.querySelectorAll('[data-slide-close]');
+    const runtimeControls = document.querySelector('.visualization-panel .controls');
+    const runtimeVisualizer = document.querySelector('.stack-container-wrapper');
     
     // Setup collapsible mode groups
     const groupHeaders = document.querySelectorAll('.group-header');
@@ -281,19 +283,29 @@ document.addEventListener('DOMContentLoaded', () => {
         renderMethodSections(groupId);
     }
 
-    function getCodePreview(methodId) {
+    function getEscapedCode(methodId) {
         return getCodeForMethod(methodId)
-            .split('\n')
-            .slice(0, 18)
-            .join('\n')
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
     }
 
+    function mountActiveRuntime(section) {
+        const visualHost = section.querySelector('.method-section-visual');
+        if (!visualHost || !runtimeControls || !runtimeVisualizer) return;
+        visualHost.classList.add('method-section-visual-live');
+        visualHost.setAttribute('aria-label', 'Active interactive visualization');
+        visualHost.innerHTML = '';
+        visualHost.appendChild(runtimeControls);
+        visualHost.appendChild(runtimeVisualizer);
+    }
+
     function renderMethodSections(groupId) {
         if (!methodSections) return;
         const group = getMethodGroupById(groupId);
+        const runtimeFragment = document.createDocumentFragment();
+        if (runtimeControls?.parentNode) runtimeFragment.appendChild(runtimeControls);
+        if (runtimeVisualizer?.parentNode) runtimeFragment.appendChild(runtimeVisualizer);
         methodSections.innerHTML = '';
         const heading = document.createElement('div');
         heading.className = 'method-sections-heading';
@@ -329,28 +341,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="method-section-code">
                         <div class="method-code-title">${method.file}</div>
-                        <pre><code>${getCodePreview(method.id)}</code></pre>
+                        <pre><code>${getEscapedCode(method.id)}</code></pre>
                     </div>
                 </div>
             `;
             section.querySelector('.method-load-btn').addEventListener('click', () => selectMethod(method.id));
             section.querySelector('.method-slides-btn').addEventListener('click', () => openSlides(method.id));
             methodSections.appendChild(section);
+            if (runtimeState === 'active') mountActiveRuntime(section);
         });
     }
 
     function selectMethod(methodId) {
         const radio = document.querySelector(`input[name="ds-mode"][value="${methodId}"]`);
-        if (!radio) return;
-        const group = getMethodGroupForMode(methodId);
-        expandModeGroup(group.id);
-        if (!radio.checked) {
-            radio.checked = true;
-            radio.dispatchEvent(new Event('change', { bubbles: true }));
-        } else {
-            visualizerRuntime.setMode(methodId);
-            renderMethodSections(group.id);
-        }
+        if (radio) radio.checked = true;
+        switchMode(methodId);
     }
 
     let slideDeck = [];
@@ -897,27 +902,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateLayout();
 
+    function switchMode(nextMode) {
+        if (heapTutorialState.active && nextMode !== heapTutorialState.mode) exitHeapTutorial(true);
+        visualizerRuntime.setMode(nextMode);
+        stackData = []; qArr = new Array(5).fill(null); qFront = 0; qRear = -1; qCount = 0; edges = []; weightedEdges = []; mstEdgeKeys.clear(); graphCandidateEdgeKey = null; bstRoot = null; 
+        if(currentMode === 'list-array' || currentMode === 'list-linked') mainListData = [];
+        if(currentMode === 'hash-chain') hashChData = Array.from({length: 5}, () => []);
+        if(currentMode === 'hash-open') hashOaData = new Array(5).fill(null);
+        if(currentMode === 'hash-bucket') hashBucketData = Array.from({length: 4}, () => []);
+        trieRoot = { children: {}, endOfWord: false }; radixRoot = { edges: {} }; tstRoot = null; btreeData = []; bplusData = [];
+        if(currentMode.includes('heap-')) {
+            heapOrderSelect.value = heapIsMin ? 'min' : 'max';
+            clearHeapEventMarks();
+            heapModels[currentMode].clear();
+            heapModels[currentMode].setOrder(heapIsMin);
+        }
+        renderMethodSections(getMethodGroupForMode(currentMode).id);
+        updateLayout();
+        if(currentMode.includes('sort-') && sortArrData.length === 0) generateSortArray();
+        renderAll();
+        statusMsg.textContent = "Switched to " + currentMode; statusMsg.style.color = '#34d399';
+        if(currentMode === 'tree-splay') btnTreeSearch.classList.remove('hidden'); else btnTreeSearch.classList.add('hidden');
+    }
+
     modeRadios.forEach(radio => {
         radio.addEventListener('change', (e) => {
             if(animState === 'playing' || animState === 'paused') { e.target.checked = false; document.getElementById("mode-" + currentMode).checked = true; return; }
-            if (heapTutorialState.active && e.target.value !== heapTutorialState.mode) exitHeapTutorial(true);
-            visualizerRuntime.setMode(e.target.value);
-            stackData = []; qArr = new Array(5).fill(null); qFront = 0; qRear = -1; qCount = 0; edges = []; weightedEdges = []; mstEdgeKeys.clear(); graphCandidateEdgeKey = null; bstRoot = null; 
-            if(currentMode === 'list-array' || currentMode === 'list-linked') mainListData = [];
-            if(currentMode === 'hash-chain') hashChData = Array.from({length: 5}, () => []);
-            if(currentMode === 'hash-open') hashOaData = new Array(5).fill(null);
-            if(currentMode === 'hash-bucket') hashBucketData = Array.from({length: 4}, () => []);
-            trieRoot = { children: {}, endOfWord: false }; radixRoot = { edges: {} }; tstRoot = null; btreeData = []; bplusData = [];
-            if(currentMode.includes('heap-')) {
-                heapOrderSelect.value = heapIsMin ? 'min' : 'max';
-                clearHeapEventMarks();
-                heapModels[currentMode].clear();
-                heapModels[currentMode].setOrder(heapIsMin);
-            }
-            if(currentMode.includes('sort-') && sortArrData.length === 0) generateSortArray();
-            updateLayout(); renderAll(); renderMethodSections(getMethodGroupForMode(currentMode).id);
-            statusMsg.textContent = "Switched to " + currentMode; statusMsg.style.color = '#34d399';
-            if(currentMode === 'tree-splay') btnTreeSearch.classList.remove('hidden'); else btnTreeSearch.classList.add('hidden');
+            switchMode(e.target.value);
         });
     });
 

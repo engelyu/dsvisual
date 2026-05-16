@@ -73,12 +73,15 @@ header p { color: rgba(255,255,255,0.72); font-size: 0.95rem; }
     color: #fff;
 }
 .main-content { width: min(1240px, calc(100% - 48px)); margin: 48px auto; display: grid; grid-template-columns: minmax(360px, 0.95fr) minmax(0, 1.25fr); gap: 24px; align-items: stretch; }
+.legacy-runtime-stage {
+    display: none;
+}
 .glass-panel { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--app-radius-lg); padding: 1.25rem; display: flex; flex-direction: column; box-shadow: var(--app-shadow-md); }
 .controls { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
 
 .method-sections {
     width: min(1240px, calc(100% - 48px));
-    margin: 0 auto 56px;
+    margin: 32px auto 56px;
     display: flex;
     flex-direction: column;
     gap: 18px;
@@ -165,6 +168,33 @@ header p { color: rgba(255,255,255,0.72); font-size: 0.95rem; }
     color: var(--text-main);
     font-size: 1rem;
 }
+.method-section-visual-live {
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 12px;
+    min-height: 520px;
+    padding: 12px;
+    text-align: left;
+    background: var(--card-bg);
+}
+.method-section-visual-live .controls {
+    gap: 0.75rem;
+    margin-bottom: 0;
+}
+.method-section-visual-live .mode-groups {
+    display: none;
+}
+.method-section-visual-live .actions {
+    margin-bottom: 0;
+}
+.method-section-visual-live .status-message {
+    margin: 0;
+}
+.method-section-visual-live .stack-container-wrapper {
+    min-height: 360px;
+    width: 100%;
+    flex: 1;
+}
 .method-section-code {
     min-width: 0;
     border: 1px solid #1f2937;
@@ -180,7 +210,7 @@ header p { color: rgba(255,255,255,0.72); font-size: 0.95rem; }
     font-size: 0.78rem;
 }
 .method-section-code pre {
-    max-height: 260px;
+    max-height: 520px;
     overflow: auto;
     padding: 12px;
     font-size: 0.78rem;

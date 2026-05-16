@@ -11,29 +11,42 @@ const heapModes = [
     { id: 'mode-heap-pairing', title: 'heap_pairing.cpp', desc: 'Pairing Heap', tutorial: 'Pairing Heap' },
 ];
 
+async function loadMethod(page, methodId) {
+    const categoryButtons = page.locator('[data-testid="category-nav"] .category-nav-btn');
+    const count = await categoryButtons.count();
+    for (let i = 0; i < count; i++) {
+        await categoryButtons.nth(i).click();
+        const card = page.locator(`[data-method-section="${methodId}"]`);
+        if (await card.count()) {
+            await card.locator('.method-load-btn').click();
+            await expect(card).toHaveAttribute('data-runtime-state', 'active');
+            return;
+        }
+    }
+    throw new Error(`Method ${methodId} not found`);
+}
+
+async function loadMethodByRadioId(page, radioId) {
+    const methodId = await page.locator(`#${radioId}`).getAttribute('value');
+    await loadMethod(page, methodId);
+}
+
 test.describe('Heap Visualizer Suite', () => {
     test.beforeEach(async ({ page }) => {
         const fileUri = 'file://' + path.resolve(__dirname, '../index.html');
         await page.goto(fileUri);
-
-        const advancedGroup = page.locator('.mode-group').nth(3);
-        const advancedContent = advancedGroup.locator('.group-content');
-        if (!(await advancedContent.isVisible())) {
-            await advancedGroup.locator('.group-header').click();
-            await expect(advancedContent).toBeVisible();
-        }
     });
 
     for (const mode of heapModes) {
         test(`${mode.id}: mode switch shows source + description`, async ({ page }) => {
-            await page.locator(`label[for="${mode.id}"]`).click();
+            await loadMethodByRadioId(page, mode.id);
             await expect(page.locator('#code-title')).toHaveText(mode.title);
             await expect(page.locator('#desc-view h3')).toContainText(mode.desc);
             await expect(page.locator('#heap-container')).toBeVisible();
         });
 
         test(`${mode.id}: insert / peek / extract / merge / change / delete`, async ({ page }) => {
-            await page.locator(`label[for="${mode.id}"]`).click();
+            await loadMethodByRadioId(page, mode.id);
 
             await page.fill('#heap-val', '10');
             await page.click('#btn-heap-insert');
@@ -77,7 +90,7 @@ test.describe('Heap Visualizer Suite', () => {
     }
 
     test('Min/Max switch changes extracted semantics', async ({ page }) => {
-        await page.locator('label[for="mode-heap-binary"]').click();
+        await loadMethodByRadioId(page, 'mode-heap-binary');
 
         await page.selectOption('#heap-order', 'min');
         for (const v of [9, 1, 5]) {
@@ -89,7 +102,7 @@ test.describe('Heap Visualizer Suite', () => {
         await page.click('#btn-heap-extract');
         await expect(page.locator('#status-message')).toContainText('Extracted 1');
 
-        await page.locator('label[for="mode-heap-binary"]').click();
+        await loadMethodByRadioId(page, 'mode-heap-binary');
         await page.selectOption('#heap-order', 'max');
         for (const v of [9, 1, 5]) {
             await page.fill('#heap-val', String(v));
@@ -103,7 +116,7 @@ test.describe('Heap Visualizer Suite', () => {
 
     for (const mode of heapModes) {
         test(`${mode.id}: tutorial opens and exits`, async ({ page }) => {
-            await page.locator(`label[for="${mode.id}"]`).click();
+            await loadMethodByRadioId(page, mode.id);
             await expect(page.locator('#code-title')).toHaveText(mode.title);
             await expect(page.locator('#btn-heap-tutorial')).toBeVisible();
             await page.click('#btn-heap-tutorial');
@@ -121,7 +134,7 @@ test.describe('Heap Visualizer Suite', () => {
     }
 
     test('Heap tutorial auto-advances and can restart', async ({ page }) => {
-        await page.locator('label[for="mode-heap-binary"]').click();
+        await loadMethodByRadioId(page, 'mode-heap-binary');
         await expect(page.locator('#code-title')).toHaveText('heap_binary.cpp');
         await expect(page.locator('#btn-heap-tutorial')).toBeVisible();
         await page.click('#btn-heap-tutorial');

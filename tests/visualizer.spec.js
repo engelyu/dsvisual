@@ -1,6 +1,26 @@
 const { test, expect } = require('@playwright/test');
 const path = require('path');
 
+async function loadMethod(page, methodId) {
+    const categoryButtons = page.locator('[data-testid="category-nav"] .category-nav-btn');
+    const count = await categoryButtons.count();
+    for (let i = 0; i < count; i++) {
+        await categoryButtons.nth(i).click();
+        const card = page.locator(`[data-method-section="${methodId}"]`);
+        if (await card.count()) {
+            await card.locator('.method-load-btn').click();
+            await expect(card).toHaveAttribute('data-runtime-state', 'active');
+            return;
+        }
+    }
+    throw new Error(`Method ${methodId} not found`);
+}
+
+async function loadMethodByRadioId(page, radioId) {
+    const methodId = await page.locator(`#${radioId}`).getAttribute('value');
+    await loadMethod(page, methodId);
+}
+
 test.describe('Data Structure Visualizer Full Suite', () => {
     
     test.beforeEach(async ({ page }) => {
@@ -15,18 +35,20 @@ test.describe('Data Structure Visualizer Full Suite', () => {
         await expect(page.locator('#array-container')).toBeVisible();
     });
 
-    test('Phase 1 category nav: renders six top-level groups and syncs with menu expansion', async ({ page }) => {
+    test('Phase 1 category nav: renders six top-level groups and drives method sections', async ({ page }) => {
         const categoryNav = page.locator('[data-testid="category-nav"]');
         await expect(categoryNav).toBeVisible();
         await expect(categoryNav.locator('.category-nav-btn')).toHaveCount(6);
         await expect(categoryNav.locator('.category-nav-btn.active')).toHaveText('Basic Linear Structures');
+        await expect(page.locator('.legacy-runtime-stage')).toBeHidden();
 
         await categoryNav.getByRole('button', { name: 'Advanced & Application-Specific' }).click();
         await expect(categoryNav.locator('.category-nav-btn.active')).toHaveText('Advanced & Application-Specific');
-        await expect(page.locator('.mode-group').nth(3).locator('.group-content')).toBeVisible();
+        await expect(page.locator('[data-testid="method-sections"] [data-method-section="sort-bubble"]')).toBeVisible();
 
-        await page.locator('.mode-group').nth(2).locator('.group-header').click();
+        await categoryNav.getByRole('button', { name: 'Non-Linear Structures' }).click();
         await expect(categoryNav.locator('.category-nav-btn.active')).toHaveText('Non-Linear Structures');
+        await expect(page.locator('[data-testid="method-sections"] [data-method-section="tree-trie"]')).toBeVisible();
     });
 
     test('Phase 2 method sections: renders selected category methods and loads a method', async ({ page }) => {
@@ -87,16 +109,7 @@ test.describe('Data Structure Visualizer Full Suite', () => {
     });
 
     test('Trie Trees: Submits string prefix and generates character-marked edges', async ({ page }) => {
-        // Expand Non-Linear group
-        const nonLinearGroup = page.locator('.mode-group').nth(2);
-        const nonLinearHeader = nonLinearGroup.locator('.group-header');
-        const nonLinearContent = nonLinearGroup.locator('.group-content');
-        if (!(await nonLinearContent.isVisible())) {
-            await nonLinearHeader.click();
-        }
-        
-        // Toggle UI
-        await page.locator('label[for="mode-tree-trie"]').click();
+        await loadMethodByRadioId(page, 'mode-tree-trie');
         await expect(page.locator('#code-title')).toHaveText('tree_trie.cpp');
         await expect(page.locator('#desc-view h3')).toHaveText('Trie (Prefix Tree)');
 
@@ -118,15 +131,7 @@ test.describe('Data Structure Visualizer Full Suite', () => {
     });
 
     test('Sorting Engine: Instantiates bars and manages states successfully', async ({ page }) => {
-        // Expand Advanced group
-        const advancedGroup = page.locator('.mode-group').nth(3);
-        const advancedHeader = advancedGroup.locator('.group-header');
-        const advancedContent = advancedGroup.locator('.group-content');
-        if (!(await advancedContent.isVisible())) {
-            await advancedHeader.click();
-        }
-        
-        await page.locator('label[for="mode-sort-bubble"]').click();
+        await loadMethodByRadioId(page, 'mode-sort-bubble');
         await expect(page.locator('#code-title')).toHaveText('sort_bubble.cpp');
         
         await page.click('#btn-sort-random');
@@ -139,15 +144,7 @@ test.describe('Data Structure Visualizer Full Suite', () => {
     });
 
     test('Hash Tables: Explicitly verifies Collision Handlers catch overlaps', async ({ page }) => {
-        // Expand Advanced group
-        const advancedGroup = page.locator('.mode-group').nth(3);
-        const advancedHeader = advancedGroup.locator('.group-header');
-        const advancedContent = advancedGroup.locator('.group-content');
-        if (!(await advancedContent.isVisible())) {
-            await advancedHeader.click();
-        }
-        
-        await page.locator('label[for="mode-hash-open"]').click();
+        await loadMethodByRadioId(page, 'mode-hash-open');
         
         await page.fill('#hash-val', '12'); // Modulo mathematics mapping to Index 2
         await page.click('#btn-hash-add');
@@ -161,15 +158,7 @@ test.describe('Data Structure Visualizer Full Suite', () => {
     });
 
     test('Graph Kruskal: Builds MST from weighted edges', async ({ page }) => {
-        // Expand Non-Linear group
-        const nonLinearGroup = page.locator('.mode-group').nth(2);
-        const nonLinearHeader = nonLinearGroup.locator('.group-header');
-        const nonLinearContent = nonLinearGroup.locator('.group-content');
-        if (!(await nonLinearContent.isVisible())) {
-            await nonLinearHeader.click();
-        }
-
-        await page.locator('label[for="mode-graph-kruskal"]').click();
+        await loadMethodByRadioId(page, 'mode-graph-kruskal');
         await expect(page.locator('#code-title')).toHaveText('graph_kruskal.cpp');
         await expect(page.locator('#desc-view h3')).toContainText('Minimum Spanning Tree');
 
@@ -192,15 +181,7 @@ test.describe('Data Structure Visualizer Full Suite', () => {
     });
 
     test('Graph Dijkstra: Computes shortest paths from source', async ({ page }) => {
-        // Expand Non-Linear group
-        const nonLinearGroup = page.locator('.mode-group').nth(2);
-        const nonLinearHeader = nonLinearGroup.locator('.group-header');
-        const nonLinearContent = nonLinearGroup.locator('.group-content');
-        if (!(await nonLinearContent.isVisible())) {
-            await nonLinearHeader.click();
-        }
-
-        await page.locator('label[for="mode-graph-dijkstra"]').click();
+        await loadMethodByRadioId(page, 'mode-graph-dijkstra');
         await expect(page.locator('#code-title')).toHaveText('graph_dijkstra.cpp');
         await expect(page.locator('#desc-view h3')).toContainText('Dijkstra');
 
@@ -224,15 +205,7 @@ test.describe('Data Structure Visualizer Full Suite', () => {
     });
 
     test('Graph Topological Sort: Orders DAG nodes correctly', async ({ page }) => {
-        // Expand Non-Linear group
-        const nonLinearGroup = page.locator('.mode-group').nth(2);
-        const nonLinearHeader = nonLinearGroup.locator('.group-header');
-        const nonLinearContent = nonLinearGroup.locator('.group-content');
-        if (!(await nonLinearContent.isVisible())) {
-            await nonLinearHeader.click();
-        }
-
-        await page.locator('label[for="mode-graph-topo"]').click();
+        await loadMethodByRadioId(page, 'mode-graph-topo');
         await expect(page.locator('#code-title')).toHaveText('graph_topo.cpp');
         await expect(page.locator('#desc-view h3')).toContainText('Topological Sort');
 
@@ -254,15 +227,7 @@ test.describe('Data Structure Visualizer Full Suite', () => {
     });
 
     test('Advanced Sort: Radix Sort completes execution properly', async ({ page }) => {
-        // Expand Advanced group
-        const advancedGroup = page.locator('.mode-group').nth(3);
-        const advancedHeader = advancedGroup.locator('.group-header');
-        const advancedContent = advancedGroup.locator('.group-content');
-        if (!(await advancedContent.isVisible())) {
-            await advancedHeader.click();
-        }
-        
-        await page.locator('label[for="mode-sort-radix"]').click();
+        await loadMethodByRadioId(page, 'mode-sort-radix');
         await expect(page.locator('#code-title')).toHaveText('sort_radix.cpp');
         await page.click('#btn-sort-random');
         await expect(page.locator('.sort-bar')).toHaveCount(15);
@@ -271,15 +236,7 @@ test.describe('Data Structure Visualizer Full Suite', () => {
     });
 
     test('Shaker Sort: Bidirectional bubble sort completes correctly', async ({ page }) => {
-        // Expand Advanced group
-        const advancedGroup = page.locator('.mode-group').nth(3);
-        const advancedHeader = advancedGroup.locator('.group-header');
-        const advancedContent = advancedGroup.locator('.group-content');
-        if (!(await advancedContent.isVisible())) {
-            await advancedHeader.click();
-        }
-        
-        await page.locator('label[for="mode-sort-shaker"]').click();
+        await loadMethodByRadioId(page, 'mode-sort-shaker');
         await expect(page.locator('#code-title')).toHaveText('sort_shaker.cpp');
         await expect(page.locator('#desc-view h3')).toContainText('Shaker Sort');
         
@@ -292,141 +249,54 @@ test.describe('Data Structure Visualizer Full Suite', () => {
         await expect(page.locator('#status-message')).toHaveText('Execution Complete!', { timeout: 15000 });
     });
 
-    test('Mode Groups: First group (Basic Linear) is expanded by default', async ({ page }) => {
-        const basicLinearGroup = page.locator('.mode-group').first();
-        const basicLinearHeader = basicLinearGroup.locator('.group-header');
-        const basicLinearContent = basicLinearGroup.locator('.group-content');
-
-        // Verify first group header contains "Basic Linear Structures"
-        await expect(basicLinearHeader).toContainText('Basic Linear Structures');
-
-        // Verify first group content is visible
-        await expect(basicLinearContent).toBeVisible();
-
-        // Verify group is not collapsed
-        await expect(basicLinearGroup).not.toHaveClass(/collapsed/);
+    test('Primary UI: legacy mode menu is hidden and active card owns runtime', async ({ page }) => {
+        await expect(page.locator('.legacy-runtime-stage')).toBeHidden();
+        await expect(page.locator('.method-section-visual-live .mode-groups')).toBeHidden();
+        await expect(page.locator('[data-method-section="stack-array"] .method-section-visual-live #array-container')).toBeVisible();
+        await expect(page.locator('[data-method-section="stack-array"] .method-section-code')).toContainText('stack_array.cpp');
     });
 
-    test('Mode Groups: Other groups are collapsed by default', async ({ page }) => {
-        const allGroups = page.locator('.mode-group');
-        const groupCount = await allGroups.count();
-
-        // Skip first group (which should be expanded)
-        for (let i = 1; i < groupCount; i++) {
-            const group = allGroups.nth(i);
-            const content = group.locator('.group-content');
-
-            // Verify content is hidden for all groups except first
-            await expect(content).toBeHidden();
-
-            // Verify group has collapsed class
-            await expect(group).toHaveClass(/collapsed/);
-        }
-    });
-
-    test('Mode Groups: Clicking group header toggles expansion', async ({ page }) => {
-        const linkedListsGroup = page.locator('.mode-group').nth(1);
-        const linkedListsHeader = linkedListsGroup.locator('.group-header');
-        const linkedListsContent = linkedListsGroup.locator('.group-content');
-
-        // Initially collapsed
-        await expect(linkedListsContent).toBeHidden();
-
-        // Click to expand
-        await linkedListsHeader.click();
-        await expect(linkedListsContent).toBeVisible();
-        await expect(linkedListsGroup).not.toHaveClass(/collapsed/);
-
-        // Click to collapse
-        await linkedListsHeader.click();
-        await expect(linkedListsContent).toBeHidden();
-        await expect(linkedListsGroup).toHaveClass(/collapsed/);
-    });
-
-    test('Mode Groups: Can select mode from different groups', async ({ page }) => {
-        // Expand Advanced group
-        const advancedGroup = page.locator('.mode-group').nth(3);
-        const advancedHeader = advancedGroup.locator('.group-header');
-        await advancedHeader.click();
+    test('Primary UI: can select mode from different categories', async ({ page }) => {
+        await loadMethodByRadioId(page, 'mode-sort-bubble');
         
-        // Verify it's expanded
-        const advancedContent = advancedGroup.locator('.group-content');
-        await expect(advancedContent).toBeVisible();
-
-        // Select Bubble Sort from Sorting subgroup
-        await page.locator('label[for="mode-sort-bubble"]').click();
-        
-        // Verify page switches to Bubble Sort
         await expect(page.locator('#code-title')).toHaveText('sort_bubble.cpp');
         await expect(page.locator('#desc-view h3')).toContainText('Bubble Sort');
+        await expect(page.locator('[data-method-section="sort-bubble"] .method-section-visual-live #sort-container')).toBeVisible();
     });
 
-    test('Mode Groups: Switching between groups preserves group expansion state', async ({ page }) => {
-        const basicLinearGroup = page.locator('.mode-group').first();
-        const advancedGroup = page.locator('.mode-group').nth(3);
-        const advancedHeader = advancedGroup.locator('.group-header');
-
-        // Basic Linear is expanded, Advanced is collapsed
-        await expect(basicLinearGroup.locator('.group-content')).toBeVisible();
-        await expect(advancedGroup.locator('.group-content')).toBeHidden();
-
-        // Expand Advanced
-        await advancedHeader.click();
-        await expect(advancedGroup.locator('.group-content')).toBeVisible();
-
-        // Select something from Advanced
-        await page.locator('label[for="mode-hash-chain"]').click();
-
-        // Back to Basic Linear group
-        await page.locator('label[for="mode-stack-arr"]').click();
-
-        // Verify Advanced is still expanded (state preserved)
-        await expect(advancedGroup.locator('.group-content')).toBeVisible();
+    test('Primary UI: switching methods tracks active and loaded cards', async ({ page }) => {
+        await loadMethodByRadioId(page, 'mode-hash-chain');
+        await expect(page.locator('[data-method-section="hash-chain"]')).toHaveAttribute('data-runtime-state', 'active');
+        await loadMethodByRadioId(page, 'mode-stack-arr');
+        await page.locator('[data-testid="category-nav"]').getByRole('button', { name: 'Advanced & Application-Specific' }).click();
+        await expect(page.locator('[data-method-section="hash-chain"]')).toHaveAttribute('data-runtime-state', 'loaded');
     });
 
-    test('Mode Groups: All data structure modes are accessible from menus', async ({ page }) => {
+    test('Primary UI: all sampled data structure modes are accessible from method cards', async ({ page }) => {
         const modeTests = [
-            { group: 0, selector: '#mode-queue', title: 'queue.cpp' },
-            { group: 1, selector: '#mode-list-list', title: 'list_linked.cpp' },
-            { group: 2, selector: '#mode-tree-bst', title: 'tree_bst.cpp' },
-            { group: 2, selector: '#mode-graph', title: 'graph.cpp' },
-            { group: 2, selector: '#mode-graph-kruskal', title: 'graph_kruskal.cpp' },
-            { group: 3, selector: '#mode-hash-chain', title: 'hash_chaining.cpp' },
-            { group: 3, selector: '#mode-search-binary', title: 'search_binary.cpp' },
-            { group: 3, selector: '#mode-heap-binary', title: '', desc: 'Binary Heap' },
+            { selector: '#mode-queue', title: 'queue.cpp' },
+            { selector: '#mode-list-list', title: 'list_linked.cpp' },
+            { selector: '#mode-tree-bst', title: 'tree_bst.cpp' },
+            { selector: '#mode-graph', title: 'graph.cpp' },
+            { selector: '#mode-graph-kruskal', title: 'graph_kruskal.cpp' },
+            { selector: '#mode-hash-chain', title: 'hash_chaining.cpp' },
+            { selector: '#mode-search-binary', title: 'search_binary.cpp' },
+            { selector: '#mode-heap-binary', title: '', desc: 'Binary Heap' },
         ];
 
-        for (const test of modeTests) {
-            // Expand group if needed
-            const group = page.locator('.mode-group').nth(test.group);
-            const header = group.locator('.group-header');
-            const content = group.locator('.group-content');
-
-            if (!(await content.isVisible())) {
-                await header.click();
+        for (const modeTest of modeTests) {
+            await loadMethodByRadioId(page, modeTest.selector.substring(1));
+            if (modeTest.title) {
+                await expect(page.locator('#code-title')).toHaveText(modeTest.title);
             }
-
-            // Select mode
-            await page.locator(`label[for="${test.selector.substring(1)}"]`).click();
-
-            // Verify selection
-            if (test.title) {
-                await expect(page.locator('#code-title')).toHaveText(test.title);
-            }
-            if (test.desc) {
-                await expect(page.locator('#desc-view h3')).toContainText(test.desc);
+            if (modeTest.desc) {
+                await expect(page.locator('#desc-view h3')).toContainText(modeTest.desc);
             }
         }
     });
 
     test('OOP Inheritance: Renders hierarchy and completes demo flow', async ({ page }) => {
-        const oopGroup = page.locator('.mode-group').nth(4);
-        const oopContent = oopGroup.locator('.group-content');
-        if (!(await oopContent.isVisible())) {
-            await oopGroup.locator('.group-header').click();
-        }
-
-        await page.locator('label[for="mode-oop-inheritance"]').click();
+        await loadMethodByRadioId(page, 'mode-oop-inheritance');
         await expect(page.locator('#code-title')).toHaveText('oop_inheritance.cpp');
         await expect(page.locator('#oop-inheritance-view')).toBeVisible();
 
@@ -436,13 +306,7 @@ test.describe('Data Structure Visualizer Full Suite', () => {
     });
 
     test('OOP Polymorphism: Shows virtual dispatch model and demo run', async ({ page }) => {
-        const oopGroup = page.locator('.mode-group').nth(4);
-        const oopContent = oopGroup.locator('.group-content');
-        if (!(await oopContent.isVisible())) {
-            await oopGroup.locator('.group-header').click();
-        }
-
-        await page.locator('label[for="mode-oop-polymorphism"]').click();
+        await loadMethodByRadioId(page, 'mode-oop-polymorphism');
         await expect(page.locator('#code-title')).toHaveText('oop_polymorphism.cpp');
         await expect(page.locator('#oop-polymorphism-view')).toBeVisible();
 
@@ -452,13 +316,7 @@ test.describe('Data Structure Visualizer Full Suite', () => {
     });
 
     test('OOP Encapsulation: Shows access levels and demo run', async ({ page }) => {
-        const oopGroup = page.locator('.mode-group').nth(4);
-        const oopContent = oopGroup.locator('.group-content');
-        if (!(await oopContent.isVisible())) {
-            await oopGroup.locator('.group-header').click();
-        }
-
-        await page.locator('label[for="mode-oop-encapsulation"]').click();
+        await loadMethodByRadioId(page, 'mode-oop-encapsulation');
         await expect(page.locator('#code-title')).toHaveText('oop_encapsulation.cpp');
         await expect(page.locator('#oop-encapsulation-view')).toBeVisible();
 
@@ -471,14 +329,7 @@ test.describe('Data Structure Visualizer Full Suite', () => {
 
     // Design Patterns Tests
     test('Design Patterns: Singleton - Renders and demo runs', async ({ page }) => {
-        const patternsGroup = page.locator('.mode-group').nth(5);
-        const patternsContent = patternsGroup.locator('.group-content');
-        if (!(await patternsContent.isVisible())) {
-            await patternsGroup.locator('.group-header').click();
-        }
-
-        const creatSubgroup = patternsContent.locator('.subgroup').first();
-        await creatSubgroup.locator('label[for="mode-pattern-singleton"]').click();
+        await loadMethodByRadioId(page, 'mode-pattern-singleton');
         await expect(page.locator('#code-title')).toHaveText('pattern_singleton.cpp');
         await expect(page.locator('#pattern-singleton-view')).toBeVisible();
 
@@ -487,14 +338,7 @@ test.describe('Data Structure Visualizer Full Suite', () => {
     });
 
     test('Design Patterns: Factory - Renders and demo runs', async ({ page }) => {
-        const patternsGroup = page.locator('.mode-group').nth(5);
-        const patternsContent = patternsGroup.locator('.group-content');
-        if (!(await patternsContent.isVisible())) {
-            await patternsGroup.locator('.group-header').click();
-        }
-
-        const creatSubgroup = patternsContent.locator('.subgroup').first();
-        await creatSubgroup.locator('label[for="mode-pattern-factory"]').click();
+        await loadMethodByRadioId(page, 'mode-pattern-factory');
         await expect(page.locator('#code-title')).toHaveText('pattern_factory.cpp');
         await expect(page.locator('#pattern-factory-view')).toBeVisible();
 
@@ -503,14 +347,7 @@ test.describe('Data Structure Visualizer Full Suite', () => {
     });
 
     test('Design Patterns: Adapter - Renders and demo runs', async ({ page }) => {
-        const patternsGroup = page.locator('.mode-group').nth(5);
-        const patternsContent = patternsGroup.locator('.group-content');
-        if (!(await patternsContent.isVisible())) {
-            await patternsGroup.locator('.group-header').click();
-        }
-
-        const structSubgroup = patternsContent.locator('.subgroup').nth(1);
-        await structSubgroup.locator('label[for="mode-pattern-adapter"]').click();
+        await loadMethodByRadioId(page, 'mode-pattern-adapter');
         await expect(page.locator('#code-title')).toHaveText('pattern_adapter.cpp');
         await expect(page.locator('#pattern-adapter-view')).toBeVisible();
 
@@ -519,14 +356,7 @@ test.describe('Data Structure Visualizer Full Suite', () => {
     });
 
     test('Design Patterns: Decorator - Renders and demo runs', async ({ page }) => {
-        const patternsGroup = page.locator('.mode-group').nth(5);
-        const patternsContent = patternsGroup.locator('.group-content');
-        if (!(await patternsContent.isVisible())) {
-            await patternsGroup.locator('.group-header').click();
-        }
-
-        const structSubgroup = patternsContent.locator('.subgroup').nth(1);
-        await structSubgroup.locator('label[for="mode-pattern-decorator"]').click();
+        await loadMethodByRadioId(page, 'mode-pattern-decorator');
         await expect(page.locator('#code-title')).toHaveText('pattern_decorator.cpp');
         await expect(page.locator('#pattern-decorator-view')).toBeVisible();
 
@@ -535,14 +365,7 @@ test.describe('Data Structure Visualizer Full Suite', () => {
     });
 
     test('Design Patterns: Observer - Renders and demo runs', async ({ page }) => {
-        const patternsGroup = page.locator('.mode-group').nth(5);
-        const patternsContent = patternsGroup.locator('.group-content');
-        if (!(await patternsContent.isVisible())) {
-            await patternsGroup.locator('.group-header').click();
-        }
-
-        const behavSubgroup = patternsContent.locator('.subgroup').nth(2);
-        await behavSubgroup.locator('label[for="mode-pattern-observer"]').click();
+        await loadMethodByRadioId(page, 'mode-pattern-observer');
         await expect(page.locator('#code-title')).toHaveText('pattern_observer.cpp');
         await expect(page.locator('#pattern-observer-view')).toBeVisible();
 
@@ -551,14 +374,7 @@ test.describe('Data Structure Visualizer Full Suite', () => {
     });
 
     test('Design Patterns: Strategy - Renders and demo runs', async ({ page }) => {
-        const patternsGroup = page.locator('.mode-group').nth(5);
-        const patternsContent = patternsGroup.locator('.group-content');
-        if (!(await patternsContent.isVisible())) {
-            await patternsGroup.locator('.group-header').click();
-        }
-
-        const behavSubgroup = patternsContent.locator('.subgroup').nth(2);
-        await behavSubgroup.locator('label[for="mode-pattern-strategy"]').click();
+        await loadMethodByRadioId(page, 'mode-pattern-strategy');
         await expect(page.locator('#code-title')).toHaveText('pattern_strategy.cpp');
         await expect(page.locator('#pattern-strategy-view')).toBeVisible();
 
