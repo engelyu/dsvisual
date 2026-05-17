@@ -141,4 +141,68 @@ function deckToMarkdown(id, deck, lang, ctx) {
   return frontmatter + '\n\n' + slides.join('\n\n---\n\n') + '\n';
 }
 
-module.exports = { pick, escapeHtml, inlineHtml, blockToMarkdown, blockToHtml, collectMermaid, deckToMarkdown };
+function deckToHtmlSlides(id, deck, lang, ctx) {
+  return deck.slides.map((slide) => ({
+    title: pick(slide.heading, lang),
+    body: slide.blocks.map((blk) => blockToHtml(blk, lang, ctx)).join('\n'),
+  }));
+}
+
+const LANGS = ['zh', 'en'];
+
+async function renderMermaidWithCli(sources) {
+  const fs = require('fs');
+  const os = require('os');
+  const path = require('path');
+  const { execFileSync } = require('child_process');
+  const mmdc = path.join(__dirname, 'node_modules', '.bin', 'mmdc');
+  const map = new Map();
+  for (const src of sources) {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mmd-'));
+    const inFile = path.join(tmp, 'in.mmd');
+    const outFile = path.join(tmp, 'out.svg');
+    fs.writeFileSync(inFile, src);
+    execFileSync(mmdc, ['-i', inFile, '-o', outFile, '-b', 'transparent'], { stdio: 'pipe' });
+    map.set(src, fs.readFileSync(outFile, 'utf8').trim());
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+  return map;
+}
+
+async function main() {
+  const fs = require('fs');
+  const path = require('path');
+  const slidesDb = require('./slides_db.js');
+
+  const mermaidSvgMap = await renderMermaidWithCli(collectMermaid(slidesDb));
+  const ctx = { mermaidSvg: mermaidSvgMap };
+
+  for (const lang of LANGS) {
+    fs.mkdirSync(path.join(__dirname, 'slides', lang), { recursive: true });
+  }
+
+  const rendered = {};
+  for (const id of Object.keys(slidesDb)) {
+    const deck = slidesDb[id];
+    for (const lang of LANGS) {
+      const md = deckToMarkdown(id, deck, lang, ctx);
+      fs.writeFileSync(path.join(__dirname, 'slides', lang, id + '.md'), md);
+    }
+    rendered[id] = {
+      slides: {
+        zh: deckToHtmlSlides(id, deck, 'zh', ctx),
+        en: deckToHtmlSlides(id, deck, 'en', ctx),
+      },
+    };
+  }
+
+  const out = 'window.SLIDES_RENDERED = ' + JSON.stringify(rendered, null, 2) + ';\n';
+  fs.writeFileSync(path.join(__dirname, 'slides_rendered.js'), out);
+  console.log('Generated ' + Object.keys(slidesDb).length + ' decks for ' + LANGS.join(', '));
+}
+
+module.exports = { pick, escapeHtml, inlineHtml, blockToMarkdown, blockToHtml, collectMermaid, deckToMarkdown, deckToHtmlSlides };
+
+if (require.main === module) {
+  main().catch((err) => { console.error(err); process.exit(1); });
+}

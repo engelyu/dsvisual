@@ -141,3 +141,16 @@ test('deckToMarkdown quotes titles containing YAML-special chars', () => {
   const md = b.deckToMarkdown('demo', deck, 'en', {});
   assert.match(md, /title: "Stack: Array"\n/);
 });
+
+test('deckToHtmlSlides returns per-slide title and body', () => {
+  const deck = {
+    title: { zh: '標題', en: 'Title' },
+    slides: [
+      { heading: { zh: '一', en: 'One' }, blocks: [{ type: 'paragraph', text: { zh: '甲', en: 'a' } }] },
+    ],
+  };
+  const slides = b.deckToHtmlSlides('demo', deck, 'zh', {});
+  assert.equal(slides.length, 1);
+  assert.equal(slides[0].title, '一');
+  assert.equal(slides[0].body, '<p>甲</p>');
+});
