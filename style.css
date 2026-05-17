@@ -125,11 +125,14 @@ header p { color: rgba(255,255,255,0.72); font-size: 0.95rem; }
 }
 .method-sections-heading {
     display: flex;
-    align-items: end;
+    align-items: flex-end;
     justify-content: space-between;
     gap: 16px;
     padding-bottom: 10px;
     border-bottom: 3px solid var(--primary-color);
+}
+.method-sections-title {
+    min-width: 0;
 }
 .method-sections-heading h2 {
     font-size: 1.35rem;
@@ -139,6 +142,9 @@ header p { color: rgba(255,255,255,0.72); font-size: 0.95rem; }
     color: var(--text-subtle);
     font-weight: 800;
     font-size: 0.82rem;
+}
+.method-heading-select {
+    flex: 0 1 360px;
 }
 .method-section-card {
     background: var(--card-bg);
@@ -831,7 +837,12 @@ pre { margin: 0; font-family: 'Fira Code', monospace; font-size: 0.9rem; line-he
         align-items: stretch;
     }
 
-    .category-method-select {
+    .method-sections-heading {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .method-heading-select {
         flex: 1 0 100%;
         width: 100%;
     }
