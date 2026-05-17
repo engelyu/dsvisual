@@ -300,11 +300,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (runtimeControls?.parentNode) runtimeFragment.appendChild(runtimeControls);
         if (runtimeVisualizer?.parentNode) runtimeFragment.appendChild(runtimeVisualizer);
         methodSections.innerHTML = '';
-        const heading = document.createElement('div');
-        heading.className = 'method-sections-heading';
-        heading.innerHTML = `<h2>${group.title}</h2><p>1 of ${group.methods.length} methods</p>`;
-        methodSections.appendChild(heading);
-
         const activeMethodId = arguments[1] || (
             group.methods.some((method) => method.id === visualizerRuntime.activeMode)
                 ? visualizerRuntime.activeMode
@@ -312,6 +307,34 @@ document.addEventListener('DOMContentLoaded', () => {
         );
         const method = group.methods.find((candidate) => candidate.id === activeMethodId) || group.methods[0];
         if (!method) return;
+
+        const heading = document.createElement('div');
+        heading.className = 'method-sections-heading';
+        const titleGroup = document.createElement('div');
+        titleGroup.className = 'method-sections-title';
+        titleGroup.innerHTML = `<h2>${group.title}</h2><p>1 of ${group.methods.length} methods</p>`;
+        const methodSelect = document.createElement('select');
+        methodSelect.className = 'category-method-select method-heading-select';
+        methodSelect.dataset.testid = 'method-select';
+        methodSelect.dataset.group = group.id;
+        methodSelect.setAttribute('aria-label', `Select ${group.title} method`);
+        group.methods.forEach((candidate) => {
+            const option = document.createElement('option');
+            option.value = candidate.id;
+            option.textContent = candidate.title;
+            methodSelect.appendChild(option);
+        });
+        methodSelect.value = method.id;
+        methodSelect.addEventListener('change', (event) => {
+            const nextMethodId = event.target.value;
+            setActiveCategory(getMethodGroupForMode(nextMethodId).id);
+            selectMethod(nextMethodId);
+            scrollToCategory(getMethodGroupForMode(nextMethodId).id);
+        });
+        heading.appendChild(titleGroup);
+        heading.appendChild(methodSelect);
+        methodSections.appendChild(heading);
+
         if (visualizerRuntime.activeMode !== method.id) visualizerRuntime.setMode(method.id);
         const section = document.createElement('section');
         section.className = 'method-section-card active';
@@ -433,30 +456,11 @@ document.addEventListener('DOMContentLoaded', () => {
         categoryNav.innerHTML = '';
         categoryButtons.clear();
 
-        const methodSelect = document.createElement('select');
-        methodSelect.className = 'category-method-select';
-        methodSelect.dataset.testid = 'method-select';
-        methodSelect.setAttribute('aria-label', 'Select method');
-
-        function renderMethodDropdown(group, selectedMethodId) {
-            methodSelect.innerHTML = '';
-            group.methods.forEach((method) => {
-                const option = document.createElement('option');
-                option.value = method.id;
-                option.textContent = method.title;
-                methodSelect.appendChild(option);
-            });
-            methodSelect.dataset.group = group.id;
-            const hasSelectedMethod = group.methods.some((method) => method.id === selectedMethodId);
-            methodSelect.value = hasSelectedMethod ? selectedMethodId : group.methods[0]?.id || '';
-        }
-
         function activateGroup(groupId, methodId) {
             const group = getMethodGroupById(groupId);
             if (!group) return;
             const nextMethod = methodId || group.methods[0]?.id;
             setActiveCategory(group.id);
-            renderMethodDropdown(group, nextMethod);
             if (nextMethod) {
                 selectMethod(nextMethod);
             }
@@ -474,20 +478,8 @@ document.addEventListener('DOMContentLoaded', () => {
             categoryNav.appendChild(groupBtn);
         });
 
-        methodSelect.addEventListener('change', (event) => {
-            const methodId = event.target.value;
-            const group = getMethodGroupForMode(methodId);
-            setActiveCategory(group.id);
-            renderMethodDropdown(group, methodId);
-            selectMethod(methodId);
-            scrollToCategory(group.id);
-        });
-
-        categoryNav.appendChild(methodSelect);
-
         const initialGroup = getMethodGroupForMode('stack-array');
         setActiveCategory(initialGroup.id);
-        renderMethodDropdown(initialGroup, 'stack-array');
     }
 
     function scrollToCategory(groupId) {

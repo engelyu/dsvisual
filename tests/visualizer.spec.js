@@ -38,22 +38,24 @@ test.describe('Data Structure Visualizer Full Suite', () => {
 
     test('Phase 1 category nav: renders six top-level groups and drives method sections', async ({ page }) => {
         const categoryNav = page.locator('[data-testid="category-nav"]');
+        const methodSections = page.locator('[data-testid="method-sections"]');
         await expect(categoryNav).toBeVisible();
         await expect(categoryNav.locator('.category-nav-btn')).toHaveCount(6);
-        await expect(categoryNav.locator('[data-testid="method-select"]')).toBeVisible();
-        await expect(page.locator('[data-testid="method-sections"] [data-method-section="stack-array"]')).toBeVisible();
+        await expect(categoryNav.locator('[data-testid="method-select"]')).toHaveCount(0);
+        await expect(methodSections.locator('[data-testid="method-select"]')).toBeVisible();
+        await expect(methodSections.locator('[data-method-section="stack-array"]')).toBeVisible();
         await expect(categoryNav.locator('button[data-method], .category-nav-submenu')).toHaveCount(0);
 
         await categoryNav.getByRole('button', { name: 'Advanced & Application-Specific' }).click();
         await page.waitForSelector('[data-method-section]', { timeout: 5000 });
-        await expect(categoryNav.locator('[data-testid="method-select"] option[value="sort-bubble"]')).toHaveCount(1);
-        await categoryNav.locator('[data-testid="method-select"]').selectOption('sort-bubble');
-        await expect(page.locator('[data-testid="method-sections"] [data-method-section="sort-bubble"]')).toBeVisible();
+        await expect(methodSections.locator('[data-testid="method-select"] option[value="sort-bubble"]')).toHaveCount(1);
+        await methodSections.locator('[data-testid="method-select"]').selectOption('sort-bubble');
+        await expect(methodSections.locator('[data-method-section="sort-bubble"]')).toBeVisible();
         await expect(page.locator('[data-method-section="sort-bubble"]')).toHaveAttribute('data-runtime-state', 'active');
 
         await categoryNav.getByRole('button', { name: 'Non-Linear Structures' }).click();
         await page.waitForSelector('[data-method-section]', { timeout: 5000 });
-        await expect(page.locator('[data-testid="method-sections"] [data-method-section="tree-bst"]')).toBeVisible();
+        await expect(methodSections.locator('[data-method-section="tree-bst"]')).toBeVisible();
     });
 
     test('Phase 2 method sections: renders selected category methods and loads a method', async ({ page }) => {
