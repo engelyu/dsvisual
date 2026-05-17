@@ -20,130 +20,9 @@
 
         <nav id="category-nav" class="app-category-nav" aria-label="Data structure categories" data-testid="category-nav"></nav>
 
-        <div class="main-content legacy-runtime-stage" aria-hidden="true">
+        <div class="runtime-stage" aria-hidden="true">
             <section class="visualization-panel glass-panel">
                 <div class="controls">
-                    <div class="mode-groups">
-                        <!-- 1. Basic Linear Structures -->
-                        <div class="mode-group">
-                            <div class="group-header" data-group="basic-linear">📦 Basic Linear Structures</div>
-                            <div class="group-content" style="display:none;">
-                                <input type="radio" id="mode-stack-arr" name="ds-mode" value="stack-array" checked> <label for="mode-stack-arr">Stack (Array)</label>
-                                <input type="radio" id="mode-stack-list" name="ds-mode" value="stack-list"> <label for="mode-stack-list">Stack (List)</label>
-                                <input type="radio" id="mode-queue" name="ds-mode" value="queue"> <label for="mode-queue">Queue</label>
-                                <input type="radio" id="mode-list-arr" name="ds-mode" value="list-array"> <label for="mode-list-arr">Array List</label>
-                            </div>
-                        </div>
-
-                        <!-- 2. Linked Lists -->
-                        <div class="mode-group">
-                            <div class="group-header" data-group="linked-lists">🔗 Linked Lists</div>
-                            <div class="group-content" style="display:none;">
-                                <input type="radio" id="mode-list-list" name="ds-mode" value="list-linked"> <label for="mode-list-list">Singly Linked List</label>
-                            </div>
-                        </div>
-
-                        <!-- 3. Non-Linear Structures -->
-                        <div class="mode-group">
-                            <div class="group-header" data-group="non-linear">🌳 Non-Linear Structures</div>
-                            <div class="group-content" style="display:none;">
-                                <div class="subgroup">
-                                    <div class="subgroup-label">Trees</div>
-                                    <input type="radio" id="mode-tree-bst" name="ds-mode" value="tree-bst"> <label for="mode-tree-bst">Binary Search Tree</label>
-                                    <input type="radio" id="mode-tree-avl" name="ds-mode" value="tree-avl"> <label for="mode-tree-avl">AVL Tree</label>
-                                    <input type="radio" id="mode-tree-rb" name="ds-mode" value="tree-rb"> <label for="mode-tree-rb">Red-Black Tree</label>
-                                    <input type="radio" id="mode-tree-splay" name="ds-mode" value="tree-splay"> <label for="mode-tree-splay">Splay Tree</label>
-                                    <input type="radio" id="mode-tree-trie" name="ds-mode" value="tree-trie"> <label for="mode-tree-trie" style="color:#d8b4fe">Trie</label>
-                                    <input type="radio" id="mode-tree-radix" name="ds-mode" value="tree-radix"> <label for="mode-tree-radix" style="color:#d8b4fe">Radix Tree</label>
-                                    <input type="radio" id="mode-tree-ternary" name="ds-mode" value="tree-ternary"> <label for="mode-tree-ternary" style="color:#d8b4fe">Ternary Search Tree</label>
-                                    <input type="radio" id="mode-tree-btree" name="ds-mode" value="tree-btree"> <label for="mode-tree-btree" style="color:#fcd34d">B-Tree</label>
-                                    <input type="radio" id="mode-tree-bplus" name="ds-mode" value="tree-bplus"> <label for="mode-tree-bplus" style="color:#fcd34d">B+ Tree</label>
-                                </div>
-                                <div class="subgroup">
-                                    <div class="subgroup-label">Graphs</div>
-                                    <input type="radio" id="mode-graph" name="ds-mode" value="graph"> <label for="mode-graph">Undirected Graph</label>
-                                    <input type="radio" id="mode-graph-kruskal" name="ds-mode" value="graph-kruskal"> <label for="mode-graph-kruskal" style="color:#fcd34d">Kruskal MST</label>
-                                    <input type="radio" id="mode-graph-dijkstra" name="ds-mode" value="graph-dijkstra"> <label for="mode-graph-dijkstra" style="color:#f472b6">Dijkstra (Shortest Path)</label>
-                                    <input type="radio" id="mode-graph-topo" name="ds-mode" value="graph-topo"> <label for="mode-graph-topo" style="color:#a78bfa">Topological Sort</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 4. Advanced & Application-Specific -->
-                        <div class="mode-group">
-                            <div class="group-header" data-group="advanced">⚙️ Advanced & Application-Specific</div>
-                            <div class="group-content" style="display:none;">
-                                <div class="subgroup">
-                                    <div class="subgroup-label">Hash Tables</div>
-                                    <input type="radio" id="mode-hash-chain" name="ds-mode" value="hash-chain"> <label for="mode-hash-chain">Chaining</label>
-                                    <input type="radio" id="mode-hash-open" name="ds-mode" value="hash-open"> <label for="mode-hash-open">Open Addressing</label>
-                                    <input type="radio" id="mode-hash-bucket" name="ds-mode" value="hash-bucket"> <label for="mode-hash-bucket">Bucketing</label>
-                                </div>
-                                <div class="subgroup">
-                                    <div class="subgroup-label">Search Algorithms</div>
-                                    <input type="radio" id="mode-search-linear" name="ds-mode" value="search-linear"> <label for="mode-search-linear">Linear Search</label>
-                                    <input type="radio" id="mode-search-binary" name="ds-mode" value="search-binary"> <label for="mode-search-binary">Binary Search</label>
-                                </div>
-                                <div class="subgroup">
-                                    <div class="subgroup-label">Sorting Algorithms</div>
-                                    <input type="radio" id="mode-sort-bubble" name="ds-mode" value="sort-bubble"> <label for="mode-sort-bubble">Bubble Sort</label>
-                                    <input type="radio" id="mode-sort-select" name="ds-mode" value="sort-select"> <label for="mode-sort-select">Selection Sort</label>
-                                    <input type="radio" id="mode-sort-insert" name="ds-mode" value="sort-insert"> <label for="mode-sort-insert">Insertion Sort</label>
-                                    <input type="radio" id="mode-sort-quick" name="ds-mode" value="sort-quick"> <label for="mode-sort-quick">Quick Sort</label>
-                                    <input type="radio" id="mode-sort-merge" name="ds-mode" value="sort-merge"> <label for="mode-sort-merge">Merge Sort</label>
-                                    <input type="radio" id="mode-sort-shell" name="ds-mode" value="sort-shell"> <label for="mode-sort-shell">Shell Sort</label>
-                                    <input type="radio" id="mode-sort-bucket" name="ds-mode" value="sort-bucket"> <label for="mode-sort-bucket" style="color:#fb7185">Bucket Sort</label>
-                                    <input type="radio" id="mode-sort-count" name="ds-mode" value="sort-count"> <label for="mode-sort-count" style="color:#fb7185">Counting Sort</label>
-                                    <input type="radio" id="mode-sort-radix" name="ds-mode" value="sort-radix"> <label for="mode-sort-radix" style="color:#fb7185">Radix Sort</label>
-                                    <input type="radio" id="mode-sort-heap" name="ds-mode" value="sort-heap"> <label for="mode-sort-heap" style="color:#fb7185">Heap Sort</label>
-                                    <input type="radio" id="mode-sort-shaker" name="ds-mode" value="sort-shaker"> <label for="mode-sort-shaker" style="color:#fb7185">Shaker Sort</label>
-                                </div>
-                                <div class="subgroup">
-                                    <div class="subgroup-label">Heaps</div>
-                                    <input type="radio" id="mode-heap-binary" name="ds-mode" value="heap-binary"> <label for="mode-heap-binary" style="color:#facc15">Binary Heap</label>
-                                    <input type="radio" id="mode-heap-binomial" name="ds-mode" value="heap-binomial"> <label for="mode-heap-binomial" style="color:#facc15">Binomial Heap</label>
-                                    <input type="radio" id="mode-heap-fibonacci" name="ds-mode" value="heap-fibonacci"> <label for="mode-heap-fibonacci" style="color:#facc15">Fibonacci Heap</label>
-                                    <input type="radio" id="mode-heap-leftist" name="ds-mode" value="heap-leftist"> <label for="mode-heap-leftist" style="color:#facc15">Leftist Heap</label>
-                                    <input type="radio" id="mode-heap-skew" name="ds-mode" value="heap-skew"> <label for="mode-heap-skew" style="color:#facc15">Skew Heap</label>
-                                    <input type="radio" id="mode-heap-dary" name="ds-mode" value="heap-dary"> <label for="mode-heap-dary" style="color:#facc15">4-ary Heap</label>
-                                    <input type="radio" id="mode-heap-pairing" name="ds-mode" value="heap-pairing"> <label for="mode-heap-pairing" style="color:#facc15">Pairing Heap</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 4. OOP Concepts -->
-                        <div class="mode-group collapsed">
-                            <div class="group-header" data-group="oop-concepts">🎓 OOP Concepts (C++)</div>
-                            <div class="group-content" style="display:none;">
-                                <input type="radio" id="mode-oop-inheritance" name="ds-mode" value="oop-inheritance"> <label for="mode-oop-inheritance" style="color:#06b6d4">Class Inheritance</label>
-                                <input type="radio" id="mode-oop-polymorphism" name="ds-mode" value="oop-polymorphism"> <label for="mode-oop-polymorphism" style="color:#f59e0b">Polymorphism (Virtual)</label>
-                                <input type="radio" id="mode-oop-encapsulation" name="ds-mode" value="oop-encapsulation"> <label for="mode-oop-encapsulation" style="color:#8b5cf6">Encapsulation & Access</label>
-                            </div>
-                        </div>
-
-                        <!-- 5. Design Patterns -->
-                        <div class="mode-group collapsed">
-                            <div class="group-header" data-group="design-patterns">🏗️ Design Patterns (C++)</div>
-                            <div class="group-content" style="display:none;">
-                                <div class="subgroup">
-                                    <div class="subgroup-label">Creational</div>
-                                    <input type="radio" id="mode-pattern-singleton" name="ds-mode" value="pattern-singleton"> <label for="mode-pattern-singleton" style="color:#ec4899">Singleton</label>
-                                    <input type="radio" id="mode-pattern-factory" name="ds-mode" value="pattern-factory"> <label for="mode-pattern-factory" style="color:#ec4899">Factory Method</label>
-                                </div>
-                                <div class="subgroup">
-                                    <div class="subgroup-label">Structural</div>
-                                    <input type="radio" id="mode-pattern-adapter" name="ds-mode" value="pattern-adapter"> <label for="mode-pattern-adapter" style="color:#10b981">Adapter</label>
-                                    <input type="radio" id="mode-pattern-decorator" name="ds-mode" value="pattern-decorator"> <label for="mode-pattern-decorator" style="color:#10b981">Decorator</label>
-                                </div>
-                                <div class="subgroup">
-                                    <div class="subgroup-label">Behavioral</div>
-                                    <input type="radio" id="mode-pattern-observer" name="ds-mode" value="pattern-observer"> <label for="mode-pattern-observer" style="color:#f97316">Observer</label>
-                                    <input type="radio" id="mode-pattern-strategy" name="ds-mode" value="pattern-strategy"> <label for="mode-pattern-strategy" style="color:#f97316">Strategy</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
                     <div class="actions" id="std-actions">
                         <input type="number" id="std-value" placeholder="Value" value="10">
                         <button id="btn-std-add" class="btn primary">Push()</button>
@@ -396,26 +275,6 @@
                         </div>
 
                     </div>
-            </section>
-
-            <section class="code-panel glass-panel" style="display: flex; flex-direction: column;">
-                <div class="panel-tabs">
-                    <button id="tab-btn-desc" class="tab-btn active">Explanation</button>
-                    <button id="tab-btn-code" class="tab-btn">&lt;/&gt; C++ Source</button>
-                </div>
-                
-                <div id="desc-view" class="panel-view" style="flex: 1; overflow-y: auto;">
-                    <div id="desc-display" class="desc-display"></div>
-                </div>
-
-                <div id="code-view" class="panel-view" style="display: none; flex: 1; overflow-y: auto; display: flex; flex-direction: column;">
-                    <div class="code-header" style="margin-bottom: 5px;">
-                        <h2 id="code-title" style="margin: 0; font-size: 14px; color: #94a3b8;">stack_array.cpp</h2>
-                    </div>
-                    <div class="code-content" style="flex: 1; margin: 0; padding: 0;">
-                        <pre style="margin: 0; height: 100%; border-radius: 8px;"><code id="code-display" class="language-cpp">Loading code...</code></pre>
-                    </div>
-                </div>
             </section>
         </div>
 

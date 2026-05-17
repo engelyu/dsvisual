@@ -166,6 +166,12 @@ test.describe('Data Structure Visualizer Full Suite', () => {
         await expect(stackArrayCard.locator('.method-section-visual')).toBeVisible();
     });
 
+    test('Primary UI: legacy interface DOM is removed', async ({ page }) => {
+        await expect(page.locator('.mode-groups, .mode-group, .code-panel, .panel-tabs, #tab-btn-desc, #tab-btn-code, #desc-view, #code-view')).toHaveCount(0);
+        await expect(page.locator('.runtime-stage')).toBeHidden();
+        await expect(page.locator('[data-method-section="stack-array"] #visualizer-container')).toBeVisible();
+    });
+
     test('Primary UI: can select mode from different categories', async ({ page }) => {
         const methodSections = page.locator('[data-testid="method-sections"]');
         

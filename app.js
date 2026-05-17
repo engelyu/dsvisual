@@ -248,7 +248,6 @@ function getCodeForMethod(methodId) {
 
 // MAIN DOM INTERACTION
 document.addEventListener('DOMContentLoaded', () => {
-    const modeRadios = document.querySelectorAll('input[name="ds-mode"]');
     const categoryNav = document.getElementById('category-nav');
     const methodSections = document.getElementById('method-sections');
     const slideViewer = document.getElementById('slide-viewer');
@@ -261,9 +260,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const runtimeControls = document.querySelector('.visualization-panel .controls');
     const runtimeVisualizer = document.querySelector('.stack-container-wrapper');
     
-    // Setup collapsible mode groups
-    const groupHeaders = document.querySelectorAll('.group-header');
-    const groupContentById = new Map();
     const categoryButtons = new Map();
 
     function setActiveCategory(groupId) {
@@ -275,11 +271,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function expandModeGroup(groupId) {
-        const groupContent = groupContentById.get(groupId);
-        if (groupContent) {
-            groupContent.style.display = 'flex';
-            groupContent.parentElement.classList.remove('collapsed');
-        }
         setActiveCategory(groupId);
         renderMethodSections(groupId);
     }
@@ -356,8 +347,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function selectMethod(methodId) {
-        const radio = document.querySelector(`input[name="ds-mode"][value="${methodId}"]`);
-        if (radio) radio.checked = true;
         switchMode(methodId);
     }
 
@@ -540,33 +529,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderCategoryNav();
 
-    groupHeaders.forEach((header, index) => {
-        const groupContent = header.nextElementSibling;
-        if (groupContent && groupContent.classList.contains('group-content')) {
-            const groupId = header.dataset.group;
-            groupContentById.set(groupId, groupContent);
-            // Initialize: first group open, others closed
-            if (index === 0) {
-                groupContent.style.display = 'flex';
-                header.parentElement.classList.remove('collapsed');
-                setActiveCategory(groupId);
-            } else {
-                groupContent.style.display = 'none';
-                header.parentElement.classList.add('collapsed');
-            }
-            
-            // Toggle on click
-            header.addEventListener('click', () => {
-                const isCollapsed = header.parentElement.classList.toggle('collapsed');
-                groupContent.style.display = isCollapsed ? 'none' : 'flex';
-                if (!isCollapsed) {
-                    setActiveCategory(header.dataset.group);
-                    renderMethodSections(header.dataset.group);
-                }
-            });
-        }
-    });
-    
     // Containers
     const arrayContainer = document.getElementById('array-container'); const linkedListContainer = document.getElementById('linkedlist-container');
     const queueContainer = document.getElementById('queue-container'); const graphContainer = document.getElementById('graph-container');
@@ -581,7 +543,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const heapActions = document.getElementById('heap-actions');
 
     const statusMsg = document.getElementById('status-message');
-    const codeDisplay = document.getElementById('code-display'); const codeTitle = document.getElementById('code-title');
+    const codeDisplay = document.getElementById('code-display') || document.createElement('code');
+    const codeTitle = document.getElementById('code-title') || document.createElement('span');
 
     // Controls
     const btnStdAdd = document.getElementById('btn-std-add'); const btnStdRemove = document.getElementById('btn-std-remove'); const stdVal = document.getElementById('std-value');
@@ -753,8 +716,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     let heapTutorialState = { active: false, mode: null, name: '', steps: [], stepIndex: 0, completed: false };
 
-    const tabBtnDesc = document.getElementById('tab-btn-desc');
-
         // OOP state variables
         let oopInheritanceAnimationState = null;
         let oopPolymorphismAnimationState = null;
@@ -762,23 +723,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Design Patterns state variables
         let patternAnimationState = null;
-
-    const tabBtnCode = document.getElementById('tab-btn-code');
-    const descView = document.getElementById('desc-view');
-    const codeView = document.getElementById('code-view');
-    const descDisplay = document.getElementById('desc-display');
-
-    tabBtnDesc.addEventListener('click', () => {
-        tabBtnDesc.classList.add('active'); tabBtnDesc.style.borderBottomColor = '#3498db'; tabBtnDesc.style.color = '#1f2937';
-        tabBtnCode.classList.remove('active'); tabBtnCode.style.borderBottomColor = 'transparent'; tabBtnCode.style.color = '#64748b';
-        descView.style.display = 'block'; codeView.style.display = 'none';
-    });
-    tabBtnCode.addEventListener('click', () => {
-        tabBtnCode.classList.add('active'); tabBtnCode.style.borderBottomColor = '#3498db'; tabBtnCode.style.color = '#1f2937';
-        tabBtnDesc.classList.remove('active'); tabBtnDesc.style.borderBottomColor = 'transparent'; tabBtnDesc.style.color = '#64748b';
-        codeView.style.display = 'flex'; descView.style.display = 'none';
-        if (window.Prism) Prism.highlightElement(codeDisplay);
-    });
 
     function clearHeapEventMarks() {
         if (heapEventTimer) {
@@ -1031,13 +975,6 @@ document.addEventListener('DOMContentLoaded', () => {
         statusMsg.textContent = "Switched to " + currentMode; statusMsg.style.color = '#34d399';
         if(currentMode === 'tree-splay') btnTreeSearch.classList.remove('hidden'); else btnTreeSearch.classList.add('hidden');
     }
-
-    modeRadios.forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            if(animState === 'playing' || animState === 'paused') { e.target.checked = false; document.getElementById("mode-" + currentMode).checked = true; return; }
-            switchMode(e.target.value);
-        });
-    });
 
     // STD Hooks...
     btnStdAdd.addEventListener('click', () => {
@@ -1411,7 +1348,6 @@ document.addEventListener('DOMContentLoaded', () => {
             btnOopReset.disabled = isPlaying;
             oopModeSelect.disabled = isPlaying;
         }
-        modeRadios.forEach(r => r.disabled = isPlaying);
         syncHeapTutorialChrome();
     }
     async function executeAnimWrapper(fn) {
@@ -1479,8 +1415,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const actions = [stdActions, graphActions, treeActions, textTreeActions, searchActions, listActions, sortActions, hashActions, heapActions, oopActions, patternActions];
         containers.forEach(c => c.classList.add('hidden')); actions.forEach(a => a.classList.add('hidden'));
         if(treeDrawLoop) { cancelAnimationFrame(treeDrawLoop); treeDrawLoop = null; }
-
-        if (descDB[currentMode]) { descDisplay.innerHTML = descDB[currentMode]; } else { descDisplay.innerHTML = "<p>No description available.</p>"; }
 
         if(currentMode === 'stack-array') { codeTitle.textContent = 'stack_array.cpp'; codeDisplay.textContent = codeArray; arrayContainer.classList.remove('hidden'); stdActions.classList.remove('hidden'); btnStdAdd.textContent = 'Push()'; btnStdRemove.textContent = 'Pop()'; }
         else if (currentMode === 'stack-list') { codeTitle.textContent = 'stack_linkedlist.cpp'; codeDisplay.textContent = codeLinkedList; linkedListContainer.classList.remove('hidden'); stdActions.classList.remove('hidden'); btnStdAdd.textContent = 'Push()'; btnStdRemove.textContent = 'Pop()'; }
@@ -1632,7 +1566,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         syncHeapTutorialChrome();
-        if (window.Prism) Prism.highlightElement(codeDisplay);
+        if (window.Prism && codeDisplay.isConnected) Prism.highlightElement(codeDisplay);
     }
     function renderAll() {
         if(currentMode.includes('stack')) renderStack();
