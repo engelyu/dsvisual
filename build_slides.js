@@ -128,7 +128,7 @@ function deckToMarkdown(id, deck, lang, ctx) {
     'theme: default',
     'paginate: true',
     'math: katex',
-    'title: ' + title,
+    'title: "' + title.replace(/"/g, '\\"') + '"',
     '---',
   ].join('\n');
 

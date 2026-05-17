@@ -128,7 +128,16 @@ test('deckToMarkdown emits frontmatter and slide separators', () => {
   const md = b.deckToMarkdown('demo', deck, 'en', {});
   assert.match(md, /^---\nmarp: true\n/);
   assert.match(md, /math: katex\n/);
-  assert.match(md, /title: Title\n/);
+  assert.match(md, /title: "Title"\n/);
   assert.match(md, /\n## One\n\na\n/);
   assert.match(md, /\n---\n\n## Two\n/);
+});
+
+test('deckToMarkdown quotes titles containing YAML-special chars', () => {
+  const deck = {
+    category: 'Cat', title: { zh: 'X', en: 'Stack: Array' },
+    slides: [{ heading: { zh: 'h', en: 'h' }, blocks: [{ type: 'paragraph', text: { zh: 'a', en: 'a' } }] }],
+  };
+  const md = b.deckToMarkdown('demo', deck, 'en', {});
+  assert.match(md, /title: "Stack: Array"\n/);
 });
