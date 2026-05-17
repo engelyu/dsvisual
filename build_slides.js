@@ -1,5 +1,7 @@
 'use strict';
 
+const katex = require('katex');
+
 function pick(i18nValue, lang) {
   if (i18nValue == null) return '';
   if (typeof i18nValue === 'string') return i18nValue;
@@ -14,9 +16,16 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
-// Escape text for HTML output. Inline-math handling is added in Task 4.
+// Escape text for HTML, then render any inline $...$ runs with KaTeX.
 function inlineHtml(str) {
-  return escapeHtml(str);
+  const parts = String(str).split('$');
+  // Even indices are plain text, odd indices are math.
+  return parts.map((part, i) => {
+    if (i % 2 === 1) {
+      return katex.renderToString(part, { displayMode: false, throwOnError: false });
+    }
+    return escapeHtml(part);
+  }).join('');
 }
 
 function blockToMarkdown(block, lang, ctx) {
@@ -38,6 +47,10 @@ function blockToMarkdown(block, lang, ctx) {
       return '```' + (block.lang || '') + '\n' + block.code + '\n```';
     case 'note':
       return '> ' + pick(block.text, lang);
+    case 'math': {
+      const formula = '$$' + block.tex + '$$';
+      return block.caption ? formula + '\n\n' + pick(block.caption, lang) : formula;
+    }
     default:
       throw new Error('Unknown block type: ' + block.type);
   }
@@ -61,6 +74,13 @@ function blockToHtml(block, lang, ctx) {
       return '<pre><code class="language-' + (block.lang || '') + '">' + escapeHtml(block.code) + '</code></pre>';
     case 'note':
       return '<div class="note">' + inlineHtml(pick(block.text, lang)) + '</div>';
+    case 'math': {
+      const formula = '<div class="slide-math">' +
+        katex.renderToString(block.tex, { displayMode: true, throwOnError: false }) + '</div>';
+      return block.caption
+        ? formula + '<p class="slide-caption">' + inlineHtml(pick(block.caption, lang)) + '</p>'
+        : formula;
+    }
     default:
       throw new Error('Unknown block type: ' + block.type);
   }

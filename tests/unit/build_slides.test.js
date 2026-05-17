@@ -49,3 +49,27 @@ test('note → blockquote markdown and div html', () => {
   assert.equal(b.blockToMarkdown(block, 'en', {}), '> Tip');
   assert.equal(b.blockToHtml(block, 'en', {}), '<div class="note">Tip</div>');
 });
+
+test('math block → markdown is $$ fenced', () => {
+  const block = { type: 'math', tex: 'O(1)' };
+  assert.equal(b.blockToMarkdown(block, 'zh', {}), '$$O(1)$$');
+});
+
+test('math block caption → markdown line after formula', () => {
+  const block = { type: 'math', tex: 'O(1)', caption: { zh: '常數', en: 'constant' } };
+  assert.equal(b.blockToMarkdown(block, 'en', {}), '$$O(1)$$\n\nconstant');
+});
+
+test('math block → html uses katex span', () => {
+  const html = b.blockToHtml({ type: 'math', tex: 'O(1)' }, 'zh', {});
+  assert.match(html, /class="katex/);
+});
+
+test('inline $...$ in paragraph → katex html', () => {
+  const html = b.blockToHtml({ type: 'paragraph', text: { zh: '複雜度 $O(n)$', en: 'cost $O(n)$' } }, 'en', {});
+  assert.match(html, /cost <span class="katex/);
+});
+
+test('plain text without $ is unaffected', () => {
+  assert.equal(b.blockToHtml({ type: 'paragraph', text: { zh: 'x', en: 'plain' } }, 'en', {}), '<p>plain</p>');
+});
