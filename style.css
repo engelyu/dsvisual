@@ -23,6 +23,30 @@
     --app-focus-ring: 0 0 0 3px rgba(52, 152, 219, 0.24);
 }
 
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-gradient: #0f172a;
+        --card-bg: #1e293b;
+        --card-border: #334155;
+        --surface-muted: #0f172a;
+        --surface-hover: #1e293b;
+        --text-main: #f1f5f9;
+        --text-muted: #cbd5e1;
+        --text-subtle: #94a3b8;
+        --primary-color: #3b82f6;
+        --primary-hover: #60a5fa;
+        --secondary-color: #a78bfa;
+        --secondary-hover: #c4b5fd;
+        --node-bg: linear-gradient(145deg, #1e40af, #1e3a8a);
+        --array-slot-bg: #334155;
+        --array-slot-border: #475569;
+        --app-shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.3);
+        --app-shadow-md: 0 10px 24px rgba(0, 0, 0, 0.4);
+        --app-shadow-lg: 0 14px 30px rgba(0, 0, 0, 0.5);
+        --app-focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    }
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body { font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-gradient); color: var(--text-main); min-height: 100vh; }
@@ -1168,4 +1192,102 @@ pre { margin: 0; font-family: 'Fira Code', monospace; font-size: 0.9rem; line-he
     font-weight: 700;
     font-size: 1.1rem;
     margin: 0;
+}
+
+/* ========== DARK MODE SPECIFIC RULES ========== */
+@media (prefers-color-scheme: dark) {
+    /* Header styling for dark mode */
+    .app-header {
+        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+    }
+
+    /* Code block styling for dark mode */
+    .slide-viewer-body code {
+        background: #334155;
+        color: #60a5fa;
+    }
+
+    /* Graph nodes for dark mode */
+    .graph-node {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    .graph-node.visited {
+        background: #fb7185;
+        box-shadow: 0 0 15px rgba(251, 113, 133, 0.4);
+    }
+
+    .graph-node.current {
+        background: #fcd34d;
+        box-shadow: 0 0 20px rgba(252, 211, 77, 0.6);
+    }
+
+    /* Tree styling for dark mode */
+    .tree-edge {
+        stroke: #64748b;
+    }
+
+    /* Search array styling for dark mode */
+    .s-slot {
+        background: rgba(15, 23, 42, 0.5);
+        border-color: #475569;
+    }
+
+    /* Button styling for dark mode */
+    .btn {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn:active:not(:disabled) {
+        transform: scale(0.95);
+    }
+
+    /* Input styling for dark mode */
+    input[type="number"], input[type="text"] {
+        background: #334155;
+        border-color: #475569;
+        color: #f1f5f9;
+    }
+
+    input[type="number"]:focus, input[type="text"]:focus {
+        border-color: #60a5fa;
+    }
+
+    /* Category nav for dark mode */
+    .category-nav-btn {
+        background: #334155;
+        color: #f1f5f9;
+        border-color: #475569;
+    }
+
+    .category-nav-btn:hover {
+        background: #475569;
+    }
+
+    .category-nav-btn.active {
+        background: #3b82f6;
+        color: white;
+        border-color: #60a5fa;
+    }
+
+    /* Select dropdown for dark mode */
+    select {
+        background: #334155;
+        color: #f1f5f9;
+        border-color: #475569;
+    }
+
+    select:focus {
+        border-color: #60a5fa;
+    }
+
+    /* Slider styling for dark mode */
+    input[type="range"] {
+        accent-color: #3b82f6;
+    }
+
+    /* Status message for dark mode */
+    .status-message {
+        color: #60a5fa;
+    }
 }
