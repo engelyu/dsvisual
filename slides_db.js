@@ -3565,6 +3565,195 @@ const SLIDES_DB = {
     ],
   },
 
+  'search-linear': {
+    category: 'Advanced & Application-Specific',
+    title: { zh: '線性搜尋', en: 'Linear Search' },
+    slides: [
+      {
+        heading: { zh: '線性搜尋', en: 'Linear Search' },
+        blocks: [
+          { type: 'paragraph', text: {
+            zh: '線性搜尋從陣列的第一個元素開始,逐一比對每個元素,直到找到目標值或掃描完整個陣列為止;適用於任何未排序或已排序的資料集。',
+            en: 'Linear Search scans each element of an array from index 0 in sequence, comparing each to the target until a match is found or the entire array is exhausted — works on any data, sorted or unsorted.' } },
+        ],
+      },
+      {
+        heading: { zh: '核心概念', en: 'Core Concept' },
+        blocks: [
+          { type: 'paragraph', text: {
+            zh: '演算法以單一迴圈由左至右逐格比對,無需陣列預先排序。找到目標則立即回傳其索引;若掃描完成後仍未找到則回傳 `-1`。',
+            en: 'A single loop compares each element to the target from left to right — no pre-sorting required. The index is returned immediately on a match; `-1` is returned if the full array is scanned without finding the target.' } },
+          { type: 'bullets', items: [
+            { zh: '可應用於未排序資料:不要求陣列有任何順序。', en: 'Works on unsorted data: the array needs no particular order.' },
+            { zh: '最佳情況:目標在索引 0,$O(1)$。', en: 'Best case: target is at index 0, $O(1)$.' },
+            { zh: '最壞情況:目標在最後或不存在,$O(n)$。', en: 'Worst case: target is last or absent, $O(n)$.' },
+            { zh: 'in-place:僅使用迴圈計數器,空間需求為 $O(1)$。', en: 'in-place: only a loop counter is used — $O(1)$ auxiliary space.' },
+          ] },
+        ],
+      },
+      {
+        heading: { zh: '運作流程', en: 'Operation Flow' },
+        blocks: [
+          { type: 'steps', items: [
+            { zh: '設定索引 `i = 0`。', en: 'Initialise index `i = 0`.' },
+            { zh: '若 `i >= size`,表示未找到,回傳 `-1`。', en: 'If `i >= size`, the target is not present — return `-1`.' },
+            { zh: '比對 `arr[i] == target`:若相等則回傳 `i`。', en: 'Compare `arr[i] == target`: if equal, return `i`.' },
+            { zh: '令 `i++`,返回步驟 2 繼續掃描。', en: 'Increment `i++` and go back to step 2 to continue scanning.' },
+          ] },
+          { type: 'mermaid', code: 'flowchart LR\n  A["i=0\\narr=[23,12,56,8,38]\\ntarget=38"] --> B["arr[0]=23 != 38\\ni++"]\n  B --> C["arr[1]=12 != 38\\ni++"]\n  C --> D["arr[2]=56 != 38\\ni++"]\n  D --> E["arr[3]=8 != 38\\ni++"]\n  E --> F["arr[4]=38 == 38\\nreturn 4"]' },
+        ],
+      },
+      {
+        heading: { zh: '掃描示意', en: 'Scan Diagram' },
+        blocks: [
+          { type: 'svg', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 370 90" width="370" height="90"><g font-family="sans-serif" font-size="13"><rect x="10" y="28" width="50" height="30" fill="#fee2e2" stroke="#dc2626"/><rect x="60" y="28" width="50" height="30" fill="#fee2e2" stroke="#dc2626"/><rect x="110" y="28" width="50" height="30" fill="#fee2e2" stroke="#dc2626"/><rect x="160" y="28" width="50" height="30" fill="#fee2e2" stroke="#dc2626"/><rect x="210" y="28" width="50" height="30" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/><rect x="260" y="28" width="50" height="30" fill="#f1f5f9" stroke="#94a3b8"/><rect x="310" y="28" width="50" height="30" fill="#f1f5f9" stroke="#94a3b8"/><text x="35" y="48" text-anchor="middle">23</text><text x="85" y="48" text-anchor="middle">12</text><text x="135" y="48" text-anchor="middle">56</text><text x="185" y="48" text-anchor="middle">8</text><text x="235" y="48" text-anchor="middle" fill="#15803d">38</text><text x="285" y="48" text-anchor="middle" fill="#94a3b8">72</text><text x="335" y="48" text-anchor="middle" fill="#94a3b8">91</text><text x="35" y="22" text-anchor="middle" fill="#64748b">[0]</text><text x="85" y="22" text-anchor="middle" fill="#64748b">[1]</text><text x="135" y="22" text-anchor="middle" fill="#64748b">[2]</text><text x="185" y="22" text-anchor="middle" fill="#64748b">[3]</text><text x="235" y="22" text-anchor="middle" fill="#16a34a">[4]</text><text x="285" y="22" text-anchor="middle" fill="#94a3b8">[5]</text><text x="335" y="22" text-anchor="middle" fill="#94a3b8">[6]</text><text x="235" y="76" text-anchor="middle" fill="#16a34a">found target=38</text></g></svg>' },
+          { type: 'note', text: {
+            zh: '紅色格為已掃描但不符的元素,綠色格為找到目標的位置;灰色格為尚未掃描的元素。',
+            en: 'Red cells are scanned non-matching elements; the green cell is where the target was found; grey cells have not yet been visited.' } },
+        ],
+      },
+      {
+        heading: { zh: '複雜度分析', en: 'Complexity Analysis' },
+        blocks: [
+          { type: 'table',
+            headers: [ { zh: '情況', en: 'Case' }, { zh: '時間', en: 'Time' }, { zh: '空間', en: 'Space' } ],
+            rows: [
+              [ { zh: '最佳(目標在首位)', en: 'Best (target at index 0)' }, { zh: '$O(1)$', en: '$O(1)$' }, { zh: '$O(1)$', en: '$O(1)$' } ],
+              [ { zh: '平均', en: 'Average' }, { zh: '$O(n)$', en: '$O(n)$' }, { zh: '$O(1)$', en: '$O(1)$' } ],
+              [ { zh: '最壞(目標在末位或不存在)', en: 'Worst (target last or absent)' }, { zh: '$O(n)$', en: '$O(n)$' }, { zh: '$O(1)$', en: '$O(1)$' } ],
+              [ { zh: '空間合計', en: 'Total Space' }, { zh: '—', en: '—' }, { zh: '$O(1)$', en: '$O(1)$' } ],
+            ] },
+          { type: 'math', tex: 'T_{\\text{search}}(n) = O(n)', caption: {
+            zh: '平均需比對 $n/2$ 個元素;最壞情況需比對全部 $n$ 個元素。',
+            en: 'On average $n/2$ comparisons are made; in the worst case all $n$ elements are compared.' } },
+        ],
+      },
+      {
+        heading: { zh: '程式碼', en: 'Source Code' },
+        blocks: [
+          { type: 'code', lang: 'cpp', code: 'int linearSearch(int arr[], int size, int target) {\n    for (int i = 0; i < size; i++) {\n        if (arr[i] == target) {\n            return i; // Found at index i\n        }\n    }\n    return -1; // Not found\n}\n\nint main() {\n    int arr[] = {23, 12, 56, 8, 38, 2, 72, 91, 16, 5};\n    int size = sizeof(arr) / sizeof(arr[0]);\n    int target = 38;\n\n    int result = linearSearch(arr, size, target);\n\n    if (result != -1)\n        cout << "Element " << target << " found at index " << result << endl;\n    else\n        cout << "Element " << target << " not found." << endl;\n    return 0;\n}' },
+        ],
+      },
+      {
+        heading: { zh: '優缺點與使用時機', en: 'Pros, Cons & When to Use' },
+        blocks: [
+          { type: 'bullets', items: [
+            { zh: '優點:不要求資料排序,可直接應用於任意陣列或串列。', en: 'Pro: no sorting prerequisite — applies directly to any array or list.' },
+            { zh: '優點:實作極為簡單,幾乎無額外空間開銷。', en: 'Pro: extremely simple to implement with virtually no extra space overhead.' },
+            { zh: '缺點:時間複雜度 $O(n)$,對大型資料集效率低落。', en: 'Con: $O(n)$ time complexity — inefficient for large datasets.' },
+            { zh: '適用:資料量小(n ≤ 數百)、資料未排序、或只需搜尋一次的場景。', en: 'Use when n is small (a few hundred), data is unsorted, or the array is searched only once.' },
+            { zh: '不適用:需對大型已排序陣列反覆搜尋時,應改用 Binary Search。', en: 'Avoid for repeated searches on large sorted arrays — use Binary Search instead.' },
+          ] },
+        ],
+      },
+      {
+        heading: { zh: '小結', en: 'Summary' },
+        blocks: [
+          { type: 'bullets', items: [
+            { zh: '從索引 0 逐一比對,無需預先排序。', en: 'Scans element-by-element from index 0 — no pre-sorting needed.' },
+            { zh: '最佳 $O(1)$、平均與最壞 $O(n)$;額外空間 $O(1)$。', en: 'Best $O(1)$, average and worst $O(n)$; auxiliary space $O(1)$.' },
+            { zh: '簡單可靠,適合小規模或單次搜尋;大規模已排序資料請改用 Binary Search。', en: 'Simple and reliable for small or one-off searches; switch to Binary Search for large sorted data.' },
+          ] },
+        ],
+      },
+    ],
+  },
+
+  'search-binary': {
+    category: 'Advanced & Application-Specific',
+    title: { zh: '二元搜尋', en: 'Binary Search' },
+    slides: [
+      {
+        heading: { zh: '二元搜尋', en: 'Binary Search' },
+        blocks: [
+          { type: 'paragraph', text: {
+            zh: '二元搜尋在**已排序**陣列上以 divide-and-conquer 策略每次排除一半的搜尋範圍,時間複雜度為 $O(\\log n)$;必要前提:陣列必須已排序。',
+            en: 'Binary Search applies a divide-and-conquer strategy on a **sorted** array, halving the search range at each step to achieve $O(\\log n)$ time — the required precondition is that the array must be sorted.' } },
+        ],
+      },
+      {
+        heading: { zh: '核心概念', en: 'Core Concept' },
+        blocks: [
+          { type: 'paragraph', text: {
+            zh: '維護 `left`(左邊界)和 `right`(右邊界)兩個指標。每次計算中間位置 `mid = left + (right - left) / 2`,與目標比較後將搜尋範圍縮減為左半或右半。',
+            en: 'Two pointers `left` and `right` define the current search range. Each iteration computes `mid = left + (right - left) / 2` and narrows the range to either the left or right half depending on the comparison result.' } },
+          { type: 'bullets', items: [
+            { zh: '前提條件:陣列必須已排序(升序),否則結果不可靠。', en: 'Precondition: the array MUST be sorted (ascending order); results are unreliable on unsorted data.' },
+            { zh: '若 `arr[mid] == target`,立即回傳 `mid`。', en: 'If `arr[mid] == target`, return `mid` immediately.' },
+            { zh: '若 `arr[mid] < target`,目標在右半,令 `left = mid + 1`。', en: 'If `arr[mid] < target`, the target is in the right half — set `left = mid + 1`.' },
+            { zh: '若 `arr[mid] > target`,目標在左半,令 `right = mid - 1`。', en: 'If `arr[mid] > target`, the target is in the left half — set `right = mid - 1`.' },
+          ] },
+        ],
+      },
+      {
+        heading: { zh: '運作流程', en: 'Operation Flow' },
+        blocks: [
+          { type: 'steps', items: [
+            { zh: '確認陣列已排序,初始化 `left=0`, `right=size-1`。', en: 'Confirm array is sorted; initialise `left=0`, `right=size-1`.' },
+            { zh: '迴圈條件:`left <= right`。', en: 'Loop condition: `left <= right`.' },
+            { zh: '計算 `mid = left + (right - left) / 2`,與 `target` 比較。', en: 'Compute `mid = left + (right - left) / 2` and compare to `target`.' },
+            { zh: '依比較結果更新 `left` 或 `right`;若相等則回傳 `mid`。', en: 'Update `left` or `right` based on the comparison; return `mid` on equality.' },
+            { zh: '迴圈結束後仍未找到,回傳 `-1`。', en: 'If the loop ends without a match, return `-1`.' },
+          ] },
+          { type: 'mermaid', code: 'flowchart LR\n  A["arr sorted\\nleft=0 right=9\\ntarget=56"] --> B["mid=4 arr[4]=16\\n16 < 56 left=5"]\n  B --> C["mid=7 arr[7]=56\\n56 == 56 return 7"]' },
+        ],
+      },
+      {
+        heading: { zh: '指標縮減示意', en: 'Pointer Narrowing Diagram' },
+        blocks: [
+          { type: 'svg', svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 110" width="420" height="110"><g font-family="sans-serif" font-size="12"><rect x="10" y="40" width="38" height="28" fill="#f1f5f9" stroke="#94a3b8"/><rect x="48" y="40" width="38" height="28" fill="#f1f5f9" stroke="#94a3b8"/><rect x="86" y="40" width="38" height="28" fill="#f1f5f9" stroke="#94a3b8"/><rect x="124" y="40" width="38" height="28" fill="#f1f5f9" stroke="#94a3b8"/><rect x="162" y="40" width="38" height="28" fill="#fee2e2" stroke="#dc2626"/><rect x="200" y="40" width="38" height="28" fill="#dbeafe" stroke="#2563eb"/><rect x="238" y="40" width="38" height="28" fill="#dbeafe" stroke="#2563eb"/><rect x="276" y="40" width="38" height="28" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/><rect x="314" y="40" width="38" height="28" fill="#dbeafe" stroke="#2563eb"/><rect x="352" y="40" width="38" height="28" fill="#dbeafe" stroke="#2563eb"/><text x="29" y="58" text-anchor="middle" font-size="11">2</text><text x="67" y="58" text-anchor="middle" font-size="11">5</text><text x="105" y="58" text-anchor="middle" font-size="11">8</text><text x="143" y="58" text-anchor="middle" font-size="11">12</text><text x="181" y="58" text-anchor="middle" font-size="11" fill="#dc2626">16</text><text x="219" y="58" text-anchor="middle" font-size="11">23</text><text x="257" y="58" text-anchor="middle" font-size="11">38</text><text x="295" y="58" text-anchor="middle" font-size="11" fill="#15803d">56</text><text x="333" y="58" text-anchor="middle" font-size="11">72</text><text x="371" y="58" text-anchor="middle" font-size="11">91</text><text x="29" y="34" text-anchor="middle" fill="#2563eb" font-size="11">L</text><text x="371" y="34" text-anchor="middle" fill="#2563eb" font-size="11">R</text><text x="181" y="34" text-anchor="middle" fill="#dc2626" font-size="11">mid1</text><text x="295" y="34" text-anchor="middle" fill="#16a34a" font-size="11">mid2</text><text x="215" y="100" text-anchor="middle" fill="#64748b" font-size="11">Round 1: mid=4(16) &lt; 56, L=5 → Round 2: mid=7(56) found</text></g></svg>' },
+          { type: 'note', text: {
+            zh: '第一輪 mid=4(值16),因 16 < 56 將 `left` 移至 5。第二輪 mid=7(值56),命中目標。灰色格已被排除,藍色格為當前搜尋範圍,綠色格為找到目標。',
+            en: 'Round 1: mid=4 (value 16); since 16 < 56 set `left=5`. Round 2: mid=7 (value 56) — target found. Grey cells are eliminated, blue cells form the current search range, green cell is the match.' } },
+        ],
+      },
+      {
+        heading: { zh: '複雜度分析', en: 'Complexity Analysis' },
+        blocks: [
+          { type: 'table',
+            headers: [ { zh: '情況', en: 'Case' }, { zh: '時間', en: 'Time' }, { zh: '空間', en: 'Space' } ],
+            rows: [
+              [ { zh: '最佳(目標在中點)', en: 'Best (target at mid)' }, { zh: '$O(1)$', en: '$O(1)$' }, { zh: '$O(1)$', en: '$O(1)$' } ],
+              [ { zh: '平均', en: 'Average' }, { zh: '$O(\\log n)$', en: '$O(\\log n)$' }, { zh: '$O(1)$', en: '$O(1)$' } ],
+              [ { zh: '最壞', en: 'Worst' }, { zh: '$O(\\log n)$', en: '$O(\\log n)$' }, { zh: '$O(1)$', en: '$O(1)$' } ],
+              [ { zh: '空間合計', en: 'Total Space' }, { zh: '—', en: '—' }, { zh: '$O(1)$', en: '$O(1)$' } ],
+            ] },
+          { type: 'math', tex: 'T_{\\text{search}}(n) = O(\\log n)', caption: {
+            zh: '每次迭代將搜尋範圍減半;$n=10^6$ 時最多僅需 20 次比對。',
+            en: 'Each iteration halves the search range; for $n=10^6$ at most 20 comparisons are needed.' } },
+        ],
+      },
+      {
+        heading: { zh: '程式碼', en: 'Source Code' },
+        blocks: [
+          { type: 'code', lang: 'cpp', code: 'int binarySearch(int arr[], int left, int right, int target) {\n    while (left <= right) {\n        int mid = left + (right - left) / 2;\n\n        if (arr[mid] == target)\n            return mid;\n\n        if (arr[mid] < target)\n            left = mid + 1;\n        else\n            right = mid - 1;\n    }\n\n    return -1; // Not found\n}\n\nint main() {\n    // Array must be sorted for Binary Search\n    int arr[] = {2, 5, 8, 12, 16, 23, 38, 56, 72, 91};\n    int size = sizeof(arr) / sizeof(arr[0]);\n    int target = 56;\n\n    int result = binarySearch(arr, 0, size - 1, target);\n\n    if (result != -1)\n        cout << "Element " << target << " found at index " << result << endl;\n    return 0;\n}' },
+        ],
+      },
+      {
+        heading: { zh: '優缺點與使用時機', en: 'Pros, Cons & When to Use' },
+        blocks: [
+          { type: 'bullets', items: [
+            { zh: '優點:$O(\\log n)$ 時間複雜度,對大型陣列遠優於線性搜尋。', en: 'Pro: $O(\\log n)$ time — vastly faster than linear search on large arrays.' },
+            { zh: '優點:in-place 實作(iterative),僅需 $O(1)$ 額外空間。', en: 'Pro: in-place iterative implementation uses only $O(1)$ auxiliary space.' },
+            { zh: '缺點(關鍵前提):陣列必須已排序;若資料無序需先排序,成本為 $O(n \\log n)$。', en: 'Con (critical precondition): array MUST be sorted first — sorting costs $O(n \\log n)$ if not already done.' },
+            { zh: '缺點:不適用於鏈結串列(無法 $O(1)$ 隨機存取中間元素)。', en: 'Con: does not apply to linked lists (no $O(1)$ random access to the middle element).' },
+            { zh: '適用:靜態或不常更動的已排序陣列,如字典查找、資料庫索引範圍查詢。', en: 'Use for static or infrequently modified sorted arrays, e.g. dictionary lookups, database index range queries.' },
+          ] },
+        ],
+      },
+      {
+        heading: { zh: '小結', en: 'Summary' },
+        blocks: [
+          { type: 'bullets', items: [
+            { zh: '必要前提:陣列必須已排序。違反此前提將導致錯誤結果。', en: 'Critical precondition: the array MUST be sorted. Violating this produces incorrect results.' },
+            { zh: '每輪排除一半範圍,最壞情況僅需 $O(\\log n)$ 次比對。', en: 'Each iteration eliminates half the range; worst case is only $O(\\log n)$ comparisons.' },
+            { zh: '與線性搜尋相比:$n=10^6$ 時 Binary Search 約需 20 次,Linear Search 需最多 $10^6$ 次。', en: 'Versus linear search: for $n=10^6$, Binary Search needs ~20 comparisons vs up to $10^6$ for Linear Search.' },
+          ] },
+        ],
+      },
+    ],
+  },
+
 };
 
 module.exports = SLIDES_DB;
