@@ -44,14 +44,14 @@ All tree roots form a circular doubly-linked list (root list); `best` points to 
 
 ## Complexity Analysis
 
-| Operation | Amortized Time | Space |
+| Operation | Time | Space |
 | --- | --- | --- |
-| insert | $O(1)$ | $O(1)$ |
-| peek | $O(1)$ | $O(1)$ |
-| merge | $O(1)$ | $O(1)$ |
-| decrease-key | $O(1)$ | $O(1)$ |
-| extractTop | $O(\log N)$ | $O(1)$ |
-| delete | $O(\log N)$ | $O(1)$ |
+| insert | $O(1)$ worst-case | $O(1)$ |
+| peek | $O(1)$ worst-case | $O(1)$ |
+| merge | $O(1)$ worst-case | $O(1)$ |
+| decrease-key | $O(1)$ amortized | $O(1)$ |
+| extractTop | $O(\log N)$ amortized | $O(1)$ |
+| delete | $O(\log N)$ amortized | $O(1)$ |
 | Total Space | — | $O(N)$ |
 
 $$T_{\text{decrease-key}} = O(1)\text{ amortized}$$
@@ -101,7 +101,7 @@ void decreaseOrIncreaseKey(FNode* x, int newKey) {
 ## Pros, Cons & When to Use
 
 - Pro: $O(1)$ amortized decrease-key is theoretically optimal, making Dijkstra run in $O(E + V\log V)$.
-- Pro: $O(1)$ insert and merge; ideal for insert-heavy then extract-heavy workloads.
+- Pro: $O(1)$ worst-case insert and merge; ideal for insert-heavy then extract-heavy workloads.
 - Con: complex implementation, large constant factors, pointer-intensive — often slower in practice than Binary Heap.
 - Con: consolidate is $O(N)$ worst-case single call, but $O(\log N)$ amortized.
 - Use for decrease-key-heavy algorithms (Dijkstra, Prim, network flow) in theory research and competitive programming.

@@ -102,7 +102,7 @@ int extractTop() {
 
 - Pro: contiguous array storage is cache-friendly with small constant factors.
 - Pro: $O(N)$ build-heap is ideal for bulk construction from a large dataset.
-- Con: merging two heaps costs $O((N+M)\log(N+M))$ — unsuitable when merges are frequent.
+- Con: efficient merge (concatenate arrays + build-heap) costs $O(N+M)$; naive re-insertion degrades to $O((N+M)\log(N+M))$ — either way, unsuitable when merges are frequent.
 - Con: decrease-key requires knowing the array index, adding bookkeeping overhead.
 - Use for: priority queues, Dijkstra/Prim, Heap Sort, Top-K streaming.
 

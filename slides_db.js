@@ -1753,7 +1753,7 @@ const SLIDES_DB = {
           { type: 'bullets', items: [
             { zh: '優點:陣列連續儲存,快取友好,常數因子小。', en: 'Pro: contiguous array storage is cache-friendly with small constant factors.' },
             { zh: '優點:build-heap 為 $O(N)$,適合大量資料一次性建堆。', en: 'Pro: $O(N)$ build-heap is ideal for bulk construction from a large dataset.' },
-            { zh: '缺點:合併兩個堆積需 $O((N+M)\\log(N+M))$,不適合頻繁 merge。', en: 'Con: merging two heaps costs $O((N+M)\\log(N+M))$ — unsuitable when merges are frequent.' },
+            { zh: '缺點:高效合併(串接陣列後 build-heap)需 $O(N+M)$,若以逐一重新插入則退化為 $O((N+M)\\log(N+M))$;即使最佳情況仍不適合頻繁 merge。', en: 'Con: efficient merge (concatenate arrays + build-heap) costs $O(N+M)$; naive re-insertion degrades to $O((N+M)\\log(N+M))$ — either way, unsuitable when merges are frequent.' },
             { zh: '缺點:decrease-key 需要知道元素的陣列索引,外部維護索引增加複雜度。', en: 'Con: decrease-key requires knowing the array index, adding bookkeeping overhead.' },
             { zh: '適用:優先佇列、Dijkstra/Prim 演算法、Heap Sort、Top-K 問題。', en: 'Use for: priority queues, Dijkstra/Prim, Heap Sort, Top-K streaming.' },
           ] },
@@ -1806,7 +1806,7 @@ const SLIDES_DB = {
             { zh: '重複直到每個度數至多一棵樹為止。', en: 'Repeat until every degree appears at most once.' },
             { zh: 'extractTop:線性掃描根串列找最小根;子樹反轉後執行上述合併。', en: 'extractTop: linear scan of root list for minimum; reverse children then apply the merge above.' },
           ] },
-          { type: 'mermaid', code: 'flowchart LR\n  H1["H1: B0(3), B1(7)"] --> MERGE["mergeRootLists\\n+ link equal degrees"]\n  H2["H2: B0(1), B1(10)"] --> MERGE\n  MERGE --> OUT["Result: B0(3), B1(1), B2(...)\\n(carry-like linking)"]' },
+          { type: 'mermaid', code: 'flowchart LR\n  H1["H1: B0(3), B1(7)"] --> MERGE["mergeRootLists\\n+ link equal degrees"]\n  H2["H2: B0(1), B1(10)"] --> MERGE\n  MERGE --> OUT["Result: B1(root=1), B2(root=7)\\n(carry-like linking, no B0)"]' },
         ],
       },
       {
@@ -1846,7 +1846,7 @@ const SLIDES_DB = {
         heading: { zh: '優缺點與使用時機', en: 'Pros, Cons & When to Use' },
         blocks: [
           { type: 'bullets', items: [
-            { zh: '優點:$O(\\log N)$ 合併,明顯優於 Binary Heap 的 $O((N+M)\\log(N+M))$。', en: 'Pro: $O(\\log N)$ merge — much better than Binary Heap\'s $O((N+M)\\log(N+M))$.' },
+            { zh: '優點:$O(\\log N)$ 合併,明顯優於 Binary Heap 的 $O(N+M)$(串接+build-heap)且支援更多使用場景。', en: 'Pro: $O(\\log N)$ merge — superior structure for repeated merges compared to Binary Heap\'s $O(N+M)$ concatenate+build-heap.' },
             { zh: '優點:插入攤銷 $O(1)$,連續插入效率高。', en: 'Pro: $O(1)$ amortized insert; efficient for sequential insertions.' },
             { zh: '缺點:指標結構,快取效能不如陣列式 Binary Heap。', en: 'Con: pointer-based; worse cache performance than array-based Binary Heap.' },
             { zh: '缺點:peek 需要線性掃描根串列 $O(\\log N)$;不提供 $O(1)$ peek。', en: 'Con: peek requires a linear scan of the root list — $O(\\log N)$, not $O(1)$.' },
@@ -1869,10 +1869,10 @@ const SLIDES_DB = {
 
   'heap-fibonacci': {
     category: 'Advanced & Application-Specific',
-    title: { zh: 'Fibonacci Heap(費波那契堆積)', en: 'Fibonacci Heap' },
+    title: { zh: '費波那契堆積(Fibonacci Heap)', en: 'Fibonacci Heap' },
     slides: [
       {
-        heading: { zh: 'Fibonacci Heap(費波那契堆積)', en: 'Fibonacci Heap' },
+        heading: { zh: '費波那契堆積(Fibonacci Heap)', en: 'Fibonacci Heap' },
         blocks: [
           { type: 'paragraph', text: {
             zh: '以循環雙向鏈結根串列延遲合併,配合 cut 與 cascading-cut 維持攤銷界,提供 $O(1)$ 攤銷 insert/merge/decrease-key 及 $O(\\log N)$ 攤銷 extractTop,是理論上最優的優先佇列。',
@@ -1918,14 +1918,14 @@ const SLIDES_DB = {
         heading: { zh: '複雜度分析', en: 'Complexity Analysis' },
         blocks: [
           { type: 'table',
-            headers: [ { zh: '操作', en: 'Operation' }, { zh: '攤銷時間', en: 'Amortized Time' }, { zh: '空間', en: 'Space' } ],
+            headers: [ { zh: '操作', en: 'Operation' }, { zh: '時間', en: 'Time' }, { zh: '空間', en: 'Space' } ],
             rows: [
-              [ { zh: 'insert', en: 'insert' }, { zh: '$O(1)$', en: '$O(1)$' }, { zh: '$O(1)$', en: '$O(1)$' } ],
-              [ { zh: 'peek', en: 'peek' }, { zh: '$O(1)$', en: '$O(1)$' }, { zh: '$O(1)$', en: '$O(1)$' } ],
-              [ { zh: 'merge', en: 'merge' }, { zh: '$O(1)$', en: '$O(1)$' }, { zh: '$O(1)$', en: '$O(1)$' } ],
-              [ { zh: 'decrease-key', en: 'decrease-key' }, { zh: '$O(1)$', en: '$O(1)$' }, { zh: '$O(1)$', en: '$O(1)$' } ],
-              [ { zh: 'extractTop', en: 'extractTop' }, { zh: '$O(\\log N)$', en: '$O(\\log N)$' }, { zh: '$O(1)$', en: '$O(1)$' } ],
-              [ { zh: 'delete', en: 'delete' }, { zh: '$O(\\log N)$', en: '$O(\\log N)$' }, { zh: '$O(1)$', en: '$O(1)$' } ],
+              [ { zh: 'insert', en: 'insert' }, { zh: '$O(1)$ 最壞', en: '$O(1)$ worst-case' }, { zh: '$O(1)$', en: '$O(1)$' } ],
+              [ { zh: 'peek', en: 'peek' }, { zh: '$O(1)$ 最壞', en: '$O(1)$ worst-case' }, { zh: '$O(1)$', en: '$O(1)$' } ],
+              [ { zh: 'merge', en: 'merge' }, { zh: '$O(1)$ 最壞', en: '$O(1)$ worst-case' }, { zh: '$O(1)$', en: '$O(1)$' } ],
+              [ { zh: 'decrease-key', en: 'decrease-key' }, { zh: '$O(1)$ 攤銷', en: '$O(1)$ amortized' }, { zh: '$O(1)$', en: '$O(1)$' } ],
+              [ { zh: 'extractTop', en: 'extractTop' }, { zh: '$O(\\log N)$ 攤銷', en: '$O(\\log N)$ amortized' }, { zh: '$O(1)$', en: '$O(1)$' } ],
+              [ { zh: 'delete', en: 'delete' }, { zh: '$O(\\log N)$ 攤銷', en: '$O(\\log N)$ amortized' }, { zh: '$O(1)$', en: '$O(1)$' } ],
               [ { zh: '空間合計', en: 'Total Space' }, { zh: '—', en: '—' }, { zh: '$O(N)$', en: '$O(N)$' } ],
             ] },
           { type: 'math', tex: 'T_{\\text{decrease-key}} = O(1)\\text{ amortized}', caption: {
@@ -1944,7 +1944,7 @@ const SLIDES_DB = {
         blocks: [
           { type: 'bullets', items: [
             { zh: '優點:decrease-key $O(1)$ 攤銷是理論最優,使 Dijkstra 達 $O(E + V\\log V)$。', en: 'Pro: $O(1)$ amortized decrease-key is theoretically optimal, making Dijkstra run in $O(E + V\\log V)$.' },
-            { zh: '優點:insert 與 merge 皆為 $O(1)$,適合大量插入後集中 extract 的工作負載。', en: 'Pro: $O(1)$ insert and merge; ideal for insert-heavy then extract-heavy workloads.' },
+            { zh: '優點:insert 與 merge 皆為 $O(1)$ 最壞,適合大量插入後集中 extract 的工作負載。', en: 'Pro: $O(1)$ worst-case insert and merge; ideal for insert-heavy then extract-heavy workloads.' },
             { zh: '缺點:實作複雜,常數因子大,指標密集,實際效能常遜於 Binary Heap。', en: 'Con: complex implementation, large constant factors, pointer-intensive — often slower in practice than Binary Heap.' },
             { zh: '缺點:consolidate 最壞單次 $O(N)$,但攤銷 $O(\\log N)$。', en: 'Con: consolidate is $O(N)$ worst-case single call, but $O(\\log N)$ amortized.' },
             { zh: '適用:decrease-key 頻繁的演算法(Dijkstra、Prim、網路流)之理論研究與競賽。', en: 'Use for decrease-key-heavy algorithms (Dijkstra, Prim, network flow) in theory research and competitive programming.' },

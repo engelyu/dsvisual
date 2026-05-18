@@ -102,7 +102,7 @@ int extractTop() {
 
 - 優點:陣列連續儲存,快取友好,常數因子小。
 - 優點:build-heap 為 $O(N)$,適合大量資料一次性建堆。
-- 缺點:合併兩個堆積需 $O((N+M)\log(N+M))$,不適合頻繁 merge。
+- 缺點:高效合併(串接陣列後 build-heap)需 $O(N+M)$,若以逐一重新插入則退化為 $O((N+M)\log(N+M))$;即使最佳情況仍不適合頻繁 merge。
 - 缺點:decrease-key 需要知道元素的陣列索引,外部維護索引增加複雜度。
 - 適用:優先佇列、Dijkstra/Prim 演算法、Heap Sort、Top-K 問題。
 

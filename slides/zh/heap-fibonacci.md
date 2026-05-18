@@ -3,10 +3,10 @@ marp: true
 theme: default
 paginate: true
 math: katex
-title: "Fibonacci Heap(費波那契堆積)"
+title: "費波那契堆積(Fibonacci Heap)"
 ---
 
-## Fibonacci Heap(費波那契堆積)
+## 費波那契堆積(Fibonacci Heap)
 
 以循環雙向鏈結根串列延遲合併,配合 cut 與 cascading-cut 維持攤銷界,提供 $O(1)$ 攤銷 insert/merge/decrease-key 及 $O(\log N)$ 攤銷 extractTop,是理論上最優的優先佇列。
 
@@ -44,14 +44,14 @@ title: "Fibonacci Heap(費波那契堆積)"
 
 ## 複雜度分析
 
-| 操作 | 攤銷時間 | 空間 |
+| 操作 | 時間 | 空間 |
 | --- | --- | --- |
-| insert | $O(1)$ | $O(1)$ |
-| peek | $O(1)$ | $O(1)$ |
-| merge | $O(1)$ | $O(1)$ |
-| decrease-key | $O(1)$ | $O(1)$ |
-| extractTop | $O(\log N)$ | $O(1)$ |
-| delete | $O(\log N)$ | $O(1)$ |
+| insert | $O(1)$ 最壞 | $O(1)$ |
+| peek | $O(1)$ 最壞 | $O(1)$ |
+| merge | $O(1)$ 最壞 | $O(1)$ |
+| decrease-key | $O(1)$ 攤銷 | $O(1)$ |
+| extractTop | $O(\log N)$ 攤銷 | $O(1)$ |
+| delete | $O(\log N)$ 攤銷 | $O(1)$ |
 | 空間合計 | — | $O(N)$ |
 
 $$T_{\text{decrease-key}} = O(1)\text{ amortized}$$
@@ -101,7 +101,7 @@ void decreaseOrIncreaseKey(FNode* x, int newKey) {
 ## 優缺點與使用時機
 
 - 優點:decrease-key $O(1)$ 攤銷是理論最優,使 Dijkstra 達 $O(E + V\log V)$。
-- 優點:insert 與 merge 皆為 $O(1)$,適合大量插入後集中 extract 的工作負載。
+- 優點:insert 與 merge 皆為 $O(1)$ 最壞,適合大量插入後集中 extract 的工作負載。
 - 缺點:實作複雜,常數因子大,指標密集,實際效能常遜於 Binary Heap。
 - 缺點:consolidate 最壞單次 $O(N)$,但攤銷 $O(\log N)$。
 - 適用:decrease-key 頻繁的演算法(Dijkstra、Prim、網路流)之理論研究與競賽。
