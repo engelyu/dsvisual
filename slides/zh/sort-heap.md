@@ -19,7 +19,7 @@ title: "堆積排序法"
 - Build-heap 階段:從最後一個非葉節點(索引 `n/2-1`)往上對每個節點呼叫 heapify,總時間 $O(n)$。
 - 每次 sift-down 沿樹高下降,時間 $O(\log n)$;共 $n-1$ 次提取,總計 $O(n \log n)$。
 - NOT stable:將堆頂交換至末端時可能改變相等元素的相對順序。
-- in-place:僅需 $O(1)$ 額外空間(遞迴 heapify 棧深度為 $O(\log n)$)。
+- in-place:遞迴 heapify 棧深度為 $O(\log n)$(迭代實作可達真正的 $O(1)$)。
 
 ---
 
@@ -36,9 +36,9 @@ title: "堆積排序法"
 
 ## Heap 結構示意
 
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 140" width="360" height="140"><g font-family="sans-serif" font-size="12"><text x="10" y="16" fill="#64748b" font-size="11">max-heap after build-heap: [13, 11, 12, 5, 6, 7]</text><circle cx="180" cy="42" r="18" fill="#fef9c3" stroke="#ca8a04" stroke-width="2"/><text x="180" y="47" text-anchor="middle" font-weight="bold">13</text><circle cx="100" cy="88" r="18" fill="#dbeafe" stroke="#2563eb"/><text x="100" y="93" text-anchor="middle">11</text><circle cx="260" cy="88" r="18" fill="#dbeafe" stroke="#2563eb"/><text x="260" y="93" text-anchor="middle">12</text><circle cx="55" cy="128" r="15" fill="#f1f5f9" stroke="#94a3b8"/><text x="55" y="133" text-anchor="middle">5</text><circle cx="140" cy="128" r="15" fill="#f1f5f9" stroke="#94a3b8"/><text x="140" y="133" text-anchor="middle">6</text><circle cx="310" cy="128" r="15" fill="#f1f5f9" stroke="#94a3b8"/><text x="310" y="133" text-anchor="middle">7</text><line x1="165" y1="56" x2="115" y2="74" stroke="#64748b"/><line x1="195" y1="56" x2="245" y2="74" stroke="#64748b"/><line x1="87" y1="102" x2="65" y2="115" stroke="#94a3b8"/><line x1="113" y1="102" x2="130" y2="115" stroke="#94a3b8"/><line x1="268" y1="102" x2="300" y2="115" stroke="#94a3b8"/><text x="10" y="118" fill="#64748b" font-size="10">arr: [13,  11,  12,   5,   6,   7]</text><text x="10" y="130" fill="#94a3b8" font-size="10">idx:  [0]   [1]   [2]  [3]  [4]  [5]</text></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 140" width="360" height="140"><g font-family="sans-serif" font-size="12"><text x="10" y="16" fill="#64748b" font-size="11">max-heap after build-heap: [13, 11, 12, 5, 6, 7]</text><circle cx="180" cy="42" r="18" fill="#fef9c3" stroke="#ca8a04" stroke-width="2"/><text x="180" y="47" text-anchor="middle" font-weight="bold">13</text><circle cx="100" cy="88" r="18" fill="#dbeafe" stroke="#2563eb"/><text x="100" y="93" text-anchor="middle">11</text><circle cx="260" cy="88" r="18" fill="#dbeafe" stroke="#2563eb"/><text x="260" y="93" text-anchor="middle">12</text><circle cx="55" cy="128" r="15" fill="#f1f5f9" stroke="#94a3b8"/><text x="55" y="133" text-anchor="middle">5</text><circle cx="140" cy="128" r="15" fill="#f1f5f9" stroke="#94a3b8"/><text x="140" y="133" text-anchor="middle">6</text><circle cx="220" cy="128" r="15" fill="#f1f5f9" stroke="#94a3b8"/><text x="220" y="133" text-anchor="middle">7</text><line x1="165" y1="56" x2="115" y2="74" stroke="#64748b"/><line x1="195" y1="56" x2="245" y2="74" stroke="#64748b"/><line x1="87" y1="102" x2="65" y2="115" stroke="#94a3b8"/><line x1="113" y1="102" x2="130" y2="115" stroke="#94a3b8"/><line x1="252" y1="102" x2="230" y2="115" stroke="#94a3b8"/><text x="10" y="118" fill="#64748b" font-size="10">arr: [13,  11,  12,   5,   6,   7]</text><text x="10" y="130" fill="#94a3b8" font-size="10">idx:  [0]   [1]   [2]  [3]  [4]  [5]</text></g></svg>
 
-> 黃色節點為堆頂(最大值 13),藍色為第二層。父節點 `i` 的左子為 `arr[2i+1]`,右子為 `arr[2i+2]`。每個父節點均大於等於其子節點,滿足 max-heap 性質。
+> 黃色節點為堆頂(最大值 13),藍色為第二層。父節點 `i` 的左子為 `arr[2i+1]`,右子為 `arr[2i+2]`。節點 12(idx 2)只有左子 7(idx 5),無右子。每個父節點均大於等於其子節點,滿足 max-heap 性質。
 
 ---
 
@@ -46,10 +46,10 @@ title: "堆積排序法"
 
 | 情況 | 時間複雜度 | 空間複雜度 |
 | --- | --- | --- |
-| 最佳 | $O(n \log n)$ | $O(1)$ |
-| 平均 | $O(n \log n)$ | $O(1)$ |
-| 最壞 | $O(n \log n)$ | $O(1)$ |
-| NOT stable / in-place | Build-heap $O(n)$ | 輔助空間 $O(1)$ |
+| 最佳 | $O(n \log n)$ | $O(\log n)$ |
+| 平均 | $O(n \log n)$ | $O(\log n)$ |
+| 最壞 | $O(n \log n)$ | $O(\log n)$ |
+| NOT stable / in-place | — | 輔助 $O(\log n)$ |
 
 $$T(n) = \underbrace{O(n)}_{\text{build-heap}} + \underbrace{(n-1) \cdot O(\log n)}_{\text{sift-down extractions}} = O(n \log n)$$
 
@@ -91,7 +91,7 @@ void heapSort(vector<int>& arr) {
 ## 優缺點與使用時機
 
 - 優點:所有情況 $O(n \log n)$,無最壞情況退化(優於 Quick Sort)。
-- 優點:in-place,$O(1)$ 輔助空間(優於 Merge Sort)。
+- 優點:in-place,$O(\log n)$ 遞迴棧空間(優於 Merge Sort 的 $O(n)$)。
 - 優點:build-heap 僅需 $O(n)$,適合只需取 top-k 元素的場景。
 - 缺點:NOT stable,相等元素的相對順序無法保證。
 - 缺點:快取效能差:sift-down 的記憶體存取模式不連續,常數因子大於 Quick Sort。
@@ -102,5 +102,5 @@ void heapSort(vector<int>& arr) {
 ## 小結
 
 - Build max-heap $O(n)$ + 反覆提取堆頂 $O(n \log n)$ = 總計 $O(n \log n)$。
-- NOT stable;in-place $O(1)$ 輔助空間;三種情況複雜度完全相同。
+- NOT stable;in-place $O(\log n)$ 遞迴棧空間;三種情況複雜度完全相同。
 - Introsort(C++ `std::sort`)在 Quick Sort 退化時切換至 Heap Sort,結合兩者優點。

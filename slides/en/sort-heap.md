@@ -19,7 +19,7 @@ Heap Sort exploits the max-heap data structure: first build a max-heap in $O(n)$
 - Build-heap phase: call heapify on every node from the last non-leaf (`n/2-1`) up to the root — total time $O(n)$.
 - Each sift-down descends the tree height, $O(\log n)$; $n-1$ extractions give $O(n \log n)$ total.
 - NOT stable: swapping the root to the end can change the relative order of equal elements.
-- in-place: only $O(1)$ auxiliary space (recursive heapify stack depth is $O(\log n)$).
+- in-place: recursion stack uses $O(\log n)$ (an iterative heapify would achieve true $O(1)$).
 
 ---
 
@@ -36,9 +36,9 @@ Heap Sort exploits the max-heap data structure: first build a max-heap in $O(n)$
 
 ## Heap Structure Diagram
 
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 140" width="360" height="140"><g font-family="sans-serif" font-size="12"><text x="10" y="16" fill="#64748b" font-size="11">max-heap after build-heap: [13, 11, 12, 5, 6, 7]</text><circle cx="180" cy="42" r="18" fill="#fef9c3" stroke="#ca8a04" stroke-width="2"/><text x="180" y="47" text-anchor="middle" font-weight="bold">13</text><circle cx="100" cy="88" r="18" fill="#dbeafe" stroke="#2563eb"/><text x="100" y="93" text-anchor="middle">11</text><circle cx="260" cy="88" r="18" fill="#dbeafe" stroke="#2563eb"/><text x="260" y="93" text-anchor="middle">12</text><circle cx="55" cy="128" r="15" fill="#f1f5f9" stroke="#94a3b8"/><text x="55" y="133" text-anchor="middle">5</text><circle cx="140" cy="128" r="15" fill="#f1f5f9" stroke="#94a3b8"/><text x="140" y="133" text-anchor="middle">6</text><circle cx="310" cy="128" r="15" fill="#f1f5f9" stroke="#94a3b8"/><text x="310" y="133" text-anchor="middle">7</text><line x1="165" y1="56" x2="115" y2="74" stroke="#64748b"/><line x1="195" y1="56" x2="245" y2="74" stroke="#64748b"/><line x1="87" y1="102" x2="65" y2="115" stroke="#94a3b8"/><line x1="113" y1="102" x2="130" y2="115" stroke="#94a3b8"/><line x1="268" y1="102" x2="300" y2="115" stroke="#94a3b8"/><text x="10" y="118" fill="#64748b" font-size="10">arr: [13,  11,  12,   5,   6,   7]</text><text x="10" y="130" fill="#94a3b8" font-size="10">idx:  [0]   [1]   [2]  [3]  [4]  [5]</text></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 140" width="360" height="140"><g font-family="sans-serif" font-size="12"><text x="10" y="16" fill="#64748b" font-size="11">max-heap after build-heap: [13, 11, 12, 5, 6, 7]</text><circle cx="180" cy="42" r="18" fill="#fef9c3" stroke="#ca8a04" stroke-width="2"/><text x="180" y="47" text-anchor="middle" font-weight="bold">13</text><circle cx="100" cy="88" r="18" fill="#dbeafe" stroke="#2563eb"/><text x="100" y="93" text-anchor="middle">11</text><circle cx="260" cy="88" r="18" fill="#dbeafe" stroke="#2563eb"/><text x="260" y="93" text-anchor="middle">12</text><circle cx="55" cy="128" r="15" fill="#f1f5f9" stroke="#94a3b8"/><text x="55" y="133" text-anchor="middle">5</text><circle cx="140" cy="128" r="15" fill="#f1f5f9" stroke="#94a3b8"/><text x="140" y="133" text-anchor="middle">6</text><circle cx="220" cy="128" r="15" fill="#f1f5f9" stroke="#94a3b8"/><text x="220" y="133" text-anchor="middle">7</text><line x1="165" y1="56" x2="115" y2="74" stroke="#64748b"/><line x1="195" y1="56" x2="245" y2="74" stroke="#64748b"/><line x1="87" y1="102" x2="65" y2="115" stroke="#94a3b8"/><line x1="113" y1="102" x2="130" y2="115" stroke="#94a3b8"/><line x1="252" y1="102" x2="230" y2="115" stroke="#94a3b8"/><text x="10" y="118" fill="#64748b" font-size="10">arr: [13,  11,  12,   5,   6,   7]</text><text x="10" y="130" fill="#94a3b8" font-size="10">idx:  [0]   [1]   [2]  [3]  [4]  [5]</text></g></svg>
 
-> Yellow node is the heap root (max value 13); blue nodes are the second level. Parent `i` has left child `arr[2i+1]` and right child `arr[2i+2]`. Every parent is >= its children, satisfying the max-heap property.
+> Yellow node is the heap root (max value 13); blue nodes are the second level. Parent `i` has left child `arr[2i+1]` and right child `arr[2i+2]`. Node 12 (idx 2) has only a left child 7 (idx 5) — no right child. Every parent is >= its children, satisfying the max-heap property.
 
 ---
 
@@ -46,10 +46,10 @@ Heap Sort exploits the max-heap data structure: first build a max-heap in $O(n)$
 
 | Case | Time | Space |
 | --- | --- | --- |
-| Best | $O(n \log n)$ | $O(1)$ |
-| Average | $O(n \log n)$ | $O(1)$ |
-| Worst | $O(n \log n)$ | $O(1)$ |
-| NOT stable / in-place | Build-heap $O(n)$ | Auxiliary $O(1)$ |
+| Best | $O(n \log n)$ | $O(\log n)$ |
+| Average | $O(n \log n)$ | $O(\log n)$ |
+| Worst | $O(n \log n)$ | $O(\log n)$ |
+| NOT stable / in-place | — | Aux $O(\log n)$ |
 
 $$T(n) = \underbrace{O(n)}_{\text{build-heap}} + \underbrace{(n-1) \cdot O(\log n)}_{\text{sift-down extractions}} = O(n \log n)$$
 
@@ -91,7 +91,7 @@ void heapSort(vector<int>& arr) {
 ## Pros, Cons & When to Use
 
 - Pro: $O(n \log n)$ in all cases — no worst-case degradation (unlike Quick Sort).
-- Pro: in-place, $O(1)$ auxiliary space (unlike Merge Sort).
+- Pro: in-place, $O(\log n)$ recursion stack (better than Merge Sort's $O(n)$ auxiliary space).
 - Pro: build-heap costs only $O(n)$; excellent for top-k extraction use cases.
 - Con: NOT stable — relative order of equal elements is not preserved.
 - Con: poor cache performance — sift-down accesses memory non-sequentially; larger constant factor than Quick Sort.
@@ -102,5 +102,5 @@ void heapSort(vector<int>& arr) {
 ## Summary
 
 - Build max-heap $O(n)$ + repeated root extraction $O(n \log n)$ = total $O(n \log n)$.
-- NOT stable; in-place $O(1)$ auxiliary space; identical complexity in all three cases.
+- NOT stable; in-place $O(\log n)$ recursion stack; identical complexity in all three cases.
 - Introsort (C++ `std::sort`) switches to Heap Sort when Quick Sort would degrade, combining the best of both.
