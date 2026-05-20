@@ -4038,13 +4038,13 @@ const SLIDES_DB = {
               { "zh": "插入邊 $(u, v)$ 時，把 $v$ 追加到 `adj[u]`，把 $u$ 追加到 `adj[v]`（無向圖）。", "en": "To insert edge $(u, v)$, append $v$ to `adj[u]` and $u$ to `adj[v]` (undirected)." },
               { "zh": "遍歷頂點 $u$ 的所有鄰居時，逐項走 `adj[u]` 串列。", "en": "To iterate all neighbors of $u$, walk through `adj[u]`." }
           ] },
-          { "type": "mermaid", "code": "flowchart LR\n  V0[\"adj[0]\"] --> A[1] --> B[4] --> N0[null]\n  V1[\"adj[1]\"] --> C[0] --> D[2] --> E[3] --> F[4] --> N1[null]\n  V2[\"adj[2]\"] --> G[1] --> H[3] --> N2[null]" }
+          { "type": "mermaid", "code": "flowchart LR\n  V0[\"adj[0]\"] --> A[1] --> B[4] --> N0[null]\n  V1[\"adj[1]\"] --> C[0] --> D[2] --> E[3] --> F[4] --> N1[null]\n  V2[\"adj[2]\"] --> G[1] --> H[3] --> N2[null]\n  V3[\"adj[3]\"] --> I[1] --> J[2] --> K[4] --> N3[null]\n  V4[\"adj[4]\"] --> L[0] --> M[1] --> O[3] --> N4[null]" }
         ]
       },
       {
         "heading": { "zh": "示意圖", "en": "Layout" },
         "blocks": [
-          { "type": "svg", "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 360 90\" width=\"360\"><g font-family=\"monospace\" font-size=\"13\"><text x=\"0\"   y=\"20\">[0] -&gt; 1 -&gt; 4 -&gt; null</text><text x=\"0\"   y=\"40\">[1] -&gt; 0 -&gt; 2 -&gt; 3 -&gt; 4 -&gt; null</text><text x=\"0\"   y=\"60\">[2] -&gt; 1 -&gt; 3 -&gt; null</text><text x=\"0\"   y=\"80\">[3] -&gt; 1 -&gt; 2 -&gt; 4 -&gt; null</text></g></svg>" },
+          { "type": "svg", "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 360 110\" width=\"360\"><g font-family=\"monospace\" font-size=\"13\"><text x=\"0\"   y=\"20\">[0] -&gt; 1 -&gt; 4 -&gt; null</text><text x=\"0\"   y=\"40\">[1] -&gt; 0 -&gt; 2 -&gt; 3 -&gt; 4 -&gt; null</text><text x=\"0\"   y=\"60\">[2] -&gt; 1 -&gt; 3 -&gt; null</text><text x=\"0\"   y=\"80\">[3] -&gt; 1 -&gt; 2 -&gt; 4 -&gt; null</text><text x=\"0\"   y=\"100\">[4] -&gt; 0 -&gt; 1 -&gt; 3 -&gt; null</text></g></svg>" },
           { "type": "note", "text": {
               "zh": "同一張 5 節點圖在 visualizer 裡以這樣的串列形式呈現；對照矩陣表示法可看出空間差異。",
               "en": "The same 5-node graph rendered as adjacency lists; compare with the matrix representation to see the space tradeoff." } }
