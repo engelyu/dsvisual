@@ -36,17 +36,24 @@ test.describe('UX polish — code density slider', () => {
     test('slider changes code-panel-body line-height and value display', async ({ page }) => {
         await page.locator('#settings-toggle').click();
         const slider = page.locator('#code-density-slider');
-        // Drag the slider to 1.30 (use evaluate to set value + dispatch input event)
+        // Drag the slider to 1.30 (browser drops trailing zeros → '1.3')
         await slider.evaluate((el) => {
             el.value = '1.30';
             el.dispatchEvent(new Event('input', { bubbles: true }));
         });
 
-        await expect(page.locator('#code-density-value')).toHaveText(/^1\.3$/);
-        const cssVar = await page.evaluate(() =>
-            getComputedStyle(document.documentElement).getPropertyValue('--code-line-height')
-        );
-        expect(parseFloat(cssVar.trim())).toBeCloseTo(1.30, 2);
+        // The value display shows the slider's value (browser strips trailing zeros to '1.3')
+        await expect(page.locator('#code-density-value')).toHaveText(/^1\.30?$/);
+        // The CSS custom property is set on :root.
+        const v = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--code-line-height'));
+        expect(parseFloat(v)).toBeCloseTo(1.3, 2);
+
+        // The MAIN APP code panel's computed line-height must follow the slider
+        // (not be overridden by Prism's pre[class*=language-] rule).
+        const mainPanel = page.locator('.method-section-card .code-panel-body').first();
+        const fontSize = await mainPanel.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+        const lh = await mainPanel.evaluate((el) => parseFloat(getComputedStyle(el).lineHeight));
+        expect(lh).toBeCloseTo(fontSize * 1.3, 1);
     });
 
     test('density persists across page reload', async ({ page }) => {

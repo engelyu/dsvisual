@@ -1396,6 +1396,10 @@ pre { margin: 0; font-family: 'Fira Code', monospace; font-size: 0.9rem; line-he
     color: #475569;
     user-select: none;
 }
+/* Override Prism's pre[class*=language-] line-height so the density slider wins. */
+pre.code-panel-body[class*="language-"] {
+    line-height: var(--code-line-height);
+}
 /* Custom scrollbar — dark */
 .code-panel-body::-webkit-scrollbar { width: 10px; height: 10px; }
 .code-panel-body::-webkit-scrollbar-track { background: #0b1220; }
