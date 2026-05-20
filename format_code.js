@@ -36,4 +36,12 @@ function compileCheck(absPath) {
   }
 }
 
-module.exports = { cppFiles, formatCppFile, compileCheck };
+function formatCppString(code) {
+  // --assume-filename=x.cpp tells clang-format the language; stdin/stdout used.
+  const out = execFileSync(CLANG_FORMAT,
+    ['--style=file', '--assume-filename=x.cpp'],
+    { cwd: REPO_ROOT, input: code, stdio: ['pipe', 'pipe', 'pipe'] });
+  return out.toString();
+}
+
+module.exports = { cppFiles, formatCppFile, compileCheck, formatCppString };

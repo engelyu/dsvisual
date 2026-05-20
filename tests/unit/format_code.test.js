@@ -47,3 +47,12 @@ test('compileCheck throws on broken C++', () => {
   assert.throws(() => f.compileCheck(file), /broken\.cpp|error/i);
   fs.rmSync(tmp, { recursive: true, force: true });
 });
+
+test('formatCppString reformats a code string in memory', () => {
+  const messy = 'int   sum(int  a,int  b){return  a+b;}';
+  const clean = f.formatCppString(messy);
+  assert.notEqual(clean, messy);
+  assert.ok(clean.includes('int sum(int a, int b)'));
+  // Idempotency
+  assert.equal(f.formatCppString(clean), clean);
+});
