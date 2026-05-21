@@ -491,21 +491,6 @@ test.describe('Data Structure Visualizer Full Suite', () => {
         await expect(counts.nth(2)).toContainText('1');
     });
 
-    test('Probabilistic: Skip List renders 4 levels and supports insert + stepped search', async ({ page }) => {
-        await loadMethod(page, 'skip-list');
-        const card = page.locator('[data-method-section="skip-list"]');
-        await expect(card.locator('.code-panel-filename')).toContainText('skip_list.cpp');
-        await expect(card.locator('.skiplist-level')).toHaveCount(4);
-        const l0 = card.locator('.skiplist-level[data-level="0"] .skiplist-node:not(.skiplist-ghost)');
-        await expect(l0).toHaveCount(5);
-        await card.locator('[data-skiplist-val]').fill('15');
-        await card.locator('[data-action="skiplist-insert"]').click();
-        await expect(l0).toHaveCount(6);
-        await card.locator('[data-skiplist-search]').fill('12');
-        await card.locator('[data-action="step"]').click();
-        await expect(card.locator('[data-testid="skiplist-status"]')).toBeVisible();
-    });
-
     test('Probabilistic: Bloom Filter renders a 32-bit array and supports insert/query', async ({ page }) => {
         await loadMethod(page, 'bloom-filter');
         const card = page.locator('[data-method-section="bloom-filter"]');
@@ -520,6 +505,21 @@ test.describe('Data Structure Visualizer Full Suite', () => {
         await card.locator('[data-action="bloom-query"]').click();
         await expect(card.locator('[data-testid="bloom-hashes"]')).toContainText('zebra');
         await expect(card.locator('.bloom-cell.bloom-hit').first()).toBeVisible();
+    });
+
+    test('Probabilistic: Skip List renders 4 levels and supports insert + stepped search', async ({ page }) => {
+        await loadMethod(page, 'skip-list');
+        const card = page.locator('[data-method-section="skip-list"]');
+        await expect(card.locator('.code-panel-filename')).toContainText('skip_list.cpp');
+        await expect(card.locator('.skiplist-level')).toHaveCount(4);
+        const l0 = card.locator('.skiplist-level[data-level="0"] .skiplist-node:not(.skiplist-ghost)');
+        await expect(l0).toHaveCount(5);
+        await card.locator('[data-skiplist-val]').fill('15');
+        await card.locator('[data-action="skiplist-insert"]').click();
+        await expect(l0).toHaveCount(6);
+        await card.locator('[data-skiplist-search]').fill('12');
+        await card.locator('[data-action="step"]').click();
+        await expect(card.locator('[data-testid="skiplist-status"]')).toBeVisible();
     });
 
     test('Navigation: switching from Spec-2a dynamic visualizers back to static ones does not crash', async ({ page }) => {
