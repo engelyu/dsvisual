@@ -334,7 +334,9 @@ document.addEventListener('DOMContentLoaded', () => {
             button.setAttribute('aria-current', isActive ? 'true' : 'false');
         });
         subTabButtons.forEach((button, id) => {
-            button.classList.toggle('active', id === groupId);
+            const isActive = id === groupId;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-current', isActive ? 'true' : 'false');
         });
         const subTabRow = categoryNav && categoryNav.querySelector('.category-subtab-row');
         if (subTabRow) subTabRow.classList.toggle('visible', !!parentId);
