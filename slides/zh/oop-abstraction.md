@@ -60,12 +60,13 @@ $$T_{\text{virtual call}} = T_{\text{direct call}} + O(1)$$
 ```cpp
 class Shape {
 public:
-    virtual double area() const = 0;  // pure virtual
+    virtual double area() const = 0; // pure virtual
     virtual ~Shape() {}
 };
 
 class Circle : public Shape {
     double r;
+
 public:
     Circle(double radius) : r(radius) {}
     double area() const override { return 3.14159 * r * r; }

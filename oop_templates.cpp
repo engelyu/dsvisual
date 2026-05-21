@@ -12,6 +12,7 @@ T maximum(T a, T b) {
 template <typename T>
 class Box {
     T value;
+
 public:
     Box(T v) : value(v) {}
     T get() const { return value; }

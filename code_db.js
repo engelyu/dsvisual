@@ -3252,12 +3252,13 @@ using namespace std;
 // Abstract base class — a pure-virtual class is C++'s "interface".
 class Shape {
 public:
-    virtual double area() const = 0;   // pure virtual -> Shape is abstract
+    virtual double area() const = 0; // pure virtual -> Shape is abstract
     virtual ~Shape() {}
 };
 
 class Circle : public Shape {
     double r;
+
 public:
     Circle(double radius) : r(radius) {}
     double area() const override { return 3.14159 * r * r; }
@@ -3265,6 +3266,7 @@ public:
 
 class Rectangle : public Shape {
     double w, h;
+
 public:
     Rectangle(double width, double height) : w(width), h(height) {}
     double area() const override { return w * h; }
@@ -3272,7 +3274,7 @@ public:
 
 int main() {
     // Shape s;   // compile error: cannot instantiate an abstract class
-    vector<Shape*> shapes = { new Circle(2.0), new Rectangle(3.0, 4.0) };
+    vector<Shape*> shapes = {new Circle(2.0), new Rectangle(3.0, 4.0)};
     for (Shape* s : shapes) {
         cout << "area = " << s->area() << endl;
         delete s;
@@ -3293,18 +3295,16 @@ void print(const string& x) { cout << "string: " << x << endl; }
 // Operator overloading.
 struct Vector2D {
     double x, y;
-    Vector2D operator+(const Vector2D& o) const {
-        return Vector2D{ x + o.x, y + o.y };
-    }
+    Vector2D operator+(const Vector2D& o) const { return Vector2D{x + o.x, y + o.y}; }
 };
 
 int main() {
-    print(42);            // resolves to print(int)
-    print(3.14);          // resolves to print(double)
-    print(string("hi"));  // resolves to print(const string&)
+    print(42);           // resolves to print(int)
+    print(3.14);         // resolves to print(double)
+    print(string("hi")); // resolves to print(const string&)
 
     Vector2D a{1, 2}, b{3, 4};
-    Vector2D c = a + b;   // operator+
+    Vector2D c = a + b; // operator+
     cout << "sum: (" << c.x << ", " << c.y << ")" << endl;
     return 0;
 }
@@ -3324,6 +3324,7 @@ T maximum(T a, T b) {
 template <typename T>
 class Box {
     T value;
+
 public:
     Box(T v) : value(v) {}
     T get() const { return value; }

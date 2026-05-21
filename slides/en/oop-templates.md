@@ -69,6 +69,7 @@ T maximum(T a, T b) {
 template <typename T>
 class Box {
     T value;
+
 public:
     Box(T v) : value(v) {}
     T get() const { return value; }
@@ -76,8 +77,8 @@ public:
 };
 
 int main() {
-    cout << maximum(3, 7) << endl;           // T = int
-    cout << maximum(2.5, 1.5) << endl;       // T = double
+    cout << maximum(3, 7) << endl;     // T = int
+    cout << maximum(2.5, 1.5) << endl; // T = double
 
     Box<int> bi(42);
     Box<string> bs("hello");
