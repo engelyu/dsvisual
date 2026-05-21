@@ -63,6 +63,7 @@ For sparse graphs ($E \ll V^2$), the adjacency list is substantially more space-
 class Graph {
     int V;
     vector<list<int>> adj;
+
 public:
     Graph(int v) : V(v), adj(v) {}
     void addEdge(int u, int v) {

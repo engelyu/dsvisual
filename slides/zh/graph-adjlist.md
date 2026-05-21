@@ -63,6 +63,7 @@ $$O(V + E) \;\ll\; O(V^2) \text{ when } E \ll V^2$$
 class Graph {
     int V;
     vector<list<int>> adj;
+
 public:
     Graph(int v) : V(v), adj(v) {}
     void addEdge(int u, int v) {

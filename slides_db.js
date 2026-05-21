@@ -4007,180 +4007,524 @@ const SLIDES_DB = {
   },
   "tree-dsu": {
     "category": "Trees",
-    "title": { "zh": "不相交集合（並查集）", "en": "Disjoint Set (Union-Find)" },
+    "title": {
+      "zh": "不相交集合（並查集）",
+      "en": "Disjoint Set (Union-Find)"
+    },
     "slides": [
       {
-        "heading": { "zh": "不相交集合（並查集）", "en": "Disjoint Set (Union-Find)" },
+        "heading": {
+          "zh": "不相交集合（並查集）",
+          "en": "Disjoint Set (Union-Find)"
+        },
         "blocks": [
-          { "type": "paragraph", "text": {
+          {
+            "type": "paragraph",
+            "text": {
               "zh": "並查集（Union-Find）以森林表示多個不相交集合，支援近 $O(1)$ 的合併與查詢操作，是 Kruskal 最小生成樹與連通性判斷的核心資料結構。",
-              "en": "A Disjoint Set (Union-Find) represents multiple disjoint sets as a forest and supports near-$O(1)$ union and find operations — the core data structure for Kruskal's MST and connectivity queries." } }
+              "en": "A Disjoint Set (Union-Find) represents multiple disjoint sets as a forest and supports near-$O(1)$ union and find operations — the core data structure for Kruskal's MST and connectivity queries."
+            }
+          }
         ]
       },
       {
-        "heading": { "zh": "核心概念", "en": "Core Concept" },
+        "heading": {
+          "zh": "核心概念",
+          "en": "Core Concept"
+        },
         "blocks": [
-          { "type": "paragraph", "text": {
+          {
+            "type": "paragraph",
+            "text": {
               "zh": "每個集合以樹表示，`parent[i]` 指向父節點，根節點的 `parent` 指向自身。`find` 沿父指標走到根；`union` 將一棵樹的根掛到另一棵樹的根下。",
-              "en": "Each set is a tree where `parent[i]` points to the parent; the root satisfies `parent[root] == root`. `find` follows parent pointers to the root; `union` attaches one root under the other." } },
-          { "type": "bullets", "items": [
-              { "zh": "路徑壓縮：`find` 回傳時把沿途節點直接連到根，大幅攤平後續查詢。", "en": "Path compression: during `find`, redirect every visited node straight to the root, flattening future lookups." },
-              { "zh": "按秩合併：將秩（rank）較小的根掛到秩較大的根下，保持樹高低。", "en": "Union by rank: attach the root with smaller rank under the root with larger rank to keep tree height low." },
-              { "zh": "兩者合用可達攤銷 $O(\\alpha(N))$ 時間，對所有實際 $N$ 幾乎等同 $O(1)$。", "en": "Together they achieve amortized $O(\\alpha(N))$ time — effectively $O(1)$ for all practical $N$." }
-          ] }
+              "en": "Each set is a tree where `parent[i]` points to the parent; the root satisfies `parent[root] == root`. `find` follows parent pointers to the root; `union` attaches one root under the other."
+            }
+          },
+          {
+            "type": "bullets",
+            "items": [
+              {
+                "zh": "路徑壓縮：`find` 回傳時把沿途節點直接連到根，大幅攤平後續查詢。",
+                "en": "Path compression: during `find`, redirect every visited node straight to the root, flattening future lookups."
+              },
+              {
+                "zh": "按秩合併：將秩（rank）較小的根掛到秩較大的根下，保持樹高低。",
+                "en": "Union by rank: attach the root with smaller rank under the root with larger rank to keep tree height low."
+              },
+              {
+                "zh": "兩者合用可達攤銷 $O(\\alpha(N))$ 時間，對所有實際 $N$ 幾乎等同 $O(1)$。",
+                "en": "Together they achieve amortized $O(\\alpha(N))$ time — effectively $O(1)$ for all practical $N$."
+              }
+            ]
+          }
         ]
       },
       {
-        "heading": { "zh": "運作流程", "en": "Operation Flow" },
+        "heading": {
+          "zh": "運作流程",
+          "en": "Operation Flow"
+        },
         "blocks": [
-          { "type": "steps", "items": [
-              { "zh": "初始化：每個元素自成一個集合，`parent[i] = i`，`rank[i] = 0`。", "en": "Init: each element is its own set; `parent[i] = i`, `rank[i] = 0`." },
-              { "zh": "`find(x)`：若 `parent[x] == x` 則返回 `x`，否則遞迴求 `find(parent[x])` 並做路徑壓縮。", "en": "`find(x)`: if `parent[x] == x` return `x`; otherwise recurse `find(parent[x])` and path-compress." },
-              { "zh": "`union(a, b)`：分別找到兩集合的根，若根不同，將秩小的根掛到秩大的根下（秩相同時任一方掛另一方並令根秩加一）。", "en": "`union(a, b)`: find roots of both sets; if different, attach smaller-rank root under larger-rank root (if equal, pick one and increment its rank)." }
-          ] },
-          { "type": "mermaid", "code": "flowchart TD\n  R0[\"root: 0\"] --> N0A[\"1\"]\n  R2[\"root: 2\"] --> N2A[\"3\"]\n  R4[\"root: 4\"] --> N4A[\"5\"]\n  R6[\"root: 6\"] --> N6A[\"7\"]" }
+          {
+            "type": "steps",
+            "items": [
+              {
+                "zh": "初始化：每個元素自成一個集合，`parent[i] = i`，`rank[i] = 0`。",
+                "en": "Init: each element is its own set; `parent[i] = i`, `rank[i] = 0`."
+              },
+              {
+                "zh": "`find(x)`：若 `parent[x] == x` 則返回 `x`，否則遞迴求 `find(parent[x])` 並做路徑壓縮。",
+                "en": "`find(x)`: if `parent[x] == x` return `x`; otherwise recurse `find(parent[x])` and path-compress."
+              },
+              {
+                "zh": "`union(a, b)`：分別找到兩集合的根，若根不同，將秩小的根掛到秩大的根下（秩相同時任一方掛另一方並令根秩加一）。",
+                "en": "`union(a, b)`: find roots of both sets; if different, attach smaller-rank root under larger-rank root (if equal, pick one and increment its rank)."
+              }
+            ]
+          },
+          {
+            "type": "mermaid",
+            "code": "flowchart TD\n  R0[\"root: 0\"] --> N0A[\"1\"]\n  R2[\"root: 2\"] --> N2A[\"3\"]\n  R4[\"root: 4\"] --> N4A[\"5\"]\n  R6[\"root: 6\"] --> N6A[\"7\"]"
+          }
         ]
       },
       {
-        "heading": { "zh": "示意圖", "en": "Layout" },
+        "heading": {
+          "zh": "示意圖",
+          "en": "Layout"
+        },
         "blocks": [
-          { "type": "svg", "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 80\" width=\"400\"><g font-family=\"monospace\" font-size=\"13\"><text x=\"0\" y=\"20\">parent: [0, 0, 2, 2, 4, 4, 6, 6]</text><text x=\"0\" y=\"40\">rank:   [1, 0, 1, 0, 1, 0, 1, 0]</text><text x=\"0\" y=\"60\">Sets: {0,1}  {2,3}  {4,5}  {6,7}</text></g></svg>" },
-          { "type": "note", "text": {
+          {
+            "type": "svg",
+            "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 80\" width=\"400\"><g font-family=\"monospace\" font-size=\"13\"><text x=\"0\" y=\"20\">parent: [0, 0, 2, 2, 4, 4, 6, 6]</text><text x=\"0\" y=\"40\">rank:   [1, 0, 1, 0, 1, 0, 1, 0]</text><text x=\"0\" y=\"60\">Sets: {0,1}  {2,3}  {4,5}  {6,7}</text></g></svg>"
+          },
+          {
+            "type": "note",
+            "text": {
               "zh": "8 個元素經 4 次 `union(0,1)` `union(2,3)` `union(4,5)` `union(6,7)` 後形成 4 棵高度為 1 的樹；每棵樹的根秩為 1。",
-              "en": "8 elements after 4 pairwise unions `union(0,1)` `union(2,3)` `union(4,5)` `union(6,7)` form 4 trees of height 1; each root has rank 1." } }
+              "en": "8 elements after 4 pairwise unions `union(0,1)` `union(2,3)` `union(4,5)` `union(6,7)` form 4 trees of height 1; each root has rank 1."
+            }
+          }
         ]
       },
       {
-        "heading": { "zh": "複雜度分析", "en": "Complexity Analysis" },
+        "heading": {
+          "zh": "複雜度分析",
+          "en": "Complexity Analysis"
+        },
         "blocks": [
-          { "type": "table",
-            "headers": [ { "zh": "操作", "en": "Operation" }, { "zh": "時間", "en": "Time" }, { "zh": "空間", "en": "Space" } ],
+          {
+            "type": "table",
+            "headers": [
+              {
+                "zh": "操作",
+                "en": "Operation"
+              },
+              {
+                "zh": "時間",
+                "en": "Time"
+              },
+              {
+                "zh": "空間",
+                "en": "Space"
+              }
+            ],
             "rows": [
-              [ { "zh": "初始化", "en": "Init" }, { "zh": "$O(N)$", "en": "$O(N)$" }, { "zh": "$O(N)$", "en": "$O(N)$" } ],
-              [ { "zh": "find（含路徑壓縮）", "en": "find (with path compression)" }, { "zh": "$O(\\alpha(N))$", "en": "$O(\\alpha(N))$" }, { "zh": "$O(1)$", "en": "$O(1)$" } ],
-              [ { "zh": "unite（含按秩合併）", "en": "unite (with union by rank)" }, { "zh": "$O(\\alpha(N))$", "en": "$O(\\alpha(N))$" }, { "zh": "$O(1)$", "en": "$O(1)$" } ]
-            ] },
-          { "type": "math", "tex": "O(\\alpha(N)) \\approx O(1) \\text{ for all practical } N", "caption": {
+              [
+                {
+                  "zh": "初始化",
+                  "en": "Init"
+                },
+                {
+                  "zh": "$O(N)$",
+                  "en": "$O(N)$"
+                },
+                {
+                  "zh": "$O(N)$",
+                  "en": "$O(N)$"
+                }
+              ],
+              [
+                {
+                  "zh": "find（含路徑壓縮）",
+                  "en": "find (with path compression)"
+                },
+                {
+                  "zh": "$O(\\alpha(N))$",
+                  "en": "$O(\\alpha(N))$"
+                },
+                {
+                  "zh": "$O(1)$",
+                  "en": "$O(1)$"
+                }
+              ],
+              [
+                {
+                  "zh": "unite（含按秩合併）",
+                  "en": "unite (with union by rank)"
+                },
+                {
+                  "zh": "$O(\\alpha(N))$",
+                  "en": "$O(\\alpha(N))$"
+                },
+                {
+                  "zh": "$O(1)$",
+                  "en": "$O(1)$"
+                }
+              ]
+            ]
+          },
+          {
+            "type": "math",
+            "tex": "O(\\alpha(N)) \\approx O(1) \\text{ for all practical } N",
+            "caption": {
               "zh": "$\\alpha$ 為反阿克曼函數，對所有實際 $N$ 均 $\\leq 4$，故視為常數時間。",
-              "en": "$\\alpha$ is the inverse Ackermann function; it is $\\leq 4$ for all practical $N$, making operations effectively constant time." } }
+              "en": "$\\alpha$ is the inverse Ackermann function; it is $\\leq 4$ for all practical $N$, making operations effectively constant time."
+            }
+          }
         ]
       },
       {
-        "heading": { "zh": "程式碼", "en": "Source Code" },
+        "heading": {
+          "zh": "程式碼",
+          "en": "Source Code"
+        },
         "blocks": [
-          { "type": "code", "lang": "cpp", "code": "struct DSU {\n    vector<int> p, r;\n    DSU(int n) : p(n), r(n, 0) {\n        for (int i = 0; i < n; i++)\n            p[i] = i;\n    }\n    int find(int x) {\n        return p[x] == x ? x : p[x] = find(p[x]); // path compression\n    }\n    bool unite(int a, int b) {\n        a = find(a); b = find(b);\n        if (a == b) return false;\n        if (r[a] < r[b]) swap(a, b);\n        p[b] = a; // union by rank\n        if (r[a] == r[b]) r[a]++;\n        return true;\n    }\n};" }
+          {
+            "type": "code",
+            "lang": "cpp",
+            "code": "struct DSU {\n    vector<int> p, r;\n    DSU(int n) : p(n), r(n, 0) {\n        for (int i = 0; i < n; i++)\n            p[i] = i;\n    }\n    int find(int x) {\n        return p[x] == x ? x : p[x] = find(p[x]); // path compression\n    }\n    bool unite(int a, int b) {\n        a = find(a);\n        b = find(b);\n        if (a == b)\n            return false;\n        if (r[a] < r[b])\n            swap(a, b);\n        p[b] = a; // union by rank\n        if (r[a] == r[b])\n            r[a]++;\n        return true;\n    }\n};"
+          }
         ]
       },
       {
-        "heading": { "zh": "優缺點與使用時機", "en": "Pros, Cons & When to Use" },
+        "heading": {
+          "zh": "優缺點與使用時機",
+          "en": "Pros, Cons & When to Use"
+        },
         "blocks": [
-          { "type": "bullets", "items": [
-              { "zh": "優點：實作簡單，攤銷近 $O(1)$，執行極快。", "en": "Pro: simple to implement; amortized near-$O(1)$; extremely fast in practice." },
-              { "zh": "優點：應用廣泛——Kruskal 最小生成樹、網路連通性、影像分割等。", "en": "Pro: widely applicable — Kruskal's MST, network connectivity, image segmentation." },
-              { "zh": "缺點：不支援高效的「拆分」或「取消合併」操作。", "en": "Con: does not support efficient split or un-union operations." },
-              { "zh": "適用：需要快速判斷兩元素是否同集合或合併兩集合的場景。", "en": "Use when you need fast same-set queries and set-merge operations." }
-          ] }
+          {
+            "type": "bullets",
+            "items": [
+              {
+                "zh": "優點：實作簡單，攤銷近 $O(1)$，執行極快。",
+                "en": "Pro: simple to implement; amortized near-$O(1)$; extremely fast in practice."
+              },
+              {
+                "zh": "優點：應用廣泛——Kruskal 最小生成樹、網路連通性、影像分割等。",
+                "en": "Pro: widely applicable — Kruskal's MST, network connectivity, image segmentation."
+              },
+              {
+                "zh": "缺點：不支援高效的「拆分」或「取消合併」操作。",
+                "en": "Con: does not support efficient split or un-union operations."
+              },
+              {
+                "zh": "適用：需要快速判斷兩元素是否同集合或合併兩集合的場景。",
+                "en": "Use when you need fast same-set queries and set-merge operations."
+              }
+            ]
+          }
         ]
       },
       {
-        "heading": { "zh": "小結", "en": "Summary" },
+        "heading": {
+          "zh": "小結",
+          "en": "Summary"
+        },
         "blocks": [
-          { "type": "bullets", "items": [
-              { "zh": "以 `parent[]` 陣列 + 路徑壓縮 + 按秩合併，達到攤銷 $O(\\alpha(N))$ 操作。", "en": "parent[] array + path compression + union by rank → amortized $O(\\alpha(N))$ per operation." },
-              { "zh": "對所有實際規模，$\\alpha(N) \\leq 4$，操作幾乎等同常數時間。", "en": "For all practical sizes, $\\alpha(N) \\leq 4$, making each operation effectively constant time." },
-              { "zh": "是 Kruskal 最小生成樹的核心工具（見 graph-kruskal）。", "en": "The workhorse for Kruskal's MST (see graph-kruskal)." }
-          ] }
+          {
+            "type": "bullets",
+            "items": [
+              {
+                "zh": "以 `parent[]` 陣列 + 路徑壓縮 + 按秩合併，達到攤銷 $O(\\alpha(N))$ 操作。",
+                "en": "parent[] array + path compression + union by rank → amortized $O(\\alpha(N))$ per operation."
+              },
+              {
+                "zh": "對所有實際規模，$\\alpha(N) \\leq 4$，操作幾乎等同常數時間。",
+                "en": "For all practical sizes, $\\alpha(N) \\leq 4$, making each operation effectively constant time."
+              },
+              {
+                "zh": "是 Kruskal 最小生成樹的核心工具（見 graph-kruskal）。",
+                "en": "The workhorse for Kruskal's MST (see graph-kruskal)."
+              }
+            ]
+          }
         ]
       }
     ]
   },
   "graph-adjlist": {
     "category": "Graphs",
-    "title": { "zh": "鄰接串列", "en": "Adjacency List" },
+    "title": {
+      "zh": "鄰接串列",
+      "en": "Adjacency List"
+    },
     "slides": [
       {
-        "heading": { "zh": "鄰接串列", "en": "Adjacency List" },
+        "heading": {
+          "zh": "鄰接串列",
+          "en": "Adjacency List"
+        },
         "blocks": [
-          { "type": "paragraph", "text": {
+          {
+            "type": "paragraph",
+            "text": {
               "zh": "以每個頂點為起點的鏈結串列來表示圖的邊；對稀疏圖比鄰接矩陣更省記憶體。",
-              "en": "Represent a graph by, for each vertex, a linked list of its neighbors; far more space-efficient than an adjacency matrix on sparse graphs." } }
+              "en": "Represent a graph by, for each vertex, a linked list of its neighbors; far more space-efficient than an adjacency matrix on sparse graphs."
+            }
+          }
         ]
       },
       {
-        "heading": { "zh": "核心概念", "en": "Core Concept" },
+        "heading": {
+          "zh": "核心概念",
+          "en": "Core Concept"
+        },
         "blocks": [
-          { "type": "paragraph", "text": {
+          {
+            "type": "paragraph",
+            "text": {
               "zh": "一個大小為 $V$ 的陣列，每格 `adj[v]` 是一條串列，儲存 $v$ 的所有鄰居。無向圖中每條邊 $(u, v)$ 同時加進 `adj[u]` 與 `adj[v]`。",
-              "en": "An array of size $V$ where each cell `adj[v]` is a list storing every neighbor of $v$. For an undirected graph, each edge $(u, v)$ is appended to both `adj[u]` and `adj[v]`." } },
-          { "type": "bullets", "items": [
-              { "zh": "空間 $O(V + E)$；對稀疏圖明顯優於矩陣的 $O(V^2)$。", "en": "Space $O(V + E)$; clearly beats the matrix's $O(V^2)$ on sparse graphs." },
-              { "zh": "遍歷某頂點的鄰居 $O(\\deg(v))$，與該頂點度數成正比。", "en": "Iterating $v$'s neighbors is $O(\\deg(v))$, proportional to its degree." },
-              { "zh": "判斷某條邊存在需 $O(\\deg(v))$；矩陣為 $O(1)$。", "en": "Edge-exists query is $O(\\deg(v))$ here vs $O(1)$ in a matrix." }
-          ] }
+              "en": "An array of size $V$ where each cell `adj[v]` is a list storing every neighbor of $v$. For an undirected graph, each edge $(u, v)$ is appended to both `adj[u]` and `adj[v]`."
+            }
+          },
+          {
+            "type": "bullets",
+            "items": [
+              {
+                "zh": "空間 $O(V + E)$；對稀疏圖明顯優於矩陣的 $O(V^2)$。",
+                "en": "Space $O(V + E)$; clearly beats the matrix's $O(V^2)$ on sparse graphs."
+              },
+              {
+                "zh": "遍歷某頂點的鄰居 $O(\\deg(v))$，與該頂點度數成正比。",
+                "en": "Iterating $v$'s neighbors is $O(\\deg(v))$, proportional to its degree."
+              },
+              {
+                "zh": "判斷某條邊存在需 $O(\\deg(v))$；矩陣為 $O(1)$。",
+                "en": "Edge-exists query is $O(\\deg(v))$ here vs $O(1)$ in a matrix."
+              }
+            ]
+          }
         ]
       },
       {
-        "heading": { "zh": "運作流程", "en": "Operation Flow" },
+        "heading": {
+          "zh": "運作流程",
+          "en": "Operation Flow"
+        },
         "blocks": [
-          { "type": "steps", "items": [
-              { "zh": "建立大小為 $V$ 的串列陣列，每格初始為空。", "en": "Create an array of $V$ empty lists." },
-              { "zh": "插入邊 $(u, v)$ 時，把 $v$ 追加到 `adj[u]`，把 $u$ 追加到 `adj[v]`（無向圖）。", "en": "To insert edge $(u, v)$, append $v$ to `adj[u]` and $u$ to `adj[v]` (undirected)." },
-              { "zh": "遍歷頂點 $u$ 的所有鄰居時，逐項走 `adj[u]` 串列。", "en": "To iterate all neighbors of $u$, walk through `adj[u]`." }
-          ] },
-          { "type": "mermaid", "code": "flowchart LR\n  V0[\"adj[0]\"] --> A[1] --> B[4] --> N0[null]\n  V1[\"adj[1]\"] --> C[0] --> D[2] --> E[3] --> F[4] --> N1[null]\n  V2[\"adj[2]\"] --> G[1] --> H[3] --> N2[null]\n  V3[\"adj[3]\"] --> I[1] --> J[2] --> K[4] --> N3[null]\n  V4[\"adj[4]\"] --> L[0] --> M[1] --> O[3] --> N4[null]" }
+          {
+            "type": "steps",
+            "items": [
+              {
+                "zh": "建立大小為 $V$ 的串列陣列，每格初始為空。",
+                "en": "Create an array of $V$ empty lists."
+              },
+              {
+                "zh": "插入邊 $(u, v)$ 時，把 $v$ 追加到 `adj[u]`，把 $u$ 追加到 `adj[v]`（無向圖）。",
+                "en": "To insert edge $(u, v)$, append $v$ to `adj[u]` and $u$ to `adj[v]` (undirected)."
+              },
+              {
+                "zh": "遍歷頂點 $u$ 的所有鄰居時，逐項走 `adj[u]` 串列。",
+                "en": "To iterate all neighbors of $u$, walk through `adj[u]`."
+              }
+            ]
+          },
+          {
+            "type": "mermaid",
+            "code": "flowchart LR\n  V0[\"adj[0]\"] --> A[1] --> B[4] --> N0[null]\n  V1[\"adj[1]\"] --> C[0] --> D[2] --> E[3] --> F[4] --> N1[null]\n  V2[\"adj[2]\"] --> G[1] --> H[3] --> N2[null]\n  V3[\"adj[3]\"] --> I[1] --> J[2] --> K[4] --> N3[null]\n  V4[\"adj[4]\"] --> L[0] --> M[1] --> O[3] --> N4[null]"
+          }
         ]
       },
       {
-        "heading": { "zh": "示意圖", "en": "Layout" },
+        "heading": {
+          "zh": "示意圖",
+          "en": "Layout"
+        },
         "blocks": [
-          { "type": "svg", "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 360 110\" width=\"360\"><g font-family=\"monospace\" font-size=\"13\"><text x=\"0\"   y=\"20\">[0] -&gt; 1 -&gt; 4 -&gt; null</text><text x=\"0\"   y=\"40\">[1] -&gt; 0 -&gt; 2 -&gt; 3 -&gt; 4 -&gt; null</text><text x=\"0\"   y=\"60\">[2] -&gt; 1 -&gt; 3 -&gt; null</text><text x=\"0\"   y=\"80\">[3] -&gt; 1 -&gt; 2 -&gt; 4 -&gt; null</text><text x=\"0\"   y=\"100\">[4] -&gt; 0 -&gt; 1 -&gt; 3 -&gt; null</text></g></svg>" },
-          { "type": "note", "text": {
+          {
+            "type": "svg",
+            "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 360 110\" width=\"360\"><g font-family=\"monospace\" font-size=\"13\"><text x=\"0\"   y=\"20\">[0] -&gt; 1 -&gt; 4 -&gt; null</text><text x=\"0\"   y=\"40\">[1] -&gt; 0 -&gt; 2 -&gt; 3 -&gt; 4 -&gt; null</text><text x=\"0\"   y=\"60\">[2] -&gt; 1 -&gt; 3 -&gt; null</text><text x=\"0\"   y=\"80\">[3] -&gt; 1 -&gt; 2 -&gt; 4 -&gt; null</text><text x=\"0\"   y=\"100\">[4] -&gt; 0 -&gt; 1 -&gt; 3 -&gt; null</text></g></svg>"
+          },
+          {
+            "type": "note",
+            "text": {
               "zh": "同一張 5 節點圖在 visualizer 裡以這樣的串列形式呈現；對照矩陣表示法可看出空間差異。",
-              "en": "The same 5-node graph rendered as adjacency lists; compare with the matrix representation to see the space tradeoff." } }
+              "en": "The same 5-node graph rendered as adjacency lists; compare with the matrix representation to see the space tradeoff."
+            }
+          }
         ]
       },
       {
-        "heading": { "zh": "複雜度分析", "en": "Complexity Analysis" },
+        "heading": {
+          "zh": "複雜度分析",
+          "en": "Complexity Analysis"
+        },
         "blocks": [
-          { "type": "table",
-            "headers": [ { "zh": "操作", "en": "Operation" }, { "zh": "時間", "en": "Time" }, { "zh": "空間", "en": "Space" } ],
+          {
+            "type": "table",
+            "headers": [
+              {
+                "zh": "操作",
+                "en": "Operation"
+              },
+              {
+                "zh": "時間",
+                "en": "Time"
+              },
+              {
+                "zh": "空間",
+                "en": "Space"
+              }
+            ],
             "rows": [
-              [ { "zh": "建構", "en": "Build" }, { "zh": "$O(V + E)$", "en": "$O(V + E)$" }, { "zh": "$O(V + E)$", "en": "$O(V + E)$" } ],
-              [ { "zh": "插入邊", "en": "addEdge" }, { "zh": "$O(1)$", "en": "$O(1)$" }, { "zh": "$O(1)$", "en": "$O(1)$" } ],
-              [ { "zh": "遍歷鄰居", "en": "iterate neighbors" }, { "zh": "$O(\\deg(v))$", "en": "$O(\\deg(v))$" }, { "zh": "$O(1)$", "en": "$O(1)$" } ],
-              [ { "zh": "邊查詢", "en": "edge query" }, { "zh": "$O(\\deg(v))$", "en": "$O(\\deg(v))$" }, { "zh": "$O(1)$", "en": "$O(1)$" } ],
-              [ { "zh": "空間合計", "en": "Total Space" }, { "zh": "—", "en": "—" }, { "zh": "$O(V + E)$", "en": "$O(V + E)$" } ]
-            ] },
-          { "type": "math", "tex": "O(V + E) \\;\\ll\\; O(V^2) \\text{ when } E \\ll V^2", "caption": {
+              [
+                {
+                  "zh": "建構",
+                  "en": "Build"
+                },
+                {
+                  "zh": "$O(V + E)$",
+                  "en": "$O(V + E)$"
+                },
+                {
+                  "zh": "$O(V + E)$",
+                  "en": "$O(V + E)$"
+                }
+              ],
+              [
+                {
+                  "zh": "插入邊",
+                  "en": "addEdge"
+                },
+                {
+                  "zh": "$O(1)$",
+                  "en": "$O(1)$"
+                },
+                {
+                  "zh": "$O(1)$",
+                  "en": "$O(1)$"
+                }
+              ],
+              [
+                {
+                  "zh": "遍歷鄰居",
+                  "en": "iterate neighbors"
+                },
+                {
+                  "zh": "$O(\\deg(v))$",
+                  "en": "$O(\\deg(v))$"
+                },
+                {
+                  "zh": "$O(1)$",
+                  "en": "$O(1)$"
+                }
+              ],
+              [
+                {
+                  "zh": "邊查詢",
+                  "en": "edge query"
+                },
+                {
+                  "zh": "$O(\\deg(v))$",
+                  "en": "$O(\\deg(v))$"
+                },
+                {
+                  "zh": "$O(1)$",
+                  "en": "$O(1)$"
+                }
+              ],
+              [
+                {
+                  "zh": "空間合計",
+                  "en": "Total Space"
+                },
+                {
+                  "zh": "—",
+                  "en": "—"
+                },
+                {
+                  "zh": "$O(V + E)$",
+                  "en": "$O(V + E)$"
+                }
+              ]
+            ]
+          },
+          {
+            "type": "math",
+            "tex": "O(V + E) \\;\\ll\\; O(V^2) \\text{ when } E \\ll V^2",
+            "caption": {
               "zh": "稀疏圖（$E \\ll V^2$）時鄰接串列的空間明顯較佳。",
-              "en": "For sparse graphs ($E \\ll V^2$), the adjacency list is substantially more space-efficient." } }
+              "en": "For sparse graphs ($E \\ll V^2$), the adjacency list is substantially more space-efficient."
+            }
+          }
         ]
       },
       {
-        "heading": { "zh": "程式碼", "en": "Source Code" },
+        "heading": {
+          "zh": "程式碼",
+          "en": "Source Code"
+        },
         "blocks": [
-          { "type": "code", "lang": "cpp", "code": "class Graph {\n    int V;\n    vector<list<int>> adj;\npublic:\n    Graph(int v) : V(v), adj(v) {}\n    void addEdge(int u, int v) {\n        adj[u].push_back(v);\n        adj[v].push_back(u);\n    }\n};" }
+          {
+            "type": "code",
+            "lang": "cpp",
+            "code": "class Graph {\n    int V;\n    vector<list<int>> adj;\n\npublic:\n    Graph(int v) : V(v), adj(v) {}\n    void addEdge(int u, int v) {\n        adj[u].push_back(v);\n        adj[v].push_back(u);\n    }\n};"
+          }
         ]
       },
       {
-        "heading": { "zh": "優缺點與使用時機", "en": "Pros, Cons & When to Use" },
+        "heading": {
+          "zh": "優缺點與使用時機",
+          "en": "Pros, Cons & When to Use"
+        },
         "blocks": [
-          { "type": "bullets", "items": [
-              { "zh": "優點：稀疏圖空間 $O(V+E)$ 比矩陣 $O(V^2)$ 小很多。", "en": "Pro: $O(V+E)$ space for sparse graphs vs $O(V^2)$ for matrix." },
-              { "zh": "優點：遍歷鄰居只走 $\\deg(v)$ 個元素，不需掃整列。", "en": "Pro: iterating neighbors visits only $\\deg(v)$ items, not a full row." },
-              { "zh": "缺點：邊查詢需走串列（$O(\\deg(v))$），矩陣 $O(1)$。", "en": "Con: edge query is $O(\\deg(v))$ vs $O(1)$ for matrix." },
-              { "zh": "適用：稀疏圖、邊集合操作為主、需要遍歷鄰居的演算法（BFS / DFS / Dijkstra）。", "en": "Use for sparse graphs, edge-iteration-heavy algorithms (BFS / DFS / Dijkstra)." }
-          ] }
+          {
+            "type": "bullets",
+            "items": [
+              {
+                "zh": "優點：稀疏圖空間 $O(V+E)$ 比矩陣 $O(V^2)$ 小很多。",
+                "en": "Pro: $O(V+E)$ space for sparse graphs vs $O(V^2)$ for matrix."
+              },
+              {
+                "zh": "優點：遍歷鄰居只走 $\\deg(v)$ 個元素，不需掃整列。",
+                "en": "Pro: iterating neighbors visits only $\\deg(v)$ items, not a full row."
+              },
+              {
+                "zh": "缺點：邊查詢需走串列（$O(\\deg(v))$），矩陣 $O(1)$。",
+                "en": "Con: edge query is $O(\\deg(v))$ vs $O(1)$ for matrix."
+              },
+              {
+                "zh": "適用：稀疏圖、邊集合操作為主、需要遍歷鄰居的演算法（BFS / DFS / Dijkstra）。",
+                "en": "Use for sparse graphs, edge-iteration-heavy algorithms (BFS / DFS / Dijkstra)."
+              }
+            ]
+          }
         ]
       },
       {
-        "heading": { "zh": "小結", "en": "Summary" },
+        "heading": {
+          "zh": "小結",
+          "en": "Summary"
+        },
         "blocks": [
-          { "type": "bullets", "items": [
-              { "zh": "陣列 + 串列；每邊存兩次（無向）。", "en": "Array + lists; each edge stored twice for undirected." },
-              { "zh": "空間 $O(V+E)$，遍歷鄰居 $O(\\deg(v))$。", "en": "Space $O(V+E)$, iterate neighbors $O(\\deg(v))$." },
-              { "zh": "對稀疏圖是首選；BFS / DFS / Dijkstra / Kruskal 內部皆使用此表示。", "en": "Default representation for sparse graphs; used internally by BFS / DFS / Dijkstra / Kruskal." }
-          ] }
+          {
+            "type": "bullets",
+            "items": [
+              {
+                "zh": "陣列 + 串列；每邊存兩次（無向）。",
+                "en": "Array + lists; each edge stored twice for undirected."
+              },
+              {
+                "zh": "空間 $O(V+E)$，遍歷鄰居 $O(\\deg(v))$。",
+                "en": "Space $O(V+E)$, iterate neighbors $O(\\deg(v))$."
+              },
+              {
+                "zh": "對稀疏圖是首選；BFS / DFS / Dijkstra / Kruskal 內部皆使用此表示。",
+                "en": "Default representation for sparse graphs; used internally by BFS / DFS / Dijkstra / Kruskal."
+              }
+            ]
+          }
         ]
       }
     ]
@@ -4987,268 +5331,758 @@ const SLIDES_DB = {
   },
   "graph-traversal": {
     "category": "Graphs",
-    "title": { "zh": "BFS 與 DFS 比較", "en": "BFS vs DFS Compared" },
+    "title": {
+      "zh": "BFS 與 DFS 比較",
+      "en": "BFS vs DFS Compared"
+    },
     "slides": [
       {
-        "heading": { "zh": "BFS 與 DFS 比較", "en": "BFS vs DFS Compared" },
+        "heading": {
+          "zh": "BFS 與 DFS 比較",
+          "en": "BFS vs DFS Compared"
+        },
         "blocks": [
-          { "type": "paragraph", "text": {
+          {
+            "type": "paragraph",
+            "text": {
               "zh": "對同一張 5 節點圖（0:[1,4]，1:[0,2,3,4]，2:[1,3]，3:[1,2,4]，4:[0,1,3]），BFS 從 0 出發的訪問順序為 0 1 4 2 3，DFS 從 0 出發為 0 1 2 3 4；視覺化器以雙面板同步展示兩者差異。",
-              "en": "On the same 5-node graph (0:[1,4], 1:[0,2,3,4], 2:[1,3], 3:[1,2,4], 4:[0,1,3]), BFS from 0 visits 0 1 4 2 3 and DFS from 0 visits 0 1 2 3 4; the visualizer steps both panes in sync to make the contrast visible." } }
+              "en": "On the same 5-node graph (0:[1,4], 1:[0,2,3,4], 2:[1,3], 3:[1,2,4], 4:[0,1,3]), BFS from 0 visits 0 1 4 2 3 and DFS from 0 visits 0 1 2 3 4; the visualizer steps both panes in sync to make the contrast visible."
+            }
+          }
         ]
       },
       {
-        "heading": { "zh": "核心概念", "en": "Core Concept" },
+        "heading": {
+          "zh": "核心概念",
+          "en": "Core Concept"
+        },
         "blocks": [
-          { "type": "paragraph", "text": {
+          {
+            "type": "paragraph",
+            "text": {
               "zh": "BFS 使用佇列（Queue），按層次由近而遠探索，天然找到無權最短路徑；DFS 使用堆疊（Stack）或遞迴，優先往深處探索再回溯。",
-              "en": "BFS uses a Queue and explores layer by layer from nearest to farthest, naturally finding shortest unweighted paths; DFS uses a Stack or recursion, diving deep before backtracking." } },
-          { "type": "bullets", "items": [
-              { "zh": "BFS：佇列；訪問順序 0→1→4→2→3；層次 d=0,1,1,2,2。", "en": "BFS: queue; visit order 0→1→4→2→3; layers d=0,1,1,2,2." },
-              { "zh": "DFS：堆疊/遞迴；訪問順序 0→1→2→3→4；沿路徑深入再回溯。", "en": "DFS: stack/recursion; visit order 0→1→2→3→4; explores paths fully before backtracking." },
-              { "zh": "兩者時間複雜度均為 $O(V+E)$，空間分別為 $O(V)$（佇列）與 $O(h)$（堆疊深度）。", "en": "Both have time $O(V+E)$; space differs: BFS $O(V)$ queue vs DFS $O(h)$ stack depth." }
-          ] }
+              "en": "BFS uses a Queue and explores layer by layer from nearest to farthest, naturally finding shortest unweighted paths; DFS uses a Stack or recursion, diving deep before backtracking."
+            }
+          },
+          {
+            "type": "bullets",
+            "items": [
+              {
+                "zh": "BFS：佇列；訪問順序 0→1→4→2→3；層次 d=0,1,1,2,2。",
+                "en": "BFS: queue; visit order 0→1→4→2→3; layers d=0,1,1,2,2."
+              },
+              {
+                "zh": "DFS：堆疊/遞迴；訪問順序 0→1→2→3→4；沿路徑深入再回溯。",
+                "en": "DFS: stack/recursion; visit order 0→1→2→3→4; explores paths fully before backtracking."
+              },
+              {
+                "zh": "兩者時間複雜度均為 $O(V+E)$，空間分別為 $O(V)$（佇列）與 $O(h)$（堆疊深度）。",
+                "en": "Both have time $O(V+E)$; space differs: BFS $O(V)$ queue vs DFS $O(h)$ stack depth."
+              }
+            ]
+          }
         ]
       },
       {
-        "heading": { "zh": "運作流程", "en": "Operation Flow" },
+        "heading": {
+          "zh": "運作流程",
+          "en": "Operation Flow"
+        },
         "blocks": [
-          { "type": "steps", "items": [
-              { "zh": "BFS：將起點 0 入佇列 → 出佇列並訪問 → 將未訪問鄰居依序入佇列 → 重複至佇列空。", "en": "BFS: enqueue source 0 → dequeue and visit → enqueue unvisited neighbors in order → repeat until empty." },
-              { "zh": "DFS：將起點 0 入堆疊 → 出堆疊，若未訪問則標記並將鄰居倒序入堆疊 → 重複。", "en": "DFS: push source 0 → pop; if unvisited mark it and push neighbors in reverse order → repeat." },
-              { "zh": "比較：相同的圖、相同的起點，不同的資料結構導致截然不同的訪問順序。", "en": "Comparison: same graph, same source, but different control structure → different visit orders." }
-          ] },
-          { "type": "mermaid", "code": "flowchart LR\n  subgraph BFS\n    B0[\"0\"] --> B1[\"1\"] --> B4[\"4\"] --> B2[\"2\"] --> B3[\"3\"]\n  end\n  subgraph DFS\n    D0[\"0\"] --> D1[\"1\"] --> D2[\"2\"] --> D3[\"3\"] --> D4[\"4\"]\n  end" }
+          {
+            "type": "steps",
+            "items": [
+              {
+                "zh": "BFS：將起點 0 入佇列 → 出佇列並訪問 → 將未訪問鄰居依序入佇列 → 重複至佇列空。",
+                "en": "BFS: enqueue source 0 → dequeue and visit → enqueue unvisited neighbors in order → repeat until empty."
+              },
+              {
+                "zh": "DFS：將起點 0 入堆疊 → 出堆疊，若未訪問則標記並將鄰居倒序入堆疊 → 重複。",
+                "en": "DFS: push source 0 → pop; if unvisited mark it and push neighbors in reverse order → repeat."
+              },
+              {
+                "zh": "比較：相同的圖、相同的起點，不同的資料結構導致截然不同的訪問順序。",
+                "en": "Comparison: same graph, same source, but different control structure → different visit orders."
+              }
+            ]
+          },
+          {
+            "type": "mermaid",
+            "code": "flowchart LR\n  subgraph BFS\n    B0[\"0\"] --> B1[\"1\"] --> B4[\"4\"] --> B2[\"2\"] --> B3[\"3\"]\n  end\n  subgraph DFS\n    D0[\"0\"] --> D1[\"1\"] --> D2[\"2\"] --> D3[\"3\"] --> D4[\"4\"]\n  end"
+          }
         ]
       },
       {
-        "heading": { "zh": "示意圖", "en": "Layout" },
+        "heading": {
+          "zh": "示意圖",
+          "en": "Layout"
+        },
         "blocks": [
-          { "type": "svg", "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 360 60\" width=\"360\"><g font-family=\"monospace\" font-size=\"14\"><text x=\"0\" y=\"22\">BFS order: 0  1  4  2  3</text><text x=\"0\" y=\"50\">DFS order: 0  1  2  3  4</text></g></svg>" },
-          { "type": "note", "text": {
+          {
+            "type": "svg",
+            "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 360 60\" width=\"360\"><g font-family=\"monospace\" font-size=\"14\"><text x=\"0\" y=\"22\">BFS order: 0  1  4  2  3</text><text x=\"0\" y=\"50\">DFS order: 0  1  2  3  4</text></g></svg>"
+          },
+          {
+            "type": "note",
+            "text": {
               "zh": "同一張 5 節點圖從頂點 0 出發；BFS 先訪問所有距離 1 的節點（1、4），再訪問距離 2 的節點（2、3）；DFS 則沿最小鄰居一路深入直到盡頭。",
-              "en": "Same 5-node graph from vertex 0; BFS first visits all distance-1 nodes (1, 4) then distance-2 nodes (2, 3); DFS dives along the smallest neighbor until it hits a dead end." } }
+              "en": "Same 5-node graph from vertex 0; BFS first visits all distance-1 nodes (1, 4) then distance-2 nodes (2, 3); DFS dives along the smallest neighbor until it hits a dead end."
+            }
+          }
         ]
       },
       {
-        "heading": { "zh": "複雜度分析", "en": "Complexity Analysis" },
+        "heading": {
+          "zh": "複雜度分析",
+          "en": "Complexity Analysis"
+        },
         "blocks": [
-          { "type": "table",
-            "headers": [ { "zh": "操作", "en": "Operation" }, { "zh": "時間", "en": "Time" }, { "zh": "空間", "en": "Space" } ],
+          {
+            "type": "table",
+            "headers": [
+              {
+                "zh": "操作",
+                "en": "Operation"
+              },
+              {
+                "zh": "時間",
+                "en": "Time"
+              },
+              {
+                "zh": "空間",
+                "en": "Space"
+              }
+            ],
             "rows": [
-              [ { "zh": "初始化", "en": "Init" }, { "zh": "$O(V)$", "en": "$O(V)$" }, { "zh": "$O(V)$", "en": "$O(V)$" } ],
-              [ { "zh": "BFS 遍歷", "en": "BFS traversal" }, { "zh": "$O(V+E)$", "en": "$O(V+E)$" }, { "zh": "$O(V)$", "en": "$O(V)$" } ],
-              [ { "zh": "DFS 遍歷", "en": "DFS traversal" }, { "zh": "$O(V+E)$", "en": "$O(V+E)$" }, { "zh": "$O(h)$", "en": "$O(h)$" } ],
-              [ { "zh": "單步展開 $\\deg(v)$", "en": "Single step $\\deg(v)$" }, { "zh": "$O(\\deg(v))$", "en": "$O(\\deg(v))$" }, { "zh": "$O(1)$", "en": "$O(1)$" } ]
-            ] },
-          { "type": "math", "tex": "T_{BFS} = T_{DFS} = O(V+E)", "caption": {
+              [
+                {
+                  "zh": "初始化",
+                  "en": "Init"
+                },
+                {
+                  "zh": "$O(V)$",
+                  "en": "$O(V)$"
+                },
+                {
+                  "zh": "$O(V)$",
+                  "en": "$O(V)$"
+                }
+              ],
+              [
+                {
+                  "zh": "BFS 遍歷",
+                  "en": "BFS traversal"
+                },
+                {
+                  "zh": "$O(V+E)$",
+                  "en": "$O(V+E)$"
+                },
+                {
+                  "zh": "$O(V)$",
+                  "en": "$O(V)$"
+                }
+              ],
+              [
+                {
+                  "zh": "DFS 遍歷",
+                  "en": "DFS traversal"
+                },
+                {
+                  "zh": "$O(V+E)$",
+                  "en": "$O(V+E)$"
+                },
+                {
+                  "zh": "$O(h)$",
+                  "en": "$O(h)$"
+                }
+              ],
+              [
+                {
+                  "zh": "單步展開 $\\deg(v)$",
+                  "en": "Single step $\\deg(v)$"
+                },
+                {
+                  "zh": "$O(\\deg(v))$",
+                  "en": "$O(\\deg(v))$"
+                },
+                {
+                  "zh": "$O(1)$",
+                  "en": "$O(1)$"
+                }
+              ]
+            ]
+          },
+          {
+            "type": "math",
+            "tex": "T_{BFS} = T_{DFS} = O(V+E)",
+            "caption": {
               "zh": "兩者時間相同，差異在空間：BFS 佇列最多存 $O(V)$ 個節點，DFS 堆疊深度最多為 $O(h)$（$h$ 為 DFS 樹高）。",
-              "en": "Both have the same time complexity; the key difference is space: BFS queue holds up to $O(V)$ nodes, while DFS stack depth is at most $O(h)$ (DFS tree height)." } }
+              "en": "Both have the same time complexity; the key difference is space: BFS queue holds up to $O(V)$ nodes, while DFS stack depth is at most $O(h)$ (DFS tree height)."
+            }
+          }
         ]
       },
       {
-        "heading": { "zh": "程式碼", "en": "Source Code" },
+        "heading": {
+          "zh": "程式碼",
+          "en": "Source Code"
+        },
         "blocks": [
-          { "type": "code", "lang": "cpp", "code": "vector<int> bfsOrder(const vector<vector<int>>& adj, int start) {\n    int n = adj.size();\n    vector<bool> visited(n, false);\n    vector<int> order;\n    queue<int> q;\n    q.push(start); visited[start] = true;\n    while (!q.empty()) {\n        int u = q.front(); q.pop();\n        order.push_back(u);\n        for (int v : adj[u])\n            if (!visited[v]) { visited[v] = true; q.push(v); }\n    }\n    return order;\n}\nvector<int> dfsOrder(const vector<vector<int>>& adj, int start) {\n    int n = adj.size();\n    vector<bool> visited(n, false);\n    vector<int> order;\n    stack<int> s;\n    s.push(start);\n    while (!s.empty()) {\n        int u = s.top(); s.pop();\n        if (visited[u]) continue;\n        visited[u] = true; order.push_back(u);\n        for (auto it = adj[u].rbegin(); it != adj[u].rend(); ++it)\n            if (!visited[*it]) s.push(*it);\n    }\n    return order;\n}" }
+          {
+            "type": "code",
+            "lang": "cpp",
+            "code": "vector<int> bfsOrder(const vector<vector<int>>& adj, int start) {\n    int n = adj.size();\n    vector<bool> visited(n, false);\n    vector<int> order;\n    queue<int> q;\n    q.push(start);\n    visited[start] = true;\n    while (!q.empty()) {\n        int u = q.front();\n        q.pop();\n        order.push_back(u);\n        for (int v : adj[u])\n            if (!visited[v]) {\n                visited[v] = true;\n                q.push(v);\n            }\n    }\n    return order;\n}\nvector<int> dfsOrder(const vector<vector<int>>& adj, int start) {\n    int n = adj.size();\n    vector<bool> visited(n, false);\n    vector<int> order;\n    stack<int> s;\n    s.push(start);\n    while (!s.empty()) {\n        int u = s.top();\n        s.pop();\n        if (visited[u])\n            continue;\n        visited[u] = true;\n        order.push_back(u);\n        for (auto it = adj[u].rbegin(); it != adj[u].rend(); ++it)\n            if (!visited[*it])\n                s.push(*it);\n    }\n    return order;\n}"
+          }
         ]
       },
       {
-        "heading": { "zh": "優缺點與使用時機", "en": "Pros, Cons & When to Use" },
+        "heading": {
+          "zh": "優缺點與使用時機",
+          "en": "Pros, Cons & When to Use"
+        },
         "blocks": [
-          { "type": "bullets", "items": [
-              { "zh": "BFS 優點：能找到無權最短路徑；適合層次遍歷與廣播問題。", "en": "BFS pro: finds shortest unweighted path; good for level-order traversal and broadcast problems." },
-              { "zh": "DFS 優點：記憶體用量較小（深度有限時）；是拓樸排序、SCC、環偵測的基礎。", "en": "DFS pro: uses less memory for deep narrow graphs; foundation for topological sort, SCC, cycle detection." },
-              { "zh": "BFS 缺點：寬圖記憶體消耗大（佇列可達 $O(V)$）。", "en": "BFS con: high memory on wide graphs (queue can reach $O(V)$)." },
-              { "zh": "DFS 缺點：不保證找到最短路徑；不同鄰居遍歷順序會產生不同結果，可能混淆預期。", "en": "DFS con: does not guarantee shortest path; different neighbor orderings yield different results, which can be confusing." }
-          ] }
+          {
+            "type": "bullets",
+            "items": [
+              {
+                "zh": "BFS 優點：能找到無權最短路徑；適合層次遍歷與廣播問題。",
+                "en": "BFS pro: finds shortest unweighted path; good for level-order traversal and broadcast problems."
+              },
+              {
+                "zh": "DFS 優點：記憶體用量較小（深度有限時）；是拓樸排序、SCC、環偵測的基礎。",
+                "en": "DFS pro: uses less memory for deep narrow graphs; foundation for topological sort, SCC, cycle detection."
+              },
+              {
+                "zh": "BFS 缺點：寬圖記憶體消耗大（佇列可達 $O(V)$）。",
+                "en": "BFS con: high memory on wide graphs (queue can reach $O(V)$)."
+              },
+              {
+                "zh": "DFS 缺點：不保證找到最短路徑；不同鄰居遍歷順序會產生不同結果，可能混淆預期。",
+                "en": "DFS con: does not guarantee shortest path; different neighbor orderings yield different results, which can be confusing."
+              }
+            ]
+          }
         ]
       },
       {
-        "heading": { "zh": "小結", "en": "Summary" },
+        "heading": {
+          "zh": "小結",
+          "en": "Summary"
+        },
         "blocks": [
-          { "type": "bullets", "items": [
-              { "zh": "相同資料（圖），不同控制結構（佇列 vs 堆疊）→ 截然不同的訪問順序。", "en": "Same data (graph), different control structure (queue vs stack) → completely different traversal orders." },
-              { "zh": "BFS 按距離分層展開，DFS 沿路徑深入再回溯；各有適用場景。", "en": "BFS expands by distance layers; DFS explores paths fully before backtracking — each suits different problems." },
-              { "zh": "兩者時間均為 $O(V+E)$；BFS 空間 $O(V)$，DFS 空間 $O(h)$。", "en": "Both run in $O(V+E)$ time; BFS uses $O(V)$ space, DFS uses $O(h)$ stack space." }
-          ] }
+          {
+            "type": "bullets",
+            "items": [
+              {
+                "zh": "相同資料（圖），不同控制結構（佇列 vs 堆疊）→ 截然不同的訪問順序。",
+                "en": "Same data (graph), different control structure (queue vs stack) → completely different traversal orders."
+              },
+              {
+                "zh": "BFS 按距離分層展開，DFS 沿路徑深入再回溯；各有適用場景。",
+                "en": "BFS expands by distance layers; DFS explores paths fully before backtracking — each suits different problems."
+              },
+              {
+                "zh": "兩者時間均為 $O(V+E)$；BFS 空間 $O(V)$，DFS 空間 $O(h)$。",
+                "en": "Both run in $O(V+E)$ time; BFS uses $O(V)$ space, DFS uses $O(h)$ stack space."
+              }
+            ]
+          }
         ]
       }
     ]
   },
   "graph-bfs": {
     "category": "Graphs",
-    "title": { "zh": "廣度優先搜尋", "en": "Breadth-First Search" },
+    "title": {
+      "zh": "廣度優先搜尋",
+      "en": "Breadth-First Search"
+    },
     "slides": [
       {
-        "heading": { "zh": "廣度優先搜尋", "en": "Breadth-First Search" },
+        "heading": {
+          "zh": "廣度優先搜尋",
+          "en": "Breadth-First Search"
+        },
         "blocks": [
-          { "type": "paragraph", "text": {
+          {
+            "type": "paragraph",
+            "text": {
               "zh": "BFS（Breadth-First Search，廣度優先搜尋）利用佇列按照距離由近到遠逐層探索圖中節點，是求無權最短路徑的標準演算法。",
-              "en": "BFS (Breadth-First Search) uses a queue to explore graph vertices layer by layer in increasing distance from the source — the standard algorithm for shortest unweighted paths." } }
+              "en": "BFS (Breadth-First Search) uses a queue to explore graph vertices layer by layer in increasing distance from the source — the standard algorithm for shortest unweighted paths."
+            }
+          }
         ]
       },
       {
-        "heading": { "zh": "核心概念", "en": "Core Concept" },
+        "heading": {
+          "zh": "核心概念",
+          "en": "Core Concept"
+        },
         "blocks": [
-          { "type": "paragraph", "text": {
+          {
+            "type": "paragraph",
+            "text": {
               "zh": "以佇列記錄待探索的節點，並維護 `visited` 集合防止重複訪問。每次從佇列前端取出一個節點，訪問後將其所有未訪問鄰居加入佇列。",
-              "en": "A queue tracks nodes to explore next, and a `visited` set prevents revisiting. Each iteration dequeues a node, visits it, then enqueues all unvisited neighbors." } },
-          { "type": "bullets", "items": [
-              { "zh": "FIFO 佇列保證同一距離的節點先被訪問，再探索更遠的節點。", "en": "FIFO queue ensures nodes at the same distance are all visited before exploring farther ones." },
-              { "zh": "從來源 0 出發：距離 0 → {0}，距離 1 → {1,4}，距離 2 → {2,3}。", "en": "From source 0: distance 0 → {0}, distance 1 → {1, 4}, distance 2 → {2, 3}." },
-              { "zh": "可同時記錄 `dist[]` 陣列，得到源點到各節點的最短路徑長度。", "en": "Can simultaneously maintain a `dist[]` array to record shortest-path distances from source." }
-          ] }
+              "en": "A queue tracks nodes to explore next, and a `visited` set prevents revisiting. Each iteration dequeues a node, visits it, then enqueues all unvisited neighbors."
+            }
+          },
+          {
+            "type": "bullets",
+            "items": [
+              {
+                "zh": "FIFO 佇列保證同一距離的節點先被訪問，再探索更遠的節點。",
+                "en": "FIFO queue ensures nodes at the same distance are all visited before exploring farther ones."
+              },
+              {
+                "zh": "從來源 0 出發：距離 0 → {0}，距離 1 → {1,4}，距離 2 → {2,3}。",
+                "en": "From source 0: distance 0 → {0}, distance 1 → {1, 4}, distance 2 → {2, 3}."
+              },
+              {
+                "zh": "可同時記錄 `dist[]` 陣列，得到源點到各節點的最短路徑長度。",
+                "en": "Can simultaneously maintain a `dist[]` array to record shortest-path distances from source."
+              }
+            ]
+          }
         ]
       },
       {
-        "heading": { "zh": "運作流程", "en": "Operation Flow" },
+        "heading": {
+          "zh": "運作流程",
+          "en": "Operation Flow"
+        },
         "blocks": [
-          { "type": "steps", "items": [
-              { "zh": "將源點 0 標記為已訪問並入佇列；`visited[0] = true`。", "en": "Mark source 0 as visited and enqueue it; `visited[0] = true`." },
-              { "zh": "迴圈：取出佇列前端節點 $u$，訪問它，將所有 `adj[u]` 中未訪問的鄰居標記並入佇列。", "en": "Loop: dequeue front node $u$, visit it, mark and enqueue every unvisited neighbor in `adj[u]`." },
-              { "zh": "重複直到佇列為空；訪問序列即為 BFS 序，同時也是層次遍歷順序。", "en": "Repeat until the queue is empty; the visit sequence is the BFS order, which equals the level-order traversal." }
-          ] },
-          { "type": "mermaid", "code": "flowchart LR\n  L0[\"d=0: 0\"] --> L1[\"d=1: 1, 4\"] --> L2[\"d=2: 2, 3\"]" }
+          {
+            "type": "steps",
+            "items": [
+              {
+                "zh": "將源點 0 標記為已訪問並入佇列；`visited[0] = true`。",
+                "en": "Mark source 0 as visited and enqueue it; `visited[0] = true`."
+              },
+              {
+                "zh": "迴圈：取出佇列前端節點 $u$，訪問它，將所有 `adj[u]` 中未訪問的鄰居標記並入佇列。",
+                "en": "Loop: dequeue front node $u$, visit it, mark and enqueue every unvisited neighbor in `adj[u]`."
+              },
+              {
+                "zh": "重複直到佇列為空；訪問序列即為 BFS 序，同時也是層次遍歷順序。",
+                "en": "Repeat until the queue is empty; the visit sequence is the BFS order, which equals the level-order traversal."
+              }
+            ]
+          },
+          {
+            "type": "mermaid",
+            "code": "flowchart LR\n  L0[\"d=0: 0\"] --> L1[\"d=1: 1, 4\"] --> L2[\"d=2: 2, 3\"]"
+          }
         ]
       },
       {
-        "heading": { "zh": "示意圖", "en": "Layout" },
+        "heading": {
+          "zh": "示意圖",
+          "en": "Layout"
+        },
         "blocks": [
-          { "type": "svg", "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 360 110\" width=\"360\"><g font-family=\"monospace\" font-size=\"13\"><text x=\"0\" y=\"20\">Node 0 : d = 0</text><text x=\"0\" y=\"40\">Node 1 : d = 1</text><text x=\"0\" y=\"60\">Node 2 : d = 2</text><text x=\"0\" y=\"80\">Node 3 : d = 2</text><text x=\"0\" y=\"100\">Node 4 : d = 1</text></g></svg>" },
-          { "type": "note", "text": {
+          {
+            "type": "svg",
+            "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 360 110\" width=\"360\"><g font-family=\"monospace\" font-size=\"13\"><text x=\"0\" y=\"20\">Node 0 : d = 0</text><text x=\"0\" y=\"40\">Node 1 : d = 1</text><text x=\"0\" y=\"60\">Node 2 : d = 2</text><text x=\"0\" y=\"80\">Node 3 : d = 2</text><text x=\"0\" y=\"100\">Node 4 : d = 1</text></g></svg>"
+          },
+          {
+            "type": "note",
+            "text": {
               "zh": "從頂點 0 出發，5 個節點的 BFS 距離：0 距離為 0，1 和 4 距離為 1，2 和 3 距離為 2；訪問順序 0 1 4 2 3。",
-              "en": "BFS distances from vertex 0 for all 5 nodes: node 0 at d=0, nodes 1 and 4 at d=1, nodes 2 and 3 at d=2; visit order 0 1 4 2 3." } }
+              "en": "BFS distances from vertex 0 for all 5 nodes: node 0 at d=0, nodes 1 and 4 at d=1, nodes 2 and 3 at d=2; visit order 0 1 4 2 3."
+            }
+          }
         ]
       },
       {
-        "heading": { "zh": "複雜度分析", "en": "Complexity Analysis" },
+        "heading": {
+          "zh": "複雜度分析",
+          "en": "Complexity Analysis"
+        },
         "blocks": [
-          { "type": "table",
-            "headers": [ { "zh": "操作", "en": "Operation" }, { "zh": "時間", "en": "Time" }, { "zh": "空間", "en": "Space" } ],
+          {
+            "type": "table",
+            "headers": [
+              {
+                "zh": "操作",
+                "en": "Operation"
+              },
+              {
+                "zh": "時間",
+                "en": "Time"
+              },
+              {
+                "zh": "空間",
+                "en": "Space"
+              }
+            ],
             "rows": [
-              [ { "zh": "初始化", "en": "Init" }, { "zh": "$O(V)$", "en": "$O(V)$" }, { "zh": "$O(V)$", "en": "$O(V)$" } ],
-              [ { "zh": "BFS 遍歷", "en": "BFS traversal" }, { "zh": "$O(V+E)$", "en": "$O(V+E)$" }, { "zh": "$O(V)$", "en": "$O(V)$" } ],
-              [ { "zh": "最短路徑查詢", "en": "Shortest path query" }, { "zh": "$O(V)$", "en": "$O(V)$" }, { "zh": "$O(V)$", "en": "$O(V)$" } ]
-            ] },
-          { "type": "math", "tex": "T_{BFS} = O(V + E)", "caption": {
+              [
+                {
+                  "zh": "初始化",
+                  "en": "Init"
+                },
+                {
+                  "zh": "$O(V)$",
+                  "en": "$O(V)$"
+                },
+                {
+                  "zh": "$O(V)$",
+                  "en": "$O(V)$"
+                }
+              ],
+              [
+                {
+                  "zh": "BFS 遍歷",
+                  "en": "BFS traversal"
+                },
+                {
+                  "zh": "$O(V+E)$",
+                  "en": "$O(V+E)$"
+                },
+                {
+                  "zh": "$O(V)$",
+                  "en": "$O(V)$"
+                }
+              ],
+              [
+                {
+                  "zh": "最短路徑查詢",
+                  "en": "Shortest path query"
+                },
+                {
+                  "zh": "$O(V)$",
+                  "en": "$O(V)$"
+                },
+                {
+                  "zh": "$O(V)$",
+                  "en": "$O(V)$"
+                }
+              ]
+            ]
+          },
+          {
+            "type": "math",
+            "tex": "T_{BFS} = O(V + E)",
+            "caption": {
               "zh": "每個頂點和每條邊各最多處理一次；佇列空間最多同時存 $O(V)$ 個節點。",
-              "en": "Each vertex and each edge is processed at most once; the queue holds at most $O(V)$ nodes simultaneously." } }
+              "en": "Each vertex and each edge is processed at most once; the queue holds at most $O(V)$ nodes simultaneously."
+            }
+          }
         ]
       },
       {
-        "heading": { "zh": "程式碼", "en": "Source Code" },
+        "heading": {
+          "zh": "程式碼",
+          "en": "Source Code"
+        },
         "blocks": [
-          { "type": "code", "lang": "cpp", "code": "void bfs(const vector<vector<int>>& adj, int start) {\n    int n = adj.size();\n    vector<bool> visited(n, false);\n    queue<int> q;\n    q.push(start);\n    visited[start] = true;\n    while (!q.empty()) {\n        int u = q.front();\n        q.pop();\n        cout << \"Visit \" << u << \"\\n\";\n        for (int v : adj[u]) {\n            if (!visited[v]) {\n                visited[v] = true;\n                q.push(v);\n            }\n        }\n    }\n}" }
+          {
+            "type": "code",
+            "lang": "cpp",
+            "code": "void bfs(const vector<vector<int>>& adj, int start) {\n    int n = adj.size();\n    vector<bool> visited(n, false);\n    queue<int> q;\n    q.push(start);\n    visited[start] = true;\n    while (!q.empty()) {\n        int u = q.front();\n        q.pop();\n        cout << \"Visit \" << u << \"\\n\";\n        for (int v : adj[u]) {\n            if (!visited[v]) {\n                visited[v] = true;\n                q.push(v);\n            }\n        }\n    }\n}"
+          }
         ]
       },
       {
-        "heading": { "zh": "優缺點與使用時機", "en": "Pros, Cons & When to Use" },
+        "heading": {
+          "zh": "優缺點與使用時機",
+          "en": "Pros, Cons & When to Use"
+        },
         "blocks": [
-          { "type": "bullets", "items": [
-              { "zh": "優點：在無權圖中天然找到最短路徑，保證按距離分層訪問。", "en": "Pro: naturally finds shortest unweighted paths; guarantees level-order (distance-layer) traversal." },
-              { "zh": "優點：可同時求所有節點到源點的最短距離，只需一次遍歷。", "en": "Pro: computes shortest distances from source to all nodes in a single pass." },
-              { "zh": "缺點：寬圖（分枝多）時佇列可達 $O(V)$ 記憶體，對記憶體敏感的場景需注意。", "en": "Con: for wide graphs (high branching factor), the queue can hold $O(V)$ nodes, requiring significant memory." },
-              { "zh": "適用：無權最短路徑、層次遍歷、網路廣播、二部圖檢測；鄰接串列為首選（見 graph-adjlist）。", "en": "Use for unweighted shortest paths, level-order traversal, network broadcasting, bipartite checking; pairs naturally with the adjacency list (see graph-adjlist)." }
-          ] }
+          {
+            "type": "bullets",
+            "items": [
+              {
+                "zh": "優點：在無權圖中天然找到最短路徑，保證按距離分層訪問。",
+                "en": "Pro: naturally finds shortest unweighted paths; guarantees level-order (distance-layer) traversal."
+              },
+              {
+                "zh": "優點：可同時求所有節點到源點的最短距離，只需一次遍歷。",
+                "en": "Pro: computes shortest distances from source to all nodes in a single pass."
+              },
+              {
+                "zh": "缺點：寬圖（分枝多）時佇列可達 $O(V)$ 記憶體，對記憶體敏感的場景需注意。",
+                "en": "Con: for wide graphs (high branching factor), the queue can hold $O(V)$ nodes, requiring significant memory."
+              },
+              {
+                "zh": "適用：無權最短路徑、層次遍歷、網路廣播、二部圖檢測；鄰接串列為首選（見 graph-adjlist）。",
+                "en": "Use for unweighted shortest paths, level-order traversal, network broadcasting, bipartite checking; pairs naturally with the adjacency list (see graph-adjlist)."
+              }
+            ]
+          }
         ]
       },
       {
-        "heading": { "zh": "小結", "en": "Summary" },
+        "heading": {
+          "zh": "小結",
+          "en": "Summary"
+        },
         "blocks": [
-          { "type": "bullets", "items": [
-              { "zh": "佇列 + `visited` 集合；按距離分層訪問所有可達節點。", "en": "Queue + visited set; visits all reachable nodes in distance-layer order." },
-              { "zh": "時間 $O(V+E)$，空間 $O(V)$；在無權圖中找到最短路徑。", "en": "Time $O(V+E)$, space $O(V)$; finds shortest paths in unweighted graphs." },
-              { "zh": "與鄰接串列配合使用效果最佳（見 graph-adjlist）。", "en": "Pairs naturally with the adjacency list (see graph-adjlist)." }
-          ] }
+          {
+            "type": "bullets",
+            "items": [
+              {
+                "zh": "佇列 + `visited` 集合；按距離分層訪問所有可達節點。",
+                "en": "Queue + visited set; visits all reachable nodes in distance-layer order."
+              },
+              {
+                "zh": "時間 $O(V+E)$，空間 $O(V)$；在無權圖中找到最短路徑。",
+                "en": "Time $O(V+E)$, space $O(V)$; finds shortest paths in unweighted graphs."
+              },
+              {
+                "zh": "與鄰接串列配合使用效果最佳（見 graph-adjlist）。",
+                "en": "Pairs naturally with the adjacency list (see graph-adjlist)."
+              }
+            ]
+          }
         ]
       }
     ]
   },
   "graph-dfs": {
     "category": "Graphs",
-    "title": { "zh": "深度優先搜尋", "en": "Depth-First Search" },
+    "title": {
+      "zh": "深度優先搜尋",
+      "en": "Depth-First Search"
+    },
     "slides": [
       {
-        "heading": { "zh": "深度優先搜尋", "en": "Depth-First Search" },
+        "heading": {
+          "zh": "深度優先搜尋",
+          "en": "Depth-First Search"
+        },
         "blocks": [
-          { "type": "paragraph", "text": {
+          {
+            "type": "paragraph",
+            "text": {
               "zh": "DFS（Depth-First Search，深度優先搜尋）以堆疊或遞迴的方式優先沿路徑深入探索，是拓樸排序、強連通分量、環偵測等演算法的核心基礎。",
-              "en": "DFS (Depth-First Search) uses a stack or recursion to explore as deep as possible along each path before backtracking — the foundational technique for topological sort, SCC, and cycle detection." } }
+              "en": "DFS (Depth-First Search) uses a stack or recursion to explore as deep as possible along each path before backtracking — the foundational technique for topological sort, SCC, and cycle detection."
+            }
+          }
         ]
       },
       {
-        "heading": { "zh": "核心概念", "en": "Core Concept" },
+        "heading": {
+          "zh": "核心概念",
+          "en": "Core Concept"
+        },
         "blocks": [
-          { "type": "paragraph", "text": {
+          {
+            "type": "paragraph",
+            "text": {
               "zh": "以堆疊（或呼叫堆疊）記錄當前路徑。每次取出頂端節點，若未訪問則標記並將其鄰居（倒序）推入堆疊，使最小鄰居優先被彈出；遞迴版直接對每個鄰居呼叫自身。",
-              "en": "A stack (or call stack) tracks the current path. Pop the top node; if unvisited mark it and push its neighbors in reverse order so the smallest neighbor is popped first; the recursive version calls itself on each unvisited neighbor." } },
-          { "type": "bullets", "items": [
-              { "zh": "迭代版：堆疊 + `visited` 陣列；倒序入堆疊使最小鄰居先訪問，得到 0 1 2 3 4。", "en": "Iterative: stack + visited array; push neighbors in reverse so smallest is popped first, yielding 0 1 2 3 4." },
-              { "zh": "遞迴版：呼叫堆疊即為 DFS 堆疊；對鄰居清單正序遞迴，得到相同順序 0 1 2 3 4。", "en": "Recursive: call stack acts as DFS stack; recurse on neighbors in forward order, yielding the same order 0 1 2 3 4." },
-              { "zh": "DFS 樹邊：0→1→2→3→4；其餘為回邊（back edge）或交叉邊，反映圖的深層結構。", "en": "DFS tree edges: 0→1→2→3→4; remaining edges are back/cross edges reflecting deeper graph structure." }
-          ] }
+              "en": "A stack (or call stack) tracks the current path. Pop the top node; if unvisited mark it and push its neighbors in reverse order so the smallest neighbor is popped first; the recursive version calls itself on each unvisited neighbor."
+            }
+          },
+          {
+            "type": "bullets",
+            "items": [
+              {
+                "zh": "迭代版：堆疊 + `visited` 陣列；倒序入堆疊使最小鄰居先訪問，得到 0 1 2 3 4。",
+                "en": "Iterative: stack + visited array; push neighbors in reverse so smallest is popped first, yielding 0 1 2 3 4."
+              },
+              {
+                "zh": "遞迴版：呼叫堆疊即為 DFS 堆疊；對鄰居清單正序遞迴，得到相同順序 0 1 2 3 4。",
+                "en": "Recursive: call stack acts as DFS stack; recurse on neighbors in forward order, yielding the same order 0 1 2 3 4."
+              },
+              {
+                "zh": "DFS 樹邊：0→1→2→3→4；其餘為回邊（back edge）或交叉邊，反映圖的深層結構。",
+                "en": "DFS tree edges: 0→1→2→3→4; remaining edges are back/cross edges reflecting deeper graph structure."
+              }
+            ]
+          }
         ]
       },
       {
-        "heading": { "zh": "運作流程", "en": "Operation Flow" },
+        "heading": {
+          "zh": "運作流程",
+          "en": "Operation Flow"
+        },
         "blocks": [
-          { "type": "steps", "items": [
-              { "zh": "將源點 0 推入堆疊（或遞迴進入 0）；`visited[0] = true`。", "en": "Push source 0 onto the stack (or enter recursion at 0); `visited[0] = true`." },
-              { "zh": "迭代：彈出頂端節點 $u$，若未訪問則標記並將 `adj[u]` 倒序推入堆疊；遞迴：對每個未訪問鄰居 $v$ 直接呼叫 `dfsRecursive(adj, v, visited)`。", "en": "Iterative: pop top $u$; if unvisited mark it and push `adj[u]` reversed; Recursive: for each unvisited neighbor $v$ call `dfsRecursive(adj, v, visited)`." },
-              { "zh": "重複直到堆疊空（迭代）或所有遞迴返回；訪問序列為 0 1 2 3 4。", "en": "Repeat until stack is empty (iterative) or all recursions return; visit sequence is 0 1 2 3 4." }
-          ] },
-          { "type": "mermaid", "code": "flowchart LR\n  T0[\"0\"] --> T1[\"1\"] --> T2[\"2\"] --> T3[\"3\"] --> T4[\"4\"]" }
+          {
+            "type": "steps",
+            "items": [
+              {
+                "zh": "將源點 0 推入堆疊（或遞迴進入 0）；`visited[0] = true`。",
+                "en": "Push source 0 onto the stack (or enter recursion at 0); `visited[0] = true`."
+              },
+              {
+                "zh": "迭代：彈出頂端節點 $u$，若未訪問則標記並將 `adj[u]` 倒序推入堆疊；遞迴：對每個未訪問鄰居 $v$ 直接呼叫 `dfsRecursive(adj, v, visited)`。",
+                "en": "Iterative: pop top $u$; if unvisited mark it and push `adj[u]` reversed; Recursive: for each unvisited neighbor $v$ call `dfsRecursive(adj, v, visited)`."
+              },
+              {
+                "zh": "重複直到堆疊空（迭代）或所有遞迴返回；訪問序列為 0 1 2 3 4。",
+                "en": "Repeat until stack is empty (iterative) or all recursions return; visit sequence is 0 1 2 3 4."
+              }
+            ]
+          },
+          {
+            "type": "mermaid",
+            "code": "flowchart LR\n  T0[\"0\"] --> T1[\"1\"] --> T2[\"2\"] --> T3[\"3\"] --> T4[\"4\"]"
+          }
         ]
       },
       {
-        "heading": { "zh": "示意圖", "en": "Layout" },
+        "heading": {
+          "zh": "示意圖",
+          "en": "Layout"
+        },
         "blocks": [
-          { "type": "svg", "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 360 120\" width=\"360\"><g font-family=\"monospace\" font-size=\"13\"><text x=\"0\" y=\"20\">DFS visit order: 0  1  2  3  4</text><text x=\"0\" y=\"50\">Tree edges  : 0-&gt;1, 1-&gt;2, 2-&gt;3, 3-&gt;4</text><text x=\"0\" y=\"80\">Node 0: neighbors 1,4</text><text x=\"0\" y=\"100\">Node 4: tree edge 3-&gt;4; back edges 4-&gt;0, 4-&gt;1</text></g></svg>" },
-          { "type": "note", "text": {
+          {
+            "type": "svg",
+            "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 360 120\" width=\"360\"><g font-family=\"monospace\" font-size=\"13\"><text x=\"0\" y=\"20\">DFS visit order: 0  1  2  3  4</text><text x=\"0\" y=\"50\">Tree edges  : 0-&gt;1, 1-&gt;2, 2-&gt;3, 3-&gt;4</text><text x=\"0\" y=\"80\">Node 0: neighbors 1,4</text><text x=\"0\" y=\"100\">Node 4: tree edge 3-&gt;4; back edges 4-&gt;0, 4-&gt;1</text></g></svg>"
+          },
+          {
+            "type": "note",
+            "text": {
               "zh": "DFS 從 0 出發，沿最小鄰居深入：0→1→2→3→4；5 個節點全部出現。4 最後被訪問是因為 3 的鄰居 4 尚未訪問時才被探索。",
-              "en": "DFS from 0 dives along smallest neighbors: 0→1→2→3→4; all 5 nodes appear. Node 4 is visited last when neighbor 4 of node 3 is found unvisited." } }
+              "en": "DFS from 0 dives along smallest neighbors: 0→1→2→3→4; all 5 nodes appear. Node 4 is visited last when neighbor 4 of node 3 is found unvisited."
+            }
+          }
         ]
       },
       {
-        "heading": { "zh": "複雜度分析", "en": "Complexity Analysis" },
+        "heading": {
+          "zh": "複雜度分析",
+          "en": "Complexity Analysis"
+        },
         "blocks": [
-          { "type": "table",
-            "headers": [ { "zh": "操作", "en": "Operation" }, { "zh": "時間", "en": "Time" }, { "zh": "空間", "en": "Space" } ],
+          {
+            "type": "table",
+            "headers": [
+              {
+                "zh": "操作",
+                "en": "Operation"
+              },
+              {
+                "zh": "時間",
+                "en": "Time"
+              },
+              {
+                "zh": "空間",
+                "en": "Space"
+              }
+            ],
             "rows": [
-              [ { "zh": "初始化", "en": "Init" }, { "zh": "$O(V)$", "en": "$O(V)$" }, { "zh": "$O(V)$", "en": "$O(V)$" } ],
-              [ { "zh": "DFS 遍歷", "en": "DFS traversal" }, { "zh": "$O(V+E)$", "en": "$O(V+E)$" }, { "zh": "$O(h)$", "en": "$O(h)$" } ],
-              [ { "zh": "最壞情況堆疊深度", "en": "Worst-case stack depth" }, { "zh": "$O(V)$", "en": "$O(V)$" }, { "zh": "$O(V)$", "en": "$O(V)$" } ]
-            ] },
-          { "type": "math", "tex": "T_{DFS} = O(V + E)", "caption": {
+              [
+                {
+                  "zh": "初始化",
+                  "en": "Init"
+                },
+                {
+                  "zh": "$O(V)$",
+                  "en": "$O(V)$"
+                },
+                {
+                  "zh": "$O(V)$",
+                  "en": "$O(V)$"
+                }
+              ],
+              [
+                {
+                  "zh": "DFS 遍歷",
+                  "en": "DFS traversal"
+                },
+                {
+                  "zh": "$O(V+E)$",
+                  "en": "$O(V+E)$"
+                },
+                {
+                  "zh": "$O(h)$",
+                  "en": "$O(h)$"
+                }
+              ],
+              [
+                {
+                  "zh": "最壞情況堆疊深度",
+                  "en": "Worst-case stack depth"
+                },
+                {
+                  "zh": "$O(V)$",
+                  "en": "$O(V)$"
+                },
+                {
+                  "zh": "$O(V)$",
+                  "en": "$O(V)$"
+                }
+              ]
+            ]
+          },
+          {
+            "type": "math",
+            "tex": "T_{DFS} = O(V + E)",
+            "caption": {
               "zh": "每個頂點和每條邊各最多處理一次；堆疊深度（遞迴深度）$h$ 最壞為 $O(V)$（線性圖），一般情況遠小於此。",
-              "en": "Each vertex and each edge is processed at most once; stack depth $h$ is $O(V)$ in the worst case (path graph), but typically much less." } }
+              "en": "Each vertex and each edge is processed at most once; stack depth $h$ is $O(V)$ in the worst case (path graph), but typically much less."
+            }
+          }
         ]
       },
       {
-        "heading": { "zh": "程式碼", "en": "Source Code" },
+        "heading": {
+          "zh": "程式碼",
+          "en": "Source Code"
+        },
         "blocks": [
-          { "type": "code", "lang": "cpp", "code": "void dfsRecursive(const vector<vector<int>>& adj, int u, vector<bool>& visited) {\n    visited[u] = true;\n    cout << \"Visit \" << u << \"\\n\";\n    for (int v : adj[u])\n        if (!visited[v])\n            dfsRecursive(adj, v, visited);\n}\nvoid dfsIterative(const vector<vector<int>>& adj, int start) {\n    int n = adj.size();\n    vector<bool> visited(n, false);\n    stack<int> s;\n    s.push(start);\n    while (!s.empty()) {\n        int u = s.top(); s.pop();\n        if (visited[u]) continue;\n        visited[u] = true;\n        cout << \"Visit \" << u << \"\\n\";\n        // push in reverse so smallest neighbor is popped first\n        for (auto it = adj[u].rbegin(); it != adj[u].rend(); ++it)\n            if (!visited[*it]) s.push(*it);\n    }\n}" }
+          {
+            "type": "code",
+            "lang": "cpp",
+            "code": "void dfsRecursive(const vector<vector<int>>& adj, int u, vector<bool>& visited) {\n    visited[u] = true;\n    cout << \"Visit \" << u << \"\\n\";\n    for (int v : adj[u])\n        if (!visited[v])\n            dfsRecursive(adj, v, visited);\n}\nvoid dfsIterative(const vector<vector<int>>& adj, int start) {\n    int n = adj.size();\n    vector<bool> visited(n, false);\n    stack<int> s;\n    s.push(start);\n    while (!s.empty()) {\n        int u = s.top();\n        s.pop();\n        if (visited[u])\n            continue;\n        visited[u] = true;\n        cout << \"Visit \" << u << \"\\n\";\n        // push in reverse so smallest neighbor is popped first\n        for (auto it = adj[u].rbegin(); it != adj[u].rend(); ++it)\n            if (!visited[*it])\n                s.push(*it);\n    }\n}"
+          }
         ]
       },
       {
-        "heading": { "zh": "優缺點與使用時機", "en": "Pros, Cons & When to Use" },
+        "heading": {
+          "zh": "優缺點與使用時機",
+          "en": "Pros, Cons & When to Use"
+        },
         "blocks": [
-          { "type": "bullets", "items": [
-              { "zh": "優點：對深且窄的圖記憶體用量小（$O(h)$ vs BFS 的 $O(V)$）。", "en": "Pro: memory-efficient on deep narrow graphs ($O(h)$ vs BFS $O(V)$)." },
-              { "zh": "優點：是拓樸排序、強連通分量（Tarjan / Kosaraju）、環偵測的核心引擎。", "en": "Pro: the engine for topological sort, SCC (Tarjan/Kosaraju), and cycle detection." },
-              { "zh": "缺點：找到的是「一條」路徑，不保證最短路徑。", "en": "Con: finds a path but not necessarily the shortest one." },
-              { "zh": "適用：路徑存在性、拓樸排序、連通分量、迷宮求解等；DFS 是拓樸排序的引擎（見 graph-topo）。", "en": "Use for path existence, topological sort, connected components, maze solving; DFS is the engine for topological sort (see graph-topo)." }
-          ] }
+          {
+            "type": "bullets",
+            "items": [
+              {
+                "zh": "優點：對深且窄的圖記憶體用量小（$O(h)$ vs BFS 的 $O(V)$）。",
+                "en": "Pro: memory-efficient on deep narrow graphs ($O(h)$ vs BFS $O(V)$)."
+              },
+              {
+                "zh": "優點：是拓樸排序、強連通分量（Tarjan / Kosaraju）、環偵測的核心引擎。",
+                "en": "Pro: the engine for topological sort, SCC (Tarjan/Kosaraju), and cycle detection."
+              },
+              {
+                "zh": "缺點：找到的是「一條」路徑，不保證最短路徑。",
+                "en": "Con: finds a path but not necessarily the shortest one."
+              },
+              {
+                "zh": "適用：路徑存在性、拓樸排序、連通分量、迷宮求解等；DFS 是拓樸排序的引擎（見 graph-topo）。",
+                "en": "Use for path existence, topological sort, connected components, maze solving; DFS is the engine for topological sort (see graph-topo)."
+              }
+            ]
+          }
         ]
       },
       {
-        "heading": { "zh": "小結", "en": "Summary" },
+        "heading": {
+          "zh": "小結",
+          "en": "Summary"
+        },
         "blocks": [
-          { "type": "bullets", "items": [
-              { "zh": "堆疊（或遞迴）+ `visited` 集合；沿路徑完全探索後再回溯。", "en": "Stack (or recursion) + visited set; explores paths fully before backtracking." },
-              { "zh": "時間 $O(V+E)$，空間 $O(h)$；對深窄圖記憶體效率高於 BFS。", "en": "Time $O(V+E)$, space $O(h)$; more memory-efficient than BFS for deep narrow graphs." },
-              { "zh": "DFS 是拓樸排序的核心引擎（見 graph-topo）。", "en": "DFS is the engine for topological sort (see graph-topo)." }
-          ] }
+          {
+            "type": "bullets",
+            "items": [
+              {
+                "zh": "堆疊（或遞迴）+ `visited` 集合；沿路徑完全探索後再回溯。",
+                "en": "Stack (or recursion) + visited set; explores paths fully before backtracking."
+              },
+              {
+                "zh": "時間 $O(V+E)$，空間 $O(h)$；對深窄圖記憶體效率高於 BFS。",
+                "en": "Time $O(V+E)$, space $O(h)$; more memory-efficient than BFS for deep narrow graphs."
+              },
+              {
+                "zh": "DFS 是拓樸排序的核心引擎（見 graph-topo）。",
+                "en": "DFS is the engine for topological sort (see graph-topo)."
+              }
+            ]
+          }
         ]
       }
     ]

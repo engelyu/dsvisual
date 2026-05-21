@@ -68,11 +68,15 @@ struct DSU {
         return p[x] == x ? x : p[x] = find(p[x]); // path compression
     }
     bool unite(int a, int b) {
-        a = find(a); b = find(b);
-        if (a == b) return false;
-        if (r[a] < r[b]) swap(a, b);
+        a = find(a);
+        b = find(b);
+        if (a == b)
+            return false;
+        if (r[a] < r[b])
+            swap(a, b);
         p[b] = a; // union by rank
-        if (r[a] == r[b]) r[a]++;
+        if (r[a] == r[b])
+            r[a]++;
         return true;
     }
 };

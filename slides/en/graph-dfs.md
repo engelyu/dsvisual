@@ -71,13 +71,16 @@ void dfsIterative(const vector<vector<int>>& adj, int start) {
     stack<int> s;
     s.push(start);
     while (!s.empty()) {
-        int u = s.top(); s.pop();
-        if (visited[u]) continue;
+        int u = s.top();
+        s.pop();
+        if (visited[u])
+            continue;
         visited[u] = true;
         cout << "Visit " << u << "\n";
         // push in reverse so smallest neighbor is popped first
         for (auto it = adj[u].rbegin(); it != adj[u].rend(); ++it)
-            if (!visited[*it]) s.push(*it);
+            if (!visited[*it])
+                s.push(*it);
     }
 }
 ```

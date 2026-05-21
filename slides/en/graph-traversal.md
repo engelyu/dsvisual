@@ -64,12 +64,17 @@ vector<int> bfsOrder(const vector<vector<int>>& adj, int start) {
     vector<bool> visited(n, false);
     vector<int> order;
     queue<int> q;
-    q.push(start); visited[start] = true;
+    q.push(start);
+    visited[start] = true;
     while (!q.empty()) {
-        int u = q.front(); q.pop();
+        int u = q.front();
+        q.pop();
         order.push_back(u);
         for (int v : adj[u])
-            if (!visited[v]) { visited[v] = true; q.push(v); }
+            if (!visited[v]) {
+                visited[v] = true;
+                q.push(v);
+            }
     }
     return order;
 }
@@ -80,11 +85,15 @@ vector<int> dfsOrder(const vector<vector<int>>& adj, int start) {
     stack<int> s;
     s.push(start);
     while (!s.empty()) {
-        int u = s.top(); s.pop();
-        if (visited[u]) continue;
-        visited[u] = true; order.push_back(u);
+        int u = s.top();
+        s.pop();
+        if (visited[u])
+            continue;
+        visited[u] = true;
+        order.push_back(u);
         for (auto it = adj[u].rbegin(); it != adj[u].rend(); ++it)
-            if (!visited[*it]) s.push(*it);
+            if (!visited[*it])
+                s.push(*it);
     }
     return order;
 }
