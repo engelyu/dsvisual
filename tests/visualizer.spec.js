@@ -491,6 +491,18 @@ test.describe('Data Structure Visualizer Full Suite', () => {
         await expect(counts.nth(2)).toContainText('1');
     });
 
+    test('Probabilistic: Bloom Filter renders a 32-bit array and supports insert/query', async ({ page }) => {
+        await loadMethod(page, 'bloom-filter');
+        const card = page.locator('[data-method-section="bloom-filter"]');
+        await expect(card.locator('.code-panel-filename')).toContainText('bloom_filter.cpp');
+        await expect(card.locator('.bloom-cell')).toHaveCount(32);
+        await expect(card.locator('.bloom-cell.bloom-on').first()).toBeVisible();
+        await card.locator('[data-bloom-val]').fill('zebra');
+        await card.locator('[data-action="bloom-insert"]').click();
+        await card.locator('[data-action="bloom-query"]').click();
+        await expect(card.locator('[data-testid="bloom-hashes"]')).toContainText('zebra');
+    });
+
     test('Navigation: switching from Spec-2a dynamic visualizers back to static ones does not crash', async ({ page }) => {
         const errors = [];
         page.on('pageerror', (e) => errors.push(e.message));

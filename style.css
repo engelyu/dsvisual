@@ -1891,3 +1891,15 @@ pre.code-panel-body[class*="language-"] {
     border-bottom-color: var(--primary-hover);
     color: var(--primary-hover);
 }
+
+/* Spec 3 — Bloom Filter */
+.bloom-wrap { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.bloom-row { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; }
+.bloom-cell { width: 22px; height: 26px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid #cbd5e1; border-radius: 3px; font-family: monospace; font-size: 12px; background: #f8fafc; }
+.bloom-cell.bloom-on { background: #dbeafe; border-color: #3b82f6; font-weight: 700; }
+.bloom-cell.bloom-hit { background: #fde68a; border-color: #f59e0b; }
+.bloom-cell.bloom-miss { background: #fecaca; border-color: #ef4444; }
+.bloom-hashes { font-family: monospace; font-size: 13px; color: #475569; min-height: 1.2em; }
+.bloom-items { font-size: 13px; color: #475569; }
+.bloom-controls { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
