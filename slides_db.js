@@ -16333,6 +16333,196 @@ const SLIDES_DB = {
         ]
       }
     ]
+  },
+
+  "oop-adhoc": {
+    "category": "OOP Concepts",
+    "title": { "zh": "特設多型(多載)", "en": "Ad-hoc Polymorphism (Overloading)" },
+    "slides": [
+      {
+        "heading": { "zh": "特設多型(多載)", "en": "Ad-hoc Polymorphism (Overloading)" },
+        "blocks": [
+          { "type": "paragraph", "text": {
+              "zh": "特設多型讓同一個名稱（函式或運算子）擁有多個互不相關的實作；編譯器在編譯期根據引數型別挑選最合適的版本。",
+              "en": "Ad-hoc polymorphism lets one name (a function or operator) have several unrelated implementations; the compiler picks one at compile time from the argument types." } }
+        ]
+      },
+      {
+        "heading": { "zh": "核心概念", "en": "Core Concept" },
+        "blocks": [
+          { "type": "paragraph", "text": {
+              "zh": "函式多載允許同名函式使用不同的參數列表；運算子多載則讓 `operator+` 等運算子對自訂型別有意義。解析發生在編譯期，依賴引數的「靜態型別」，沒有執行期分派，也不需要共同的基底型別。",
+              "en": "Function overloading (same name, different parameter lists) and operator overloading (`operator+` etc.) are the two mechanisms. Resolution is at compile time by the static types of the arguments — there is no runtime dispatch and no shared base type." } },
+          { "type": "bullets", "items": [
+              { "zh": "N 個獨立函式共用同一名稱。", "en": "N independent functions sharing a name." },
+              { "zh": "由引數靜態型別決定呼叫哪個版本。", "en": "Chosen by argument static types." },
+              { "zh": "零執行期成本；一切在編譯期完成。", "en": "Zero runtime cost; everything resolved at compile time." },
+              { "zh": "注意：這與 Go interface 完全不同——Go interface 是執行期子型別分派；Go 甚至不支援函式多載。", "en": "Note: this is NOT a Go interface — a Go interface is runtime subtype dispatch; Go does not even have function overloading." }
+          ] }
+        ]
+      },
+      {
+        "heading": { "zh": "運作流程", "en": "Operation Flow" },
+        "blocks": [
+          { "type": "steps", "items": [
+              { "zh": "以不同參數列表宣告各個多載版本，給出各自的特化實作。", "en": "Declare overloads with distinct signatures, each providing a type-specific implementation." },
+              { "zh": "在每個呼叫點，編譯器比對引數的靜態型別，選出最佳多載。", "en": "At each call site the compiler matches the static argument types and selects the best overload." },
+              { "zh": "運算子多載（`+`、`==` 等）套用同樣的機制，使自訂型別支援慣用語法。", "en": "Operator overloading applies the same idea to `+`, `==`, etc., giving custom types idiomatic syntax." }
+          ] },
+          { "type": "mermaid", "code": "flowchart TD\n  CS1[\"call print(42)\"] --> R[\"compile-time overload resolution\"]\n  CS2[\"call print(3.14)\"] --> R\n  CS3[\"call print(string)\"] --> R\n  R --> F1[\"print(int)\"]\n  R --> F2[\"print(double)\"]\n  R --> F3[\"print(const string&)\"]" }
+        ]
+      },
+      {
+        "heading": { "zh": "示意圖", "en": "Layout" },
+        "blocks": [
+          { "type": "svg", "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 480 160\" width=\"480\"><g font-family=\"monospace\" font-size=\"11\"><rect x=\"10\" y=\"20\" width=\"110\" height=\"28\" fill=\"none\" stroke=\"#60a5fa\"/><text x=\"65\" y=\"39\" text-anchor=\"middle\" fill=\"#60a5fa\">print(42)</text><rect x=\"10\" y=\"65\" width=\"110\" height=\"28\" fill=\"none\" stroke=\"#60a5fa\"/><text x=\"65\" y=\"84\" text-anchor=\"middle\" fill=\"#60a5fa\">print(3.14)</text><rect x=\"10\" y=\"110\" width=\"110\" height=\"28\" fill=\"none\" stroke=\"#60a5fa\"/><text x=\"65\" y=\"129\" text-anchor=\"middle\" fill=\"#60a5fa\">print(\"hi\")</text><rect x=\"180\" y=\"43\" width=\"120\" height=\"28\" fill=\"none\" stroke=\"#fbbf24\"/><text x=\"240\" y=\"62\" text-anchor=\"middle\" fill=\"#fbbf24\">overload resolution</text><line x1=\"120\" y1=\"34\" x2=\"180\" y2=\"57\" stroke=\"#64748b\"/><line x1=\"120\" y1=\"79\" x2=\"180\" y2=\"57\" stroke=\"#64748b\"/><line x1=\"120\" y1=\"124\" x2=\"180\" y2=\"57\" stroke=\"#64748b\"/><rect x=\"340\" y=\"10\" width=\"120\" height=\"28\" fill=\"none\" stroke=\"#f472b6\"/><text x=\"400\" y=\"29\" text-anchor=\"middle\" fill=\"#f472b6\">print(int)</text><rect x=\"340\" y=\"55\" width=\"120\" height=\"28\" fill=\"none\" stroke=\"#f472b6\"/><text x=\"400\" y=\"74\" text-anchor=\"middle\" fill=\"#f472b6\">print(double)</text><rect x=\"340\" y=\"100\" width=\"120\" height=\"28\" fill=\"none\" stroke=\"#f472b6\"/><text x=\"400\" y=\"119\" text-anchor=\"middle\" fill=\"#f472b6\">print(string)</text><line x1=\"300\" y1=\"57\" x2=\"340\" y2=\"24\" stroke=\"#64748b\"/><line x1=\"300\" y1=\"57\" x2=\"340\" y2=\"69\" stroke=\"#64748b\"/><line x1=\"300\" y1=\"57\" x2=\"340\" y2=\"114\" stroke=\"#64748b\"/></g></svg>" },
+          { "type": "note", "text": {
+              "zh": "visualizer 左側顯示三個呼叫點，右側顯示三個已解析的多載；下方另有運算子多載面板展示 `operator+`。",
+              "en": "The visualizer draws call sites on the left, resolved overloads on the right, plus an operator-overloading panel." } }
+        ]
+      },
+      {
+        "heading": { "zh": "成本與取捨", "en": "Cost & Trade-offs" },
+        "blocks": [
+          { "type": "table",
+            "headers": [ { "zh": "面向", "en": "Aspect" }, { "zh": "成本", "en": "Cost" } ],
+            "rows": [
+              [ { "zh": "多載解析", "en": "Overload resolution" }, { "zh": "編譯期；執行期 $O(1)$", "en": "Compile-time; $O(1)$ runtime" } ],
+              [ { "zh": "運算子多載", "en": "Operator overloading" }, { "zh": "與一般函式呼叫相同成本", "en": "Same cost as a normal function call" } ],
+              [ { "zh": "間接層", "en": "Indirection" }, { "zh": "無 vtable、無間接層", "en": "No vtable, no indirection" } ]
+            ] },
+          { "type": "math", "tex": "T_{\\text{overloaded call}} = T_{\\text{direct call}}", "caption": {
+              "zh": "特設多型在程式執行前就已完全解析，執行期與直接函式呼叫等價。",
+              "en": "Ad-hoc polymorphism is fully resolved before the program runs; at runtime it is equivalent to a direct call." } }
+        ]
+      },
+      {
+        "heading": { "zh": "程式碼", "en": "Source Code" },
+        "blocks": [
+          { "type": "code", "lang": "cpp", "code": "// Function overloading: same name, different parameter types.\nvoid print(int x)          { cout << \"int: \"    << x << endl; }\nvoid print(double x)       { cout << \"double: \" << x << endl; }\nvoid print(const string& x){ cout << \"string: \" << x << endl; }\n\n// Operator overloading.\nstruct Vector2D {\n    double x, y;\n    Vector2D operator+(const Vector2D& o) const {\n        return Vector2D{ x + o.x, y + o.y };\n    }\n};\n\nint main() {\n    print(42);             // resolves to print(int)\n    print(3.14);           // resolves to print(double)\n    print(string(\"hi\"));   // resolves to print(const string&)\n\n    Vector2D a{1, 2}, b{3, 4};\n    Vector2D c = a + b;    // operator+\n}" }
+        ]
+      },
+      {
+        "heading": { "zh": "優缺點與使用時機", "en": "Pros, Cons & When to Use" },
+        "blocks": [
+          { "type": "bullets", "items": [
+              { "zh": "優點：自然、易讀的 API——同一個概念只需一個名稱。", "en": "Pro: natural, readable APIs — one name for one concept." },
+              { "zh": "優點：零執行期額外開銷。", "en": "Pro: zero runtime overhead." },
+              { "zh": "缺點：僅依靜態型別解析，無法提供執行期多型行為。", "en": "Con: resolved on static types only — no runtime polymorphism." },
+              { "zh": "缺點：多載集合可能引發歧義，難以追蹤哪個版本被選中。", "en": "Con: overload sets can become ambiguous and hard to reason about." },
+              { "zh": "使用時機：同一操作在編譯期已知各型別特化實作時。", "en": "Use when the same operation has type-specific implementations known at compile time." }
+          ] }
+        ]
+      },
+      {
+        "heading": { "zh": "小結", "en": "Summary" },
+        "blocks": [
+          { "type": "bullets", "items": [
+              { "zh": "特設多型 = 編譯期按引數型別多載解析；與子型別多型（執行期）、參數多型（單一泛型體）截然不同。", "en": "Ad-hoc polymorphism = compile-time overload resolution by argument types; distinct from subtype polymorphism (runtime) and parametric polymorphism (one generic body)." },
+              { "zh": "函式多載與運算子多載是 C++ 特設多型的兩大機制。", "en": "Function overloading and operator overloading are the two mechanisms of ad-hoc polymorphism in C++." },
+              { "zh": "三種多型的比較見 oop-templates。", "en": "For a comparison of all three kinds of polymorphism, see oop-templates." }
+          ] }
+        ]
+      }
+    ]
+  },
+
+  "oop-templates": {
+    "category": "OOP Concepts",
+    "title": { "zh": "參數多型(樣板)", "en": "Parametric Polymorphism (Templates)" },
+    "slides": [
+      {
+        "heading": { "zh": "參數多型(樣板)", "en": "Parametric Polymorphism (Templates)" },
+        "blocks": [
+          { "type": "paragraph", "text": {
+              "zh": "樣板是一個通用的藍圖，能一致地適用於多種型別；編譯器對每種被使用的型別產生一份具體的特化版本。",
+              "en": "A template is one generic blueprint that works uniformly for many types; the compiler instantiates a concrete version per type used." } }
+        ]
+      },
+      {
+        "heading": { "zh": "核心概念", "en": "Core Concept" },
+        "blocks": [
+          { "type": "paragraph", "text": {
+              "zh": "函式樣板（`template<typename T> T maximum(T,T)`）與類別樣板（`template<typename T> class Box`）是兩大形式。樣板在編譯期執行「結構性鴨子型別」——只要型別支援所需操作即可，不需要繼承關係。C++20 的 `concepts` 進一步將所需操作形式化。",
+              "en": "Function templates (`template<typename T> T maximum(T,T)`) and class templates (`template<typename T> class Box`) are the two main forms. Templates are compile-time structural duck typing — any type supporting the required operations works, with no inheritance. C++20 `concepts` formalize the required-operations constraint." } },
+          { "type": "bullets", "items": [
+              { "zh": "一份定義，可特化出多種具體型別。", "en": "One definition, many instantiated types." },
+              { "zh": "在編譯期解析，無執行期開銷。", "en": "Resolved at compile time; zero runtime overhead." },
+              { "zh": "結構性：不需共同基底類別。", "en": "Structural: no base class needed." },
+              { "zh": "C++20 `concepts` 將所需操作的約束形式化，改善錯誤訊息。", "en": "C++20 `concepts` formalize the required-operations constraint and improve error messages." }
+          ] }
+        ]
+      },
+      {
+        "heading": { "zh": "運作流程", "en": "Operation Flow" },
+        "blocks": [
+          { "type": "steps", "items": [
+              { "zh": "撰寫 `template<typename T>` 定義，用 `T` 代表任意型別。", "en": "Write a `template<typename T>` definition, using `T` as a placeholder for any type." },
+              { "zh": "以具體型別使用樣板（如 `Box<int>`、`maximum(3, 7)`）。", "en": "Use the template with concrete types (e.g. `Box<int>`, `maximum(3, 7)`)." },
+              { "zh": "編譯器對每個不同的具體型別各產生一份具體的類別或函式。", "en": "The compiler generates one concrete class/function per distinct type." }
+          ] },
+          { "type": "mermaid", "code": "flowchart TD\n  T[\"template T class Box\"]\n  T --> BI[\"Box int\"]\n  T --> BD[\"Box double\"]\n  T --> BS[\"Box string\"]" }
+        ]
+      },
+      {
+        "heading": { "zh": "示意圖", "en": "Layout" },
+        "blocks": [
+          { "type": "svg", "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 420 160\" width=\"420\"><g font-family=\"monospace\" font-size=\"11\"><rect x=\"130\" y=\"10\" width=\"160\" height=\"36\" fill=\"none\" stroke=\"#a78bfa\" stroke-dasharray=\"5 3\"/><text x=\"210\" y=\"26\" text-anchor=\"middle\" fill=\"#a78bfa\">template&lt;typename T&gt;</text><text x=\"210\" y=\"40\" text-anchor=\"middle\" fill=\"#a78bfa\">class Box</text><rect x=\"30\" y=\"100\" width=\"90\" height=\"30\" fill=\"none\" stroke=\"#f472b6\"/><text x=\"75\" y=\"120\" text-anchor=\"middle\" fill=\"#f472b6\">Box&lt;int&gt;</text><rect x=\"160\" y=\"100\" width=\"100\" height=\"30\" fill=\"none\" stroke=\"#f472b6\"/><text x=\"210\" y=\"120\" text-anchor=\"middle\" fill=\"#f472b6\">Box&lt;double&gt;</text><rect x=\"300\" y=\"100\" width=\"100\" height=\"30\" fill=\"none\" stroke=\"#f472b6\"/><text x=\"350\" y=\"120\" text-anchor=\"middle\" fill=\"#f472b6\">Box&lt;string&gt;</text><line x1=\"75\" y1=\"100\" x2=\"175\" y2=\"46\" stroke=\"#64748b\"/><line x1=\"210\" y1=\"100\" x2=\"210\" y2=\"46\" stroke=\"#64748b\"/><line x1=\"350\" y1=\"100\" x2=\"245\" y2=\"46\" stroke=\"#64748b\"/></g></svg>" },
+          { "type": "note", "text": {
+              "zh": "visualizer 以虛線方框顯示樣板藍圖，箭頭向下指向三個以具體型別特化的類別。",
+              "en": "The visualizer shows the blueprint as a dashed box and the per-type concrete classes below." } }
+        ]
+      },
+      {
+        "heading": { "zh": "成本與取捨", "en": "Cost & Trade-offs" },
+        "blocks": [
+          { "type": "table",
+            "headers": [ { "zh": "面向", "en": "Aspect" }, { "zh": "成本", "en": "Cost" } ],
+            "rows": [
+              [ { "zh": "執行期", "en": "Runtime" }, { "zh": "零開銷；無間接層，每個特化都是具體程式碼", "en": "Zero overhead; no indirection, each instantiation is concrete code" } ],
+              [ { "zh": "編譯期", "en": "Compile time" }, { "zh": "較長；每個型別各編譯一次", "en": "Longer; one body compiled per type" } ],
+              [ { "zh": "二進位大小", "en": "Binary size" }, { "zh": "隨特化型別數量增長（程式碼膨脹）", "en": "Grows per instantiation (code bloat)" } ]
+            ] },
+          { "type": "math", "tex": "\\text{code size} \\approx O(\\text{distinct types used})", "caption": {
+              "zh": "樣板以更長的編譯時間和更大的二進位換取執行期零開銷。",
+              "en": "Templates trade longer compile times and larger binaries for zero runtime overhead." } }
+        ]
+      },
+      {
+        "heading": { "zh": "程式碼", "en": "Source Code" },
+        "blocks": [
+          { "type": "code", "lang": "cpp", "code": "// Function template.\ntemplate <typename T>\nT maximum(T a, T b) {\n    return (a > b) ? a : b;\n}\n\n// Class template.\ntemplate <typename T>\nclass Box {\n    T value;\npublic:\n    Box(T v) : value(v) {}\n    T get() const { return value; }\n    void set(T v) { value = v; }\n};\n\nint main() {\n    cout << maximum(3, 7) << endl;           // T = int\n    cout << maximum(2.5, 1.5) << endl;       // T = double\n\n    Box<int> bi(42);\n    Box<string> bs(\"hello\");\n    cout << bi.get() << \" \" << bs.get() << endl;\n}" }
+        ]
+      },
+      {
+        "heading": { "zh": "優缺點與使用時機", "en": "Pros, Cons & When to Use" },
+        "blocks": [
+          { "type": "bullets", "items": [
+              { "zh": "優點：零執行期成本；完整型別安全；無需繼承即可結構性運作。", "en": "Pro: zero runtime cost, full type safety, works structurally without inheritance." },
+              { "zh": "缺點：程式碼膨脹與較長的編譯時間。", "en": "Con: code bloat and longer compile times." },
+              { "zh": "缺點：樣板錯誤訊息惡名昭彰地冗長（C++20 `concepts` 可改善）。", "en": "Con: template error messages are notoriously verbose (C++20 `concepts` help)." },
+              { "zh": "使用時機：泛用容器與演算法。", "en": "Use for generic containers and algorithms." }
+          ] }
+        ]
+      },
+      {
+        "heading": { "zh": "小結", "en": "Summary" },
+        "blocks": [
+          { "type": "table",
+            "headers": [ { "zh": "多型", "en": "Polymorphism" }, { "zh": "決定時機", "en": "Decided" }, { "zh": "C++", "en": "C++" }, { "zh": "Go", "en": "Go" } ],
+            "rows": [
+              [ { "zh": "子型別", "en": "Subtype" }, { "zh": "執行期動態分派", "en": "Runtime dynamic dispatch" }, { "zh": "抽象類別 + 繼承（名義）", "en": "Abstract class + inheritance (nominal)" }, { "zh": "interface（結構化，無繼承）", "en": "interface (structural, no inheritance)" } ],
+              [ { "zh": "特設", "en": "Ad-hoc" }, { "zh": "編譯期，看引數靜態型別", "en": "Compile-time, by argument static types" }, { "zh": "函式/運算子多載", "en": "Function/operator overloading" }, { "zh": "不支援（無函式多載）", "en": "Not supported (no overloading)" } ],
+              [ { "zh": "參數", "en": "Parametric" }, { "zh": "編譯期，結構化鴨子型別", "en": "Compile-time, structural duck typing" }, { "zh": "templates / C++20 concepts", "en": "templates / C++20 concepts" }, { "zh": "generics（Go 1.18+）", "en": "generics (Go 1.18+)" } ]
+            ] },
+          { "type": "bullets", "items": [
+              { "zh": "樣板 = 編譯期參數多型；結構性（鴨子型別）；一份藍圖，多種具體型別。", "en": "Templates = compile-time parametric polymorphism; structural (duck-typed); one blueprint, many concrete types." },
+              { "zh": "在精神上最接近 Go interface 的結構性型別，但在編譯期而非執行期解析。", "en": "Spiritually closest to a Go interface's structural typing, but resolved at compile time rather than runtime." },
+              { "zh": "上方表格對比 C++ 與 Go 中三種多型的決定時機與機制。", "en": "The table above contrasts all three polymorphisms — their timing and mechanisms across C++ and Go." }
+          ] }
+        ]
+      }
+    ]
   }
 };
 
