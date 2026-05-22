@@ -72,9 +72,6 @@ header p { color: rgba(255,255,255,0.72); font-size: 0.95rem; }
     position: sticky;
     top: 0;
     z-index: 100;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: thin;
 }
 .category-nav-btn {
     flex: 0 0 auto;
@@ -840,7 +837,7 @@ pre { margin: 0; font-family: 'Fira Code', monospace; font-size: 0.9rem; line-he
 @media (max-width: 639px) {
     .app-category-nav {
         align-items: center;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
         padding: 8px 12px;
         gap: 6px;
     }
