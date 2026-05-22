@@ -555,6 +555,16 @@ test.describe('Data Structure Visualizer Full Suite', () => {
         await expect(card.locator('[data-testid="aho-phase"]')).toContainText('1/9');
     });
 
+    test('Trees: Segment Tree renders 15 nodes and steps through query/update', async ({ page }) => {
+        await loadMethod(page, 'tree-segment');
+        const card = page.locator('[data-method-section="tree-segment"]');
+        await expect(card.locator('.code-panel-filename')).toContainText('tree_segment.cpp');
+        await expect(card.locator('.segtree-node')).toHaveCount(15);
+        await expect(card.locator('[data-testid="segtree-phase"]')).toContainText('Ready');
+        await card.locator('[data-action="step"]').click();
+        await expect(card.locator('[data-testid="segtree-phase"]')).toContainText('Phase 1');
+    });
+
     test('Navigation: switching from Spec-2a dynamic visualizers back to static ones does not crash', async ({ page }) => {
         const errors = [];
         page.on('pageerror', (e) => errors.push(e.message));

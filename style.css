@@ -1953,3 +1953,10 @@ pre.code-panel-body[class*="language-"] {
   border: 1px solid #cbd5e1; border-radius: 3px; font-family: monospace; font-weight: 700; background: #f8fafc; }
 .aho-char.aho-char-cur { background: #34d399; border-color: #059669; color: #fff; }
 .aho-stats { font-family: monospace; font-size: 13px; color: #475569; }
+
+/* Spec 4 — Segment Tree */
+.segtree-wrap { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.segtree-phase { font-size: 13px; font-weight: 600; color: #1e40af; }
+.segtree-grid { width: 100%; overflow-x: auto; }
+.segtree-svg { max-width: 620px; }
+.segtree-msg { font-family: monospace; font-size: 12px; color: #475569; min-height: 1.2em; text-align: center; }
