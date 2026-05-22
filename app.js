@@ -3395,7 +3395,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { node: 3, matches: [] },
             { node: 4, matches: ['hers@2'] },
         ];
-        const TOTAL = failSteps.length + scanSteps.length;
+        const TOTAL = failSteps.length + 1 + scanSteps.length;
         let idx = 0;
 
         const wrap = document.createElement('div');
@@ -3414,12 +3414,12 @@ document.addEventListener('DOMContentLoaded', () => {
         function nodeById(id) { return nodes.find((n) => n.id === id); }
 
         function draw() {
-            const inBuild = idx < failSteps.length;
+            const inBuild = idx <= failSteps.length;
             const builtCount = inBuild ? idx : failSteps.length;
             let curScanNode = -1;
             let allMatches = [];
             if (!inBuild) {
-                const sIdx = idx - failSteps.length;
+                const sIdx = idx - failSteps.length - 1;
                 for (let k = 0; k <= sIdx && k < scanSteps.length; k++) {
                     curScanNode = scanSteps[k].node;
                     allMatches = allMatches.concat(scanSteps[k].matches);
@@ -3451,7 +3451,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             svgEl.innerHTML = svg;
 
-            const scanPos = inBuild ? -1 : (idx - failSteps.length);
+            const scanPos = inBuild ? -1 : (idx - failSteps.length - 1);
             let tr = '';
             for (let k = 0; k < text.length; k++) {
                 tr += '<span class="aho-char' + (k === scanPos ? ' aho-char-cur' : '') + '">' + text[k] + '</span>';
@@ -3460,7 +3460,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             phaseEl.textContent = inBuild
                 ? 'Phase 1: Building failure links (' + builtCount + '/' + failSteps.length + ')'
-                : 'Phase 2: Scanning text';
+                : 'Phase 2: Scanning text (' + (idx - failSteps.length) + '/' + text.length + ')';
             matchesEl.textContent = '[' + allMatches.join(', ') + ']';
         }
         function step() {

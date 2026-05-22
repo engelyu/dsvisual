@@ -552,7 +552,7 @@ test.describe('Data Structure Visualizer Full Suite', () => {
         await expect(card.locator('.aho-svg circle')).toHaveCount(10);
         await expect(card.locator('[data-testid="aho-phase"]')).toContainText('Phase 1');
         await card.locator('[data-action="step"]').click();
-        await expect(card.locator('[data-testid="aho-phase"]')).toBeVisible();
+        await expect(card.locator('[data-testid="aho-phase"]')).toContainText('1/9');
     });
 
     test('Navigation: switching from Spec-2a dynamic visualizers back to static ones does not crash', async ({ page }) => {
