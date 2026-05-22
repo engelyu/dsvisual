@@ -1891,3 +1891,65 @@ pre.code-panel-body[class*="language-"] {
     border-bottom-color: var(--primary-hover);
     color: var(--primary-hover);
 }
+
+/* Spec 3 — Bloom Filter */
+.bloom-wrap { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.bloom-row { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; }
+.bloom-cell { width: 22px; height: 26px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid #cbd5e1; border-radius: 3px; font-family: monospace; font-size: 12px; background: #f8fafc; }
+.bloom-cell.bloom-on { background: #dbeafe; border-color: #3b82f6; font-weight: 700; }
+.bloom-cell.bloom-hit { background: #fde68a; border-color: #f59e0b; }
+.bloom-cell.bloom-miss { background: #fecaca; border-color: #ef4444; }
+.bloom-hashes { font-family: monospace; font-size: 13px; color: #475569; min-height: 1.2em; }
+.bloom-items { font-size: 13px; color: #475569; }
+.bloom-controls { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+
+/* Spec 3 — shared step controls */
+.stepctl { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+
+/* Spec 3 — Skip List */
+.skiplist-wrap { display: flex; flex-direction: column; gap: 10px; }
+.skiplist-grid { display: flex; flex-direction: column; gap: 4px; overflow-x: auto; }
+.skiplist-level { display: flex; align-items: center; gap: 2px; }
+.skiplist-head, .skiplist-nil { font-family: monospace; font-size: 11px; color: #64748b; padding: 2px 4px; }
+.skiplist-head.skiplist-active { background: #34d399; color: #fff; border-radius: 3px; }
+.skiplist-node { min-width: 34px; height: 28px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid #3b82f6; border-radius: 4px; background: #eff6ff; font-family: monospace; font-weight: 700; }
+.skiplist-node.skiplist-ghost { border: 1px dashed #e2e8f0; background: transparent; }
+.skiplist-node.skiplist-active { background: #34d399; border-color: #059669; color: #fff; }
+.skiplist-arrow { color: #94a3b8; font-family: monospace; }
+.skiplist-arrow.skiplist-skip { color: #cbd5e1; }
+.skiplist-status { font-family: monospace; font-size: 13px; color: #475569; min-height: 1.2em; }
+.skiplist-controls { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* Spec 3 — Count-Min Sketch */
+.cms-wrap { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.cms-grid { display: grid; grid-template-columns: auto repeat(8, 32px); gap: 3px; }
+.cms-rowlabel { display: flex; align-items: center; font-family: monospace; font-size: 12px; color: #64748b; }
+.cms-cell { width: 32px; height: 30px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid #cbd5e1; border-radius: 3px; font-family: monospace; background: #f8fafc; }
+.cms-cell.cms-hit { background: #fde68a; border-color: #f59e0b; font-weight: 700; }
+.cms-readout { font-family: monospace; font-size: 13px; color: #475569; min-height: 1.2em; }
+.cms-controls { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+
+/* Spec 3 — Z-Algorithm */
+.zalgo-wrap { display: flex; flex-direction: column; gap: 8px; }
+.zalgo-grid { display: flex; flex-direction: column; gap: 2px; overflow-x: auto; }
+.zalgo-row { display: flex; gap: 2px; }
+.zalgo-cell { min-width: 20px; height: 24px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid #cbd5e1; font-family: monospace; font-size: 12px; background: #f8fafc; }
+.zalgo-z .zalgo-cell { background: #fff; color: #475569; }
+.zalgo-cell.zalgo-box { background: #e0e7ff; }
+.zalgo-cell.zalgo-cur { border-color: #f59e0b; border-width: 2px; }
+.zalgo-cell.zalgo-match { background: #bbf7d0; border-color: #22c55e; font-weight: 700; }
+.zalgo-stats { font-family: monospace; font-size: 13px; color: #475569; }
+
+/* Spec 3 — Aho-Corasick */
+.aho-wrap { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.aho-phase { font-size: 13px; font-weight: 600; color: #1e40af; }
+.aho-svg { max-width: 340px; }
+.aho-textrow { display: flex; gap: 4px; }
+.aho-char { width: 26px; height: 30px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid #cbd5e1; border-radius: 3px; font-family: monospace; font-weight: 700; background: #f8fafc; }
+.aho-char.aho-char-cur { background: #34d399; border-color: #059669; color: #fff; }
+.aho-stats { font-family: monospace; font-size: 13px; color: #475569; }

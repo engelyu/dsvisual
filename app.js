@@ -143,6 +143,9 @@ const METHOD_GROUPS = [
             { id: 'hash-chain', title: 'Hash Chaining', file: 'hash_chaining.cpp', visualizer: 'hash', controls: 'hash' },
             { id: 'hash-open', title: 'Open Addressing', file: 'hash_open_address.cpp', visualizer: 'hash', controls: 'hash' },
             { id: 'hash-bucket', title: 'Bucketing', file: 'hash_bucket.cpp', visualizer: 'hash', controls: 'hash' },
+            { id: 'bloom-filter', title: 'Bloom Filter', file: 'bloom_filter.cpp', visualizer: 'bloom', controls: 'bloom' },
+            { id: 'skip-list', title: 'Skip List', file: 'skip_list.cpp', visualizer: 'skiplist', controls: 'skiplist' },
+            { id: 'count-min-sketch', title: 'Count-Min Sketch', file: 'count_min_sketch.cpp', visualizer: 'cms', controls: 'cms' },
         ],
     },
     {
@@ -185,6 +188,8 @@ const METHOD_GROUPS = [
             { id: 'search-bm', title: 'Boyer-Moore', file: 'search_bm.cpp', visualizer: 'string-search', controls: 'string-search' },
             { id: 'search-rk', title: 'Rabin-Karp', file: 'search_rk.cpp', visualizer: 'string-search', controls: 'string-search' },
             { id: 'search-strcompare', title: 'String Matching Compared', file: 'search_strcompare.cpp', visualizer: 'string-compare', controls: 'string-compare' },
+            { id: 'search-zalgo', title: 'Z-Algorithm', file: 'search_zalgo.cpp', visualizer: 'string-search', controls: 'string-search' },
+            { id: 'search-aho', title: 'Aho-Corasick', file: 'search_aho.cpp', visualizer: 'aho-corasick', controls: 'aho-corasick' },
         ],
     },
     {
@@ -281,12 +286,17 @@ function getCodeForMethod(methodId) {
         'hash-chain': codeHashChain,
         'hash-open': codeHashOpen,
         'hash-bucket': codeHashBucket,
+        'bloom-filter': codeBloomFilter,
+        'skip-list': codeSkipList,
+        'count-min-sketch': codeCountMinSketch,
         'search-linear': codeSearchLinear,
         'search-binary': codeSearchBinary,
         'search-kmp': codeSearchKMP,
         'search-bm': codeSearchBM,
         'search-rk': codeSearchRK,
         'search-strcompare': codeSearchStrCompare,
+        'search-zalgo': codeSearchZAlgo,
+        'search-aho': codeSearchAho,
         'sort-bubble': codeSortBubble,
         'sort-select': codeSortSelect,
         'sort-insert': codeSortInsert,
@@ -1777,11 +1787,31 @@ document.addEventListener('DOMContentLoaded', () => {
             codeTitle.textContent = 'search_strcompare.cpp';
             codeDisplay.textContent = codeSearchStrCompare;
         }
+        else if (currentMode === 'search-zalgo') {
+            codeTitle.textContent = 'search_zalgo.cpp';
+            codeDisplay.textContent = codeSearchZAlgo;
+        }
+        else if (currentMode === 'search-aho') {
+            codeTitle.textContent = 'search_aho.cpp';
+            codeDisplay.textContent = codeSearchAho;
+        }
         else if (currentMode === 'list-array') { codeTitle.textContent = 'list_array.cpp'; codeDisplay.textContent = codeListArray; listArrContainer.classList.remove('hidden'); listActions.classList.remove('hidden'); }
         else if (currentMode === 'list-linked') { codeTitle.textContent = 'list_linked.cpp'; codeDisplay.textContent = codeListLinked; listLLContainer.classList.remove('hidden'); listActions.classList.remove('hidden'); }
         else if (currentMode === 'deque') {
             codeTitle.textContent = 'deque.cpp';
             codeDisplay.textContent = codeDeque;
+        }
+        else if (currentMode === 'bloom-filter') {
+            codeTitle.textContent = 'bloom_filter.cpp';
+            codeDisplay.textContent = codeBloomFilter;
+        }
+        else if (currentMode === 'skip-list') {
+            codeTitle.textContent = 'skip_list.cpp';
+            codeDisplay.textContent = codeSkipList;
+        }
+        else if (currentMode === 'count-min-sketch') {
+            codeTitle.textContent = 'count_min_sketch.cpp';
+            codeDisplay.textContent = codeCountMinSketch;
         }
         else if (currentMode.includes('hash-')) {
             hashActions.classList.remove('hidden');
@@ -1941,6 +1971,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if(currentMode.includes('stack')) renderStack();
         else if (currentMode === 'queue') renderQueue();
         else if (currentMode === 'deque') renderDeque();
+        else if (currentMode === 'bloom-filter') renderBloomFilter();
+        else if (currentMode === 'skip-list') renderSkipList();
+        else if (currentMode === 'count-min-sketch') renderCountMinSketch();
         else if (currentMode === 'graph-traversal') renderGraphDual();
         else if (currentMode === 'graph' || currentMode === 'graph-kruskal' || currentMode === 'graph-dijkstra' || currentMode === 'graph-topo' || currentMode === 'graph-adjlist' || currentMode === 'graph-bfs' || currentMode === 'graph-dfs') renderGraph();
         else if (currentMode === 'tree-dsu') renderDSU();
@@ -1950,6 +1983,8 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (currentMode === 'search-bm') renderBM();
         else if (currentMode === 'search-rk') renderRK();
         else if (currentMode === 'search-strcompare') renderStringCompare();
+        else if (currentMode === 'search-zalgo') renderZAlgo();
+        else if (currentMode === 'search-aho') renderAhoCorasick();
         else if (currentMode.includes('search')) renderSearchArray(currentMode === 'search-binary' ? arrBinary : arrLinear);
         else if (currentMode.includes('list-')) renderLists();
         else if (currentMode.includes('hash-')) renderHashes();
@@ -2949,6 +2984,494 @@ document.addEventListener('DOMContentLoaded', () => {
             data.pop();
             renderDeque();
         };
+    }
+
+    function buildStepControls(onStep, onReset, runIntervalMs) {
+        const strip = document.createElement('div');
+        strip.className = 'stepctl';
+        strip.innerHTML =
+            '<button type="button" data-action="step">Step</button>' +
+            '<button type="button" data-action="run">Run</button>' +
+            '<button type="button" data-action="reset">Reset</button>';
+        let runTimer = null;
+        strip.querySelector('[data-action="step"]').onclick = () => { onStep(); };
+        strip.querySelector('[data-action="run"]').onclick = () => {
+            if (runTimer) return;
+            runTimer = setInterval(() => {
+                const more = onStep();
+                if (more === false) { clearInterval(runTimer); runTimer = null; }
+            }, runIntervalMs || 500);
+        };
+        strip.querySelector('[data-action="reset"]').onclick = () => {
+            if (runTimer) { clearInterval(runTimer); runTimer = null; }
+            onReset();
+        };
+        return strip;
+    }
+
+    function renderBloomFilter() {
+        const host = acquireDynamicVizHost();
+        const SIZE = 32;
+        function h1(s) { let h = 5381; for (const c of s) h = (h * 33 + c.charCodeAt(0)) >>> 0; return h % SIZE; }
+        function h2(s) { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h % SIZE; }
+        function h3(s) { let h = 7; for (const c of s) h = (h * 17 + c.charCodeAt(0) + 1) >>> 0; return h % SIZE; }
+        function hashes(s) { return [h1(s), h2(s), h3(s)]; }
+
+        if (!Array.isArray(runtimeVisualizer._bloomBits)) {
+            runtimeVisualizer._bloomBits = new Array(SIZE).fill(false);
+            runtimeVisualizer._bloomItems = [];
+            for (const w of ['cat', 'dog', 'bird']) {
+                for (const i of hashes(w)) runtimeVisualizer._bloomBits[i] = true;
+                runtimeVisualizer._bloomItems.push(w);
+            }
+        }
+        const bits = runtimeVisualizer._bloomBits;
+        const items = runtimeVisualizer._bloomItems;
+        const savedVal = runtimeVisualizer._bloomInputVal || 'fish';
+
+        const wrap = document.createElement('div');
+        wrap.className = 'bloom-wrap';
+        let html = '<div class="bloom-row">';
+        for (let i = 0; i < SIZE; i++) {
+            html += '<span class="bloom-cell' + (bits[i] ? ' bloom-on' : '') +
+                    '" data-bit="' + i + '">' + (bits[i] ? 1 : 0) + '</span>';
+        }
+        html += '</div>';
+        html += '<div class="bloom-hashes" data-testid="bloom-hashes"></div>';
+        html += '<div class="bloom-items"><strong>inserted:</strong> <span class="bloom-items-list"></span></div>';
+        html += '<div class="bloom-controls" role="group">' +
+                    '<input type="text" data-bloom-val>' +
+                    '<button type="button" data-action="bloom-insert">Insert</button>' +
+                    '<button type="button" data-action="bloom-query">Query</button>' +
+                '</div>';
+        wrap.innerHTML = html;
+        host.appendChild(wrap);
+
+        const valInput = wrap.querySelector('[data-bloom-val]');
+        valInput.value = savedVal;
+        wrap.querySelector('.bloom-items-list').textContent = items.join(', ');
+        const hashesEl = wrap.querySelector('.bloom-hashes');
+        valInput.addEventListener('input', () => { runtimeVisualizer._bloomInputVal = valInput.value.trim(); });
+        function highlight(idxs, cls) {
+            wrap.querySelectorAll('.bloom-cell').forEach((c) => c.classList.remove('bloom-hit', 'bloom-miss'));
+            for (const i of idxs) {
+                const cell = wrap.querySelector('.bloom-cell[data-bit="' + i + '"]');
+                if (cell) cell.classList.add(cls);
+            }
+        }
+        wrap.querySelector('[data-action="bloom-insert"]').onclick = () => {
+            const key = valInput.value.trim();
+            if (!key) { showStatus('Enter a word', '#f87171'); return; }
+            runtimeVisualizer._bloomInputVal = key;
+            const idxs = hashes(key);
+            for (const i of idxs) bits[i] = true;
+            if (!items.includes(key)) items.push(key);
+            renderBloomFilter();
+            showStatus('Inserted "' + key + '" → bits {' + idxs.join(', ') + '}', '#34d399');
+        };
+        wrap.querySelector('[data-action="bloom-query"]').onclick = () => {
+            const key = valInput.value.trim();
+            if (!key) { showStatus('Enter a word', '#f87171'); return; }
+            runtimeVisualizer._bloomInputVal = key;
+            const idxs = hashes(key);
+            hashesEl.textContent = 'hashes of "' + key + '" → {' + idxs.join(', ') + '}';
+            const present = idxs.every((i) => bits[i]);
+            highlight(idxs, present ? 'bloom-hit' : 'bloom-miss');
+            if (present) showStatus('"' + key + '" possibly present', '#f59e0b');
+            else showStatus('"' + key + '" definitely not present', '#60a5fa');
+        };
+    }
+
+    function renderSkipList() {
+        const host = acquireDynamicVizHost();
+        const MAXLVL = 4;  // levels 0..3
+        if (!runtimeVisualizer._skipList) {
+            runtimeVisualizer._skipList = {
+                nodes: [
+                    { key: 3, h: 1 }, { key: 7, h: 2 }, { key: 12, h: 3 },
+                    { key: 19, h: 1 }, { key: 25, h: 1 },
+                ],
+            };
+        }
+        const sl = runtimeVisualizer._skipList;
+        sl.nodes.sort((a, b) => a.key - b.key);
+
+        function randomLevel() {
+            let lvl = 1;
+            while (Math.random() < 0.5 && lvl < MAXLVL) lvl++;
+            return lvl;
+        }
+        function computePath(target) {
+            const path = [];
+            let level = MAXLVL - 1, idx = -1;
+            while (level >= 0) {
+                let next = idx + 1;
+                while (next < sl.nodes.length && sl.nodes[next].h <= level) next++;
+                if (next < sl.nodes.length && sl.nodes[next].key < target) {
+                    idx = next;
+                    path.push({ level: level, idx: idx, kind: 'right' });
+                } else {
+                    path.push({ level: level, idx: idx, kind: 'down' });
+                    level--;
+                }
+            }
+            const after = idx + 1;
+            if (after < sl.nodes.length && sl.nodes[after].key === target) {
+                path.push({ level: 0, idx: after, kind: 'found' });
+            } else {
+                path.push({ level: 0, idx: idx, kind: 'notfound' });
+            }
+            return path;
+        }
+
+        let searchPath = null, searchStep = 0, searchTarget = null;
+
+        const wrap = document.createElement('div');
+        wrap.className = 'skiplist-wrap';
+        wrap.innerHTML =
+            '<div class="skiplist-grid"></div>' +
+            '<div class="skiplist-status" data-testid="skiplist-status">&nbsp;</div>' +
+            '<div class="skiplist-controls" role="group">' +
+                '<input type="number" value="15" data-skiplist-val>' +
+                '<button type="button" data-action="skiplist-insert">Insert</button>' +
+                '<button type="button" data-action="skiplist-delete">Delete</button>' +
+                '<input type="number" value="12" data-skiplist-search>' +
+            '</div>';
+        host.appendChild(wrap);
+        const gridEl = wrap.querySelector('.skiplist-grid');
+        const statusEl = wrap.querySelector('.skiplist-status');
+
+        function activeStep() {
+            if (!searchPath || searchStep === 0) return null;
+            return searchPath[searchStep - 1];
+        }
+        function draw() {
+            const act = activeStep();
+            let html = '';
+            for (let L = MAXLVL - 1; L >= 0; L--) {
+                html += '<div class="skiplist-level" data-level="' + L + '">';
+                html += '<span class="skiplist-head' +
+                        (act && act.level === L && act.idx === -1 ? ' skiplist-active' : '') +
+                        '">head</span>';
+                for (let i = 0; i < sl.nodes.length; i++) {
+                    const n = sl.nodes[i];
+                    if (n.h > L) {
+                        html += '<span class="skiplist-arrow">&rarr;</span>';
+                        const on = act && act.level === L && act.idx === i;
+                        html += '<span class="skiplist-node' + (on ? ' skiplist-active' : '') +
+                                '" data-key="' + n.key + '">' + n.key + '</span>';
+                    } else {
+                        html += '<span class="skiplist-arrow skiplist-skip">&middot;&middot;&middot;</span>';
+                        html += '<span class="skiplist-node skiplist-ghost"></span>';
+                    }
+                }
+                html += '<span class="skiplist-arrow">&rarr;</span><span class="skiplist-nil">NIL</span>';
+                html += '</div>';
+            }
+            gridEl.innerHTML = html;
+        }
+        function resetSearch() {
+            searchPath = null;
+            searchStep = 0;
+            searchTarget = null;
+            statusEl.innerHTML = '&nbsp;';
+            draw();
+        }
+        function stepSearch() {
+            if (!searchPath) {
+                const t = parseInt(wrap.querySelector('[data-skiplist-search]').value, 10);
+                if (Number.isNaN(t)) { showStatus('Enter a search key', '#f87171'); return false; }
+                searchTarget = t;
+                searchPath = computePath(t);
+                searchStep = 0;
+            }
+            if (searchStep >= searchPath.length) return false;
+            const s = searchPath[searchStep];
+            searchStep++;
+            draw();
+            if (s.kind === 'found') statusEl.textContent = 'Found ' + searchTarget;
+            else if (s.kind === 'notfound') statusEl.textContent = searchTarget + ' not found';
+            else statusEl.textContent = 'level ' + s.level + ': move ' + s.kind;
+            return searchStep < searchPath.length;
+        }
+
+        wrap.querySelector('[data-action="skiplist-insert"]').onclick = () => {
+            const v = parseInt(wrap.querySelector('[data-skiplist-val]').value, 10);
+            if (Number.isNaN(v)) { showStatus('Enter a number', '#f87171'); return; }
+            if (sl.nodes.some((n) => n.key === v)) { showStatus(v + ' already present', '#f87171'); return; }
+            const h = randomLevel();
+            sl.nodes.push({ key: v, h: h });
+            showStatus('Inserted ' + v + ' (level ' + h + ')', '#34d399');
+            renderSkipList();
+        };
+        wrap.querySelector('[data-action="skiplist-delete"]').onclick = () => {
+            const v = parseInt(wrap.querySelector('[data-skiplist-val]').value, 10);
+            if (Number.isNaN(v)) { showStatus('Enter a number', '#f87171'); return; }
+            const before = sl.nodes.length;
+            sl.nodes = sl.nodes.filter((n) => n.key !== v);
+            if (sl.nodes.length === before) showStatus(v + ' not found', '#f87171');
+            else showStatus('Deleted ' + v, '#60a5fa');
+            renderSkipList();
+        };
+
+        wrap.appendChild(buildStepControls(stepSearch, resetSearch, 500));
+        draw();
+    }
+
+    function renderCountMinSketch() {
+        const host = acquireDynamicVizHost();
+        const DEPTH = 3, WIDTH = 8;
+        if (!runtimeVisualizer._cms) {
+            runtimeVisualizer._cms = {
+                table: Array.from({ length: DEPTH }, () => new Array(WIDTH).fill(0)),
+                actual: {},
+            };
+        }
+        const cms = runtimeVisualizer._cms;
+        function hash(row, s) {
+            let h = ((row + 1) * 2654435761) >>> 0;
+            for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+            return h % WIDTH;
+        }
+
+        const wrap = document.createElement('div');
+        wrap.className = 'cms-wrap';
+        let html = '<div class="cms-grid">';
+        for (let r = 0; r < DEPTH; r++) {
+            html += '<div class="cms-rowlabel">h' + r + '</div>';
+            for (let c = 0; c < WIDTH; c++) {
+                html += '<span class="cms-cell" data-row="' + r + '" data-col="' + c + '">' +
+                        cms.table[r][c] + '</span>';
+            }
+        }
+        html += '</div>';
+        html += '<div class="cms-readout" data-testid="cms-readout">&nbsp;</div>';
+        html += '<div class="cms-controls" role="group">' +
+                    '<input type="text" value="apple" data-cms-val>' +
+                    '<button type="button" data-action="cms-add">Add</button>' +
+                    '<button type="button" data-action="cms-estimate">Estimate</button>' +
+                '</div>';
+        wrap.innerHTML = html;
+        host.appendChild(wrap);
+
+        const valInput = wrap.querySelector('[data-cms-val]');
+        const readoutEl = wrap.querySelector('.cms-readout');
+        function highlight(cells) {
+            wrap.querySelectorAll('.cms-cell').forEach((c) => c.classList.remove('cms-hit'));
+            for (const rc of cells) {
+                const el = wrap.querySelector('.cms-cell[data-row="' + rc[0] + '"][data-col="' + rc[1] + '"]');
+                if (el) el.classList.add('cms-hit');
+            }
+        }
+        wrap.querySelector('[data-action="cms-add"]').onclick = () => {
+            const key = valInput.value.trim();
+            if (!key) { showStatus('Enter a word', '#f87171'); return; }
+            const cells = [];
+            for (let r = 0; r < DEPTH; r++) {
+                const c = hash(r, key);
+                cms.table[r][c]++;
+                cells.push([r, c]);
+                const el = wrap.querySelector('.cms-cell[data-row="' + r + '"][data-col="' + c + '"]');
+                if (el) el.textContent = cms.table[r][c];
+            }
+            cms.actual[key] = (cms.actual[key] || 0) + 1;
+            highlight(cells);
+            showStatus('Added "' + key + '" (+1 per row)', '#34d399');
+        };
+        wrap.querySelector('[data-action="cms-estimate"]').onclick = () => {
+            const key = valInput.value.trim();
+            if (!key) { showStatus('Enter a word', '#f87171'); return; }
+            const cells = [], vals = [];
+            for (let r = 0; r < DEPTH; r++) {
+                const c = hash(r, key);
+                cells.push([r, c]);
+                vals.push(cms.table[r][c]);
+            }
+            highlight(cells);
+            const est = Math.min.apply(null, vals);
+            const actual = cms.actual[key] || 0;
+            readoutEl.textContent = 'estimate("' + key + '") = min(' + vals.join(', ') + ') = ' + est +
+                                    '  |  actual = ' + actual;
+            showStatus('Estimate ' + est + ' (actual ' + actual + ')', '#f59e0b');
+        };
+    }
+
+    function renderZAlgo() {
+        const host = acquireDynamicVizHost();
+        const pattern = 'ABABCABAB';
+        const text = 'ABABDABACDABABCABAB';
+        const s = pattern + '$' + text;
+        const n = s.length, m = pattern.length;
+        const z = new Array(n).fill(0);
+        const trace = [];
+        (function () {
+            let l = 0, r = 0;
+            for (let i = 1; i < n; i++) {
+                if (i < r) z[i] = Math.min(r - i, z[i - l]);
+                while (i + z[i] < n && s[z[i]] === s[i + z[i]]) z[i]++;
+                if (i + z[i] > r) { l = i; r = i + z[i]; }
+                trace[i] = { l: l, r: r };
+            }
+        })();
+
+        let cur = 1;  // next index to reveal
+
+        const wrap = document.createElement('div');
+        wrap.className = 'zalgo-wrap';
+        wrap.innerHTML =
+            '<div class="zalgo-grid"></div>' +
+            '<div class="zalgo-stats" data-testid="zalgo-stats">computed: <span class="zalgo-count">0</span>' +
+                ' &nbsp;|&nbsp; matches: <span class="zalgo-matches">[]</span></div>';
+        host.appendChild(wrap);
+        const gridEl = wrap.querySelector('.zalgo-grid');
+        const countEl = wrap.querySelector('.zalgo-count');
+        const matchesEl = wrap.querySelector('.zalgo-matches');
+
+        function draw() {
+            const box = cur > 1 ? trace[cur - 1] : { l: 0, r: 0 };
+            let chr = '<div class="zalgo-row zalgo-chr">';
+            let zr = '<div class="zalgo-row zalgo-z">';
+            const matches = [];
+            for (let k = 0; k < n; k++) {
+                const inBox = box.r > box.l && k >= box.l && k < box.r;
+                chr += '<span class="zalgo-cell' + (inBox ? ' zalgo-box' : '') +
+                       (k === cur && cur < n ? ' zalgo-cur' : '') + '">' + s[k] + '</span>';
+                let zval = '-';
+                if (k > 0 && k < cur) {
+                    zval = z[k];
+                    if (z[k] === m) matches.push(k - m - 1);
+                } else if (k >= cur) {
+                    zval = '?';
+                }
+                zr += '<span class="zalgo-cell' + (k < cur && k > 0 && z[k] === m ? ' zalgo-match' : '') +
+                      '">' + zval + '</span>';
+            }
+            chr += '</div>';
+            zr += '</div>';
+            gridEl.innerHTML = chr + zr;
+            countEl.textContent = Math.max(0, cur - 1);
+            matchesEl.textContent = '[' + matches.join(',') + ']';
+        }
+        function step() {
+            if (cur >= n) return false;
+            cur++;
+            draw();
+            return cur < n;
+        }
+        function reset() { cur = 1; draw(); }
+        wrap.appendChild(buildStepControls(step, reset, 350));
+        draw();
+    }
+
+    function renderAhoCorasick() {
+        const host = acquireDynamicVizHost();
+        // Fixed trie for patterns {he, she, his, hers}.
+        const nodes = [
+            { id: 0, ch: '', x: 180, y: 30, parent: -1 },
+            { id: 1, ch: 'h', x: 110, y: 95, parent: 0 },
+            { id: 2, ch: 'e', x: 70, y: 160, parent: 1 },
+            { id: 3, ch: 'r', x: 70, y: 225, parent: 2 },
+            { id: 4, ch: 's', x: 70, y: 290, parent: 3 },
+            { id: 5, ch: 'i', x: 150, y: 160, parent: 1 },
+            { id: 6, ch: 's', x: 150, y: 225, parent: 5 },
+            { id: 7, ch: 's', x: 250, y: 95, parent: 0 },
+            { id: 8, ch: 'h', x: 250, y: 160, parent: 7 },
+            { id: 9, ch: 'e', x: 250, y: 225, parent: 8 },
+        ];
+        const output = { 2: 'he', 4: 'hers', 6: 'his', 9: 'she' };
+        // Failure links in BFS computation order (one per non-root node).
+        const failSteps = [
+            { node: 1, fail: 0 }, { node: 7, fail: 0 }, { node: 2, fail: 0 }, { node: 5, fail: 0 },
+            { node: 8, fail: 1 }, { node: 3, fail: 0 }, { node: 6, fail: 7 }, { node: 9, fail: 2 },
+            { node: 4, fail: 7 },
+        ];
+        const text = 'ushers';
+        // Scan trace: automaton node after reading each char, and matches reported.
+        const scanSteps = [
+            { node: 0, matches: [] },
+            { node: 7, matches: [] },
+            { node: 8, matches: [] },
+            { node: 9, matches: ['she@1', 'he@2'] },
+            { node: 3, matches: [] },
+            { node: 4, matches: ['hers@2'] },
+        ];
+        const TOTAL = failSteps.length + 1 + scanSteps.length;
+        let idx = 0;
+
+        const wrap = document.createElement('div');
+        wrap.className = 'aho-wrap';
+        wrap.innerHTML =
+            '<div class="aho-phase" data-testid="aho-phase"></div>' +
+            '<svg class="aho-svg" viewBox="0 0 320 320" width="100%" xmlns="http://www.w3.org/2000/svg"></svg>' +
+            '<div class="aho-textrow"></div>' +
+            '<div class="aho-stats" data-testid="aho-stats">matches: <span class="aho-matches">[]</span></div>';
+        host.appendChild(wrap);
+        const svgEl = wrap.querySelector('.aho-svg');
+        const phaseEl = wrap.querySelector('.aho-phase');
+        const textRowEl = wrap.querySelector('.aho-textrow');
+        const matchesEl = wrap.querySelector('.aho-matches');
+
+        function nodeById(id) { return nodes.find((n) => n.id === id); }
+
+        function draw() {
+            const inBuild = idx <= failSteps.length;
+            const builtCount = inBuild ? idx : failSteps.length;
+            let curScanNode = -1;
+            let allMatches = [];
+            if (!inBuild) {
+                const sIdx = idx - failSteps.length - 1;
+                for (let k = 0; k <= sIdx && k < scanSteps.length; k++) {
+                    curScanNode = scanSteps[k].node;
+                    allMatches = allMatches.concat(scanSteps[k].matches);
+                }
+            }
+            let svg = '';
+            for (const n of nodes) {
+                if (n.parent >= 0) {
+                    const p = nodeById(n.parent);
+                    svg += '<line x1="' + p.x + '" y1="' + p.y + '" x2="' + n.x + '" y2="' + n.y +
+                           '" stroke="#94a3b8" stroke-width="2"/>';
+                }
+            }
+            for (let k = 0; k < builtCount; k++) {
+                const fs = failSteps[k];
+                const a = nodeById(fs.node), b = nodeById(fs.fail);
+                svg += '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y +
+                       '" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3"/>';
+            }
+            for (const n of nodes) {
+                const isBuildCur = inBuild && failSteps[idx] && n.id === failSteps[idx].node;
+                const isCur = (!inBuild && n.id === curScanNode) || isBuildCur;
+                const hasOut = output[n.id] !== undefined;
+                svg += '<circle cx="' + n.x + '" cy="' + n.y + '" r="16" fill="' +
+                       (isCur ? '#34d399' : (hasOut ? '#dbeafe' : '#fff')) +
+                       '" stroke="#1e40af" stroke-width="2" data-node="' + n.id + '"/>';
+                svg += '<text x="' + n.x + '" y="' + (n.y + 5) + '" text-anchor="middle" font-size="13" ' +
+                       'font-weight="700">' + (n.ch || '·') + '</text>';
+            }
+            svgEl.innerHTML = svg;
+
+            const scanPos = inBuild ? -1 : (idx - failSteps.length - 1);
+            let tr = '';
+            for (let k = 0; k < text.length; k++) {
+                tr += '<span class="aho-char' + (k === scanPos ? ' aho-char-cur' : '') + '">' + text[k] + '</span>';
+            }
+            textRowEl.innerHTML = tr;
+
+            phaseEl.textContent = inBuild
+                ? 'Phase 1: Building failure links (' + builtCount + '/' + failSteps.length + ')'
+                : 'Phase 2: Scanning text (' + (idx - failSteps.length) + '/' + text.length + ')';
+            matchesEl.textContent = '[' + allMatches.join(', ') + ']';
+        }
+        function step() {
+            if (idx >= TOTAL) return false;
+            idx++;
+            draw();
+            return idx < TOTAL;
+        }
+        function reset() { idx = 0; draw(); }
+        wrap.appendChild(buildStepControls(step, reset, 500));
+        draw();
     }
 
     function renderKMP() {

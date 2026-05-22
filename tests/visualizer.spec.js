@@ -491,6 +491,70 @@ test.describe('Data Structure Visualizer Full Suite', () => {
         await expect(counts.nth(2)).toContainText('1');
     });
 
+    test('Probabilistic: Bloom Filter renders a 32-bit array and supports insert/query', async ({ page }) => {
+        await loadMethod(page, 'bloom-filter');
+        const card = page.locator('[data-method-section="bloom-filter"]');
+        await expect(card.locator('.code-panel-filename')).toContainText('bloom_filter.cpp');
+        await expect(card.locator('.bloom-cell')).toHaveCount(32);
+        const onBefore = await card.locator('.bloom-cell.bloom-on').count();
+        expect(onBefore).toBeGreaterThan(0);
+        await card.locator('[data-bloom-val]').fill('zebra');
+        await card.locator('[data-action="bloom-insert"]').click();
+        const onAfter = await card.locator('.bloom-cell.bloom-on').count();
+        expect(onAfter).toBeGreaterThanOrEqual(onBefore);
+        await card.locator('[data-action="bloom-query"]').click();
+        await expect(card.locator('[data-testid="bloom-hashes"]')).toContainText('zebra');
+        await expect(card.locator('.bloom-cell.bloom-hit').first()).toBeVisible();
+    });
+
+    test('Probabilistic: Skip List renders 4 levels and supports insert + stepped search', async ({ page }) => {
+        await loadMethod(page, 'skip-list');
+        const card = page.locator('[data-method-section="skip-list"]');
+        await expect(card.locator('.code-panel-filename')).toContainText('skip_list.cpp');
+        await expect(card.locator('.skiplist-level')).toHaveCount(4);
+        const l0 = card.locator('.skiplist-level[data-level="0"] .skiplist-node:not(.skiplist-ghost)');
+        await expect(l0).toHaveCount(5);
+        await card.locator('[data-skiplist-val]').fill('15');
+        await card.locator('[data-action="skiplist-insert"]').click();
+        await expect(l0).toHaveCount(6);
+        await card.locator('[data-skiplist-search]').fill('12');
+        await card.locator('[data-action="step"]').click();
+        await expect(card.locator('[data-testid="skiplist-status"]')).toContainText('level');
+    });
+
+    test('Probabilistic: Count-Min Sketch renders a 3x8 grid and estimates frequency', async ({ page }) => {
+        await loadMethod(page, 'count-min-sketch');
+        const card = page.locator('[data-method-section="count-min-sketch"]');
+        await expect(card.locator('.code-panel-filename')).toContainText('count_min_sketch.cpp');
+        await expect(card.locator('.cms-cell')).toHaveCount(24);
+        await card.locator('[data-cms-val]').fill('apple');
+        await card.locator('[data-action="cms-add"]').click();
+        await card.locator('[data-action="cms-add"]').click();
+        await card.locator('[data-action="cms-estimate"]').click();
+        await expect(card.locator('[data-testid="cms-readout"]')).toContainText('= 2');
+        await expect(card.locator('.cms-cell.cms-hit')).toHaveCount(3);
+    });
+
+    test('String: Z-Algorithm renders the concatenated string with a Z-array and steps', async ({ page }) => {
+        await loadMethod(page, 'search-zalgo');
+        const card = page.locator('[data-method-section="search-zalgo"]');
+        await expect(card.locator('.code-panel-filename')).toContainText('search_zalgo.cpp');
+        await expect(card.locator('.zalgo-chr .zalgo-cell')).toHaveCount(29);
+        await expect(card.locator('.zalgo-z .zalgo-cell')).toHaveCount(29);
+        await card.locator('[data-action="step"]').click();
+        await expect(card.locator('[data-testid="zalgo-stats"]')).toContainText('computed: 1');
+    });
+
+    test('String: Aho-Corasick renders the trie and steps through build + scan', async ({ page }) => {
+        await loadMethod(page, 'search-aho');
+        const card = page.locator('[data-method-section="search-aho"]');
+        await expect(card.locator('.code-panel-filename')).toContainText('search_aho.cpp');
+        await expect(card.locator('.aho-svg circle')).toHaveCount(10);
+        await expect(card.locator('[data-testid="aho-phase"]')).toContainText('Phase 1');
+        await card.locator('[data-action="step"]').click();
+        await expect(card.locator('[data-testid="aho-phase"]')).toContainText('1/9');
+    });
+
     test('Navigation: switching from Spec-2a dynamic visualizers back to static ones does not crash', async ({ page }) => {
         const errors = [];
         page.on('pageerror', (e) => errors.push(e.message));
@@ -504,6 +568,13 @@ test.describe('Data Structure Visualizer Full Suite', () => {
         await loadMethod(page, 'queue');
         await expect(page.locator('#queue-container')).toHaveCount(1);
         await loadMethod(page, 'search-kmp');
+        await loadMethod(page, 'search-linear');
+        await expect(page.locator('#search-container')).toHaveCount(1);
+        await loadMethod(page, 'bloom-filter');
+        await loadMethod(page, 'hash-chain');
+        await expect(page.locator('#hash-ch-container')).toHaveCount(1);
+        await loadMethod(page, 'search-zalgo');
+        await loadMethod(page, 'search-aho');
         await loadMethod(page, 'search-linear');
         await expect(page.locator('#search-container')).toHaveCount(1);
         expect(errors).toEqual([]);

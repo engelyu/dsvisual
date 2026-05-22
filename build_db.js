@@ -68,7 +68,12 @@ const mappings = {
     'search_kmp.cpp': 'codeSearchKMP',
     'search_bm.cpp': 'codeSearchBM',
     'search_rk.cpp': 'codeSearchRK',
-    'search_strcompare.cpp': 'codeSearchStrCompare'
+    'search_strcompare.cpp': 'codeSearchStrCompare',
+    'bloom_filter.cpp': 'codeBloomFilter',
+    'skip_list.cpp': 'codeSkipList',
+    'count_min_sketch.cpp': 'codeCountMinSketch',
+    'search_zalgo.cpp': 'codeSearchZAlgo',
+    'search_aho.cpp': 'codeSearchAho'
 };
 
 let out = '// Auto-generated code DB for visualization\n';

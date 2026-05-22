@@ -4324,3 +4324,352 @@ int main() {
 }
 `;
 
+const codeBloomFilter = `#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
+
+// A Bloom filter: a space-efficient probabilistic set. A query may report a
+// false positive ("possibly present") but never a false negative.
+class BloomFilter {
+    static const int SIZE = 32;
+    vector<bool> bits;
+
+    int hash1(const string& s) const {
+        unsigned long h = 5381;
+        for (char c : s)
+            h = h * 33 + static_cast<unsigned char>(c);
+        return static_cast<int>(h % SIZE);
+    }
+    int hash2(const string& s) const {
+        unsigned long h = 0;
+        for (char c : s)
+            h = h * 31 + static_cast<unsigned char>(c);
+        return static_cast<int>(h % SIZE);
+    }
+    int hash3(const string& s) const {
+        unsigned long h = 7;
+        for (char c : s)
+            h = h * 17 + static_cast<unsigned char>(c) + 1;
+        return static_cast<int>(h % SIZE);
+    }
+
+public:
+    BloomFilter() : bits(SIZE, false) {}
+
+    void insert(const string& key) {
+        bits[hash1(key)] = true;
+        bits[hash2(key)] = true;
+        bits[hash3(key)] = true;
+    }
+
+    bool possiblyContains(const string& key) const {
+        return bits[hash1(key)] && bits[hash2(key)] && bits[hash3(key)];
+    }
+};
+
+int main() {
+    BloomFilter bf;
+    bf.insert("cat");
+    bf.insert("dog");
+    bf.insert("bird");
+
+    // "dog" was inserted, so this is always true.
+    cout << "contains dog?  " << bf.possiblyContains("dog") << "\\n";
+    // "fish" was never inserted: 0 means definitely absent, 1 a false positive.
+    cout << "contains fish? " << bf.possiblyContains("fish") << "\\n";
+    return 0;
+}
+`;
+
+const codeSkipList = `#include <cstdlib>
+#include <iostream>
+#include <vector>
+using namespace std;
+
+// A skip list: an ordered map built from a multi-level linked list. Each node
+// is promoted to a random number of express lanes, giving expected O(log n).
+struct Node {
+    int key;
+    vector<Node*> forward;
+    Node(int k, int level) : key(k), forward(level + 1, nullptr) {}
+};
+
+class SkipList {
+    static const int MAX_LEVEL = 3; // levels 0..3
+    Node* head;
+    int level;
+
+    int randomLevel() {
+        int lvl = 0;
+        while ((rand() & 1) && lvl < MAX_LEVEL)
+            lvl++;
+        return lvl;
+    }
+
+public:
+    SkipList() : level(0) { head = new Node(-1, MAX_LEVEL); }
+
+    void insert(int key) {
+        vector<Node*> update(MAX_LEVEL + 1, head);
+        Node* cur = head;
+        for (int i = level; i >= 0; i--) {
+            while (cur->forward[i] && cur->forward[i]->key < key)
+                cur = cur->forward[i];
+            update[i] = cur;
+        }
+        int lvl = randomLevel();
+        if (lvl > level) {
+            for (int i = level + 1; i <= lvl; i++)
+                update[i] = head;
+            level = lvl;
+        }
+        Node* node = new Node(key, lvl);
+        for (int i = 0; i <= lvl; i++) {
+            node->forward[i] = update[i]->forward[i];
+            update[i]->forward[i] = node;
+        }
+    }
+
+    bool search(int key) {
+        Node* cur = head;
+        for (int i = level; i >= 0; i--) {
+            while (cur->forward[i] && cur->forward[i]->key < key)
+                cur = cur->forward[i];
+        }
+        cur = cur->forward[0];
+        return cur && cur->key == key;
+    }
+
+    void remove(int key) {
+        vector<Node*> update(MAX_LEVEL + 1, head);
+        Node* cur = head;
+        for (int i = level; i >= 0; i--) {
+            while (cur->forward[i] && cur->forward[i]->key < key)
+                cur = cur->forward[i];
+            update[i] = cur;
+        }
+        cur = cur->forward[0];
+        if (!cur || cur->key != key)
+            return;
+        for (int i = 0; i <= level; i++) {
+            if (update[i]->forward[i] != cur)
+                break;
+            update[i]->forward[i] = cur->forward[i];
+        }
+        delete cur;
+        while (level > 0 && !head->forward[level])
+            level--;
+    }
+};
+
+int main() {
+    SkipList sl;
+    int keys[] = {3, 7, 12, 19, 25};
+    for (int k : keys)
+        sl.insert(k);
+
+    cout << "search 12? " << sl.search(12) << "\\n"; // 1
+    cout << "search 20? " << sl.search(20) << "\\n"; // 0
+    sl.remove(12);
+    cout << "search 12 after remove? " << sl.search(12) << "\\n"; // 0
+    return 0;
+}
+`;
+
+const codeCountMinSketch = `#include <algorithm>
+#include <iostream>
+#include <string>
+using namespace std;
+
+// A Count-Min Sketch: a probabilistic frequency table. estimate() never
+// underestimates a count; hash collisions may inflate it.
+class CountMinSketch {
+    static const int DEPTH = 3;
+    static const int WIDTH = 8;
+    int table[DEPTH][WIDTH];
+
+    int hash(int row, const string& s) const {
+        unsigned long h = static_cast<unsigned long>(row + 1) * 2654435761UL;
+        for (char c : s)
+            h = h * 31 + static_cast<unsigned char>(c);
+        return static_cast<int>(h % WIDTH);
+    }
+
+public:
+    CountMinSketch() {
+        for (int r = 0; r < DEPTH; r++)
+            for (int c = 0; c < WIDTH; c++)
+                table[r][c] = 0;
+    }
+
+    void update(const string& key) {
+        for (int r = 0; r < DEPTH; r++)
+            table[r][hash(r, key)]++;
+    }
+
+    int estimate(const string& key) const {
+        int est = table[0][hash(0, key)];
+        for (int r = 1; r < DEPTH; r++)
+            est = min(est, table[r][hash(r, key)]);
+        return est;
+    }
+};
+
+int main() {
+    CountMinSketch cms;
+    for (int i = 0; i < 5; i++)
+        cms.update("apple");
+    for (int i = 0; i < 2; i++)
+        cms.update("banana");
+    cms.update("cherry");
+
+    cout << "apple  ~ " << cms.estimate("apple") << "\\n";  // >= 5
+    cout << "banana ~ " << cms.estimate("banana") << "\\n"; // >= 2
+    cout << "grape  ~ " << cms.estimate("grape") << "\\n";  // >= 0
+    return 0;
+}
+`;
+
+const codeSearchZAlgo = `#include <algorithm>
+#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
+
+// The Z-array: Z[i] is the length of the longest substring starting at i that
+// matches a prefix of the string. Built in linear time with a [l, r] window.
+vector<int> computeZ(const string& s) {
+    int n = static_cast<int>(s.size());
+    vector<int> z(n, 0);
+    int l = 0, r = 0;
+    for (int i = 1; i < n; i++) {
+        if (i < r)
+            z[i] = min(r - i, z[i - l]);
+        while (i + z[i] < n && s[z[i]] == s[i + z[i]])
+            z[i]++;
+        if (i + z[i] > r) {
+            l = i;
+            r = i + z[i];
+        }
+    }
+    return z;
+}
+
+// String matching: build pattern + '\$' + text; an index whose Z-value equals
+// the pattern length marks an occurrence; assumes '\$' appears in neither the
+// pattern nor the text.
+vector<int> zSearch(const string& text, const string& pattern) {
+    string combined = pattern + "\$" + text;
+    vector<int> z = computeZ(combined);
+    vector<int> matches;
+    int m = static_cast<int>(pattern.size());
+    for (int i = 0; i < static_cast<int>(combined.size()); i++) {
+        if (z[i] == m)
+            matches.push_back(i - m - 1); // translate back into text
+    }
+    return matches;
+}
+
+int main() {
+    string text = "ABABDABACDABABCABAB";
+    string pattern = "ABABCABAB";
+    vector<int> matches = zSearch(text, pattern);
+
+    cout << "matches at:";
+    for (int idx : matches)
+        cout << " " << idx;
+    cout << "\\n"; // matches at index 10
+    return 0;
+}
+`;
+
+const codeSearchAho = `#include <iostream>
+#include <map>
+#include <queue>
+#include <string>
+#include <vector>
+using namespace std;
+
+// Aho-Corasick: a trie of all patterns plus BFS-computed failure links, so a
+// single text scan reports every occurrence of every pattern.
+struct Node {
+    map<char, Node*> children;
+    Node* fail = nullptr;
+    vector<int> output;
+};
+
+class AhoCorasick {
+    Node* root;
+    vector<string> patterns;
+
+public:
+    AhoCorasick() { root = new Node(); }
+
+    void addPattern(const string& p) {
+        int idx = static_cast<int>(patterns.size());
+        patterns.push_back(p);
+        Node* cur = root;
+        for (char c : p) {
+            if (!cur->children.count(c))
+                cur->children[c] = new Node();
+            cur = cur->children[c];
+        }
+        cur->output.push_back(idx);
+    }
+
+    void build() {
+        queue<Node*> q;
+        root->fail = root;
+        for (auto& kv : root->children) {
+            kv.second->fail = root;
+            q.push(kv.second);
+        }
+        while (!q.empty()) {
+            Node* cur = q.front();
+            q.pop();
+            for (auto& kv : cur->children) {
+                char c = kv.first;
+                Node* child = kv.second;
+                Node* f = cur->fail;
+                while (f != root && !f->children.count(c))
+                    f = f->fail;
+                if (f->children.count(c) && f->children[c] != child)
+                    child->fail = f->children[c];
+                else
+                    child->fail = root;
+                for (int idx : child->fail->output)
+                    child->output.push_back(idx);
+                q.push(child);
+            }
+        }
+    }
+
+    void search(const string& text) {
+        Node* cur = root;
+        for (int i = 0; i < static_cast<int>(text.size()); i++) {
+            char c = text[i];
+            while (cur != root && !cur->children.count(c))
+                cur = cur->fail;
+            if (cur->children.count(c))
+                cur = cur->children[c];
+            for (int idx : cur->output) {
+                int start = i - static_cast<int>(patterns[idx].size()) + 1;
+                cout << "match \\"" << patterns[idx] << "\\" at " << start << "\\n";
+            }
+        }
+    }
+};
+
+int main() {
+    AhoCorasick ac;
+    ac.addPattern("he");
+    ac.addPattern("she");
+    ac.addPattern("his");
+    ac.addPattern("hers");
+    ac.build();
+    ac.search("ushers"); // she@1, he@2, hers@2
+    return 0;
+}
+`;
+
