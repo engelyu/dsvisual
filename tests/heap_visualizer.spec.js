@@ -7,7 +7,7 @@ const heapModes = [
     { id: 'heap-fibonacci', file: 'heap_fibonacci.cpp', title: 'Fibonacci Heap' },
     { id: 'heap-leftist', file: 'heap_leftist.cpp', title: 'Leftist Heap' },
     { id: 'heap-skew', file: 'heap_skew.cpp', title: 'Skew Heap' },
-    { id: 'heap-dary', file: 'heap_dary.cpp', title: '4-ary Heap' },
+    { id: 'heap-dary', file: 'heap_dary.cpp', title: 'D-ary Heap' },
     { id: 'heap-pairing', file: 'heap_pairing.cpp', title: 'Pairing Heap' },
 ];
 
@@ -22,6 +22,9 @@ async function loadMethod(page, methodId) {
 
 test.describe('Heap Visualizer Suite', () => {
     test.beforeEach(async ({ page }) => {
+        await page.addInitScript(() => {
+            try { localStorage.setItem('dsvisual-lang', 'en'); } catch (e) {}
+        });
         const fileUri = 'file://' + path.resolve(__dirname, '../index.html');
         await page.goto(fileUri);
     });

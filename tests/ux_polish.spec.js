@@ -6,6 +6,9 @@ const FILE_URL = 'file://' + path.resolve(__dirname, '..', 'index.html');
 test.describe('UX polish — code density slider', () => {
 
     test.beforeEach(async ({ page }) => {
+        await page.addInitScript(() => {
+            try { localStorage.setItem('dsvisual-lang', 'en'); } catch (e) {}
+        });
         await page.goto(FILE_URL);
         await page.waitForSelector('.code-panel-body');
         // Reset localStorage so tests don't bleed state
@@ -106,6 +109,9 @@ test.describe('UX polish — code density slider', () => {
 test.describe('UX polish — visualizer zoom', () => {
 
     test.beforeEach(async ({ page }) => {
+        await page.addInitScript(() => {
+            try { localStorage.setItem('dsvisual-lang', 'en'); } catch (e) {}
+        });
         await page.goto(FILE_URL);
         await page.waitForSelector('.viz-body-scaled');
     });

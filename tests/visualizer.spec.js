@@ -13,6 +13,9 @@ async function loadMethod(page, methodId) {
 test.describe('Data Structure Visualizer Full Suite', () => {
     
     test.beforeEach(async ({ page }) => {
+        await page.addInitScript(() => {
+            try { localStorage.setItem('dsvisual-lang', 'en'); } catch (e) {}
+        });
         // Correctly assemble cross-platform absolute URI mapping mapping directly to your HTML
         const fileUri = 'file://' + path.resolve(__dirname, '../index.html');
         await page.goto(fileUri);
@@ -76,8 +79,8 @@ test.describe('Data Structure Visualizer Full Suite', () => {
 
         await methodSections.locator('[data-method-section="stack-array"] .method-slides-btn').click();
         await expect(slideViewer).toBeVisible();
-        await expect(page.locator('#slide-viewer-title')).toHaveText('堆疊(陣列實作)');
-        await expect(page.locator('#slide-viewer-body')).toContainText('堆疊');
+        await expect(page.locator('#slide-viewer-title')).toHaveText('Stack (Array Implementation)');
+        await expect(page.locator('#slide-viewer-body')).toContainText('stack');
 
         await page.locator('.slide-viewer-close').click();
         await expect(slideViewer).not.toBeVisible();
@@ -648,6 +651,11 @@ test.describe('Data Structure Visualizer Full Suite', () => {
         await expect(card.locator('[data-testid="floyd-msg"]')).toContainText('k = 0');
     });
 
+    test('i18n: settings drawer title is translated by data-i18n-key walker', async ({ page }) => {
+        // Default pin is 'en' from beforeEach.
+        await expect(page.locator('#settings-drawer-title')).toHaveText('Settings');
+    });
+
     test('Navigation: switching from Spec-2a dynamic visualizers back to static ones does not crash', async ({ page }) => {
         const errors = [];
         page.on('pageerror', (e) => errors.push(e.message));
@@ -677,6 +685,37 @@ test.describe('Data Structure Visualizer Full Suite', () => {
         await loadMethod(page, 'graph');
         await expect(page.locator('#graph-edges')).toHaveCount(1);
         expect(errors).toEqual([]);
+    });
+
+    test('i18n: toggling language re-renders nav pill text', async ({ page }) => {
+        await expect(page.locator('.category-nav-item[data-group="linear"] .category-nav-btn'))
+            .toHaveText('Linear Structures');
+        await page.evaluate(() => window.I18N.setLanguage('zh'));
+        await expect(page.locator('.category-nav-item[data-group="linear"] .category-nav-btn'))
+            .toHaveText('線性結構');
+    });
+
+    test('i18n: toggling language re-renders mode-specific button labels', async ({ page }) => {
+        // Default mode is stack-array; default lang is en.
+        await expect(page.locator('#btn-std-add')).toHaveText('Push()');
+        await page.evaluate(() => window.I18N.setLanguage('zh'));
+        // Push()/Pop() intentionally keep English in the zh table.
+        await expect(page.locator('#btn-std-add')).toHaveText('Push()');
+        // Switch to a mode whose label DOES differ in zh.
+        await loadMethod(page, 'graph');
+        await expect(page.locator('#btn-graph-add')).toHaveText('加入邊');
+    });
+
+    test('i18n: clicking toggle flips language and updates label', async ({ page }) => {
+        // Open the slide viewer so the toggle button is visible.
+        await page.locator('[data-method-section="stack-array"] .method-slides-btn').click();
+        await expect(page.locator('[data-testid="slide-viewer"]')).toBeVisible();
+        const toggle = page.locator('[data-testid="lang-toggle"]');
+        // Default pin is 'en' → label reads 中 (the target language).
+        await expect(toggle).toHaveText('中');
+        await toggle.click();
+        await expect(toggle).toHaveText('EN');
+        await expect(page.locator('html')).toHaveAttribute('lang', 'zh-Hant');
     });
 
 });

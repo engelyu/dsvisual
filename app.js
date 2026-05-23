@@ -348,6 +348,10 @@ function getCodeForMethod(methodId) {
 
 // MAIN DOM INTERACTION
 document.addEventListener('DOMContentLoaded', () => {
+    if (window.I18N) {
+        window.I18N.applyTranslations(document);
+    }
+
     const categoryNav = document.getElementById('category-nav');
     const methodSections = document.getElementById('method-sections');
     const slideViewer = document.getElementById('slide-viewer');
@@ -485,13 +489,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const titleRow = document.createElement('div');
         titleRow.className = 'method-title-row';
         const title = document.createElement('h2');
-        title.textContent = group.title;
+        const groupLabel = t('group.' + group.id);
+        const methodLabel = t('method.' + method.id);
+        title.textContent = groupLabel;
         const methodPicker = document.createElement('span');
         methodPicker.className = 'method-heading-title';
         methodPicker.dataset.testid = 'method-heading-title';
-        methodPicker.textContent = method.title;
+        methodPicker.textContent = methodLabel;
         const countText = document.createElement('p');
-        countText.textContent = `${group.methods.length} methods available`;
+        countText.textContent = t('app.methods-available', { count: group.methods.length });
         titleRow.appendChild(title);
         titleRow.appendChild(methodPicker);
         titleGroup.appendChild(titleRow);
@@ -507,8 +513,8 @@ document.addEventListener('DOMContentLoaded', () => {
         section.innerHTML = `
             <div class="method-section-header">
                 <div>
-                    <span class="method-section-kicker">${group.title}</span>
-                    <h3>${method.title}</h3>
+                    <span class="method-section-kicker">${groupLabel}</span>
+                    <h3>${methodLabel}</h3>
                 </div>
                 <div class="method-section-actions">
                     <div class="viz-zoom-controls" role="toolbar" aria-label="Zoom controls">
@@ -520,9 +526,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
             <div class="method-section-grid">
-                <div class="method-section-visual" aria-label="${method.title} visualization shell">
+                <div class="method-section-visual" aria-label="${methodLabel} visualization shell">
                     <span>${method.visualizer}</span>
-                    <strong>${method.title}</strong>
+                    <strong>${methodLabel}</strong>
                 </div>
                 <div class="code-panel" data-language="cpp">
                     <div class="code-panel-header">
@@ -553,7 +559,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let slideDeck = [];
     let slideIndex = 0;
-    let slideLang = 'zh';
     let slideMethodId = null;
     const slideLangToggle = document.getElementById('slide-lang-toggle');
 
@@ -566,19 +571,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function buildSlides(methodId) {
+        const lang = window.I18N ? window.I18N.getCurrentLanguage() : 'en';
         const entry = window.SLIDES_RENDERED && window.SLIDES_RENDERED[methodId];
-        if (!entry || !entry.slides[slideLang] || entry.slides[slideLang].length === 0) {
-            return [{ title: getMethodById(methodId)?.title || 'Slides',
-                      body: '<p>No slides available.</p>' }];
+        if (!entry || !entry.slides[lang] || entry.slides[lang].length === 0) {
+            return [{ title: t('method.' + methodId) || methodId,
+                      body: '<p>' + t('slide.no-slides') + '</p>' }];
         }
-        return entry.slides[slideLang];
+        return entry.slides[lang];
     }
 
     function renderSlide() {
         if (!slideViewer || slideDeck.length === 0) return;
         const slide = slideDeck[slideIndex];
         slideViewerTitle.textContent = slide.title;
-        slideViewerProgress.textContent = 'Slide ' + (slideIndex + 1) + ' / ' + slideDeck.length;
+        slideViewerProgress.textContent = t('slide.progress', {
+            n: slideIndex + 1,
+            total: slideDeck.length,
+        });
         slideViewerBody.innerHTML = slide.body;
         slidePrev.disabled = slideIndex === 0;
         slideNext.disabled = slideIndex >= slideDeck.length - 1;
@@ -639,15 +648,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (slideLangToggle) {
         slideLangToggle.addEventListener('click', () => {
-            slideLang = slideLang === 'zh' ? 'en' : 'zh';
-            slideLangToggle.setAttribute('data-lang', slideLang);
-            if (slideMethodId) {
-                slideDeck = buildSlides(slideMethodId);
-                if (slideIndex >= slideDeck.length) slideIndex = slideDeck.length - 1;
-                renderSlide();
-            }
+            const next = window.I18N.getCurrentLanguage() === 'zh' ? 'en' : 'zh';
+            window.I18N.setLanguage(next);
         });
     }
+
+    function updateLangToggleLabel() {
+        if (!slideLangToggle) return;
+        const cur = window.I18N ? window.I18N.getCurrentLanguage() : 'en';
+        // Label shows the TARGET language using the "switch to X" idiom.
+        slideLangToggle.textContent = cur === 'zh' ? 'EN' : '中';
+        slideLangToggle.setAttribute('data-lang', cur);
+    }
+    updateLangToggleLabel();
+
+    const langMenu = document.querySelector('.lang-menu');
+    const langMenuCurrent = document.querySelector('.lang-menu-current');
+    const langMenuOptions = document.querySelectorAll('.lang-menu-option');
+
+    function langDisplayName(lang) {
+        return lang === 'zh' ? '中文' : 'English';
+    }
+
+    function updateLangMenuLabel() {
+        const cur = window.I18N ? window.I18N.getCurrentLanguage() : 'en';
+        if (langMenuCurrent) langMenuCurrent.textContent = langDisplayName(cur);
+        langMenuOptions.forEach((opt) => {
+            opt.classList.toggle('is-current-lang', opt.dataset.lang === cur);
+        });
+    }
+    updateLangMenuLabel();
+
+    langMenuOptions.forEach((opt) => {
+        opt.addEventListener('click', () => {
+            const next = opt.dataset.lang;
+            if (window.I18N) window.I18N.setLanguage(next);
+            if (langMenu) langMenu.classList.remove('open');
+        });
+    });
 
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-code-copy]');
@@ -659,7 +697,7 @@ document.addEventListener('DOMContentLoaded', () => {
       navigator.clipboard.writeText(codeEl.textContent).then(() => {
         btn.dataset.copied = '1';
         const original = btn.textContent;
-        btn.textContent = '✓ Copied';
+        btn.textContent = t('btn.copied');
         setTimeout(() => { btn.textContent = original; delete btn.dataset.copied; }, 1500);
       });
     });
@@ -766,7 +804,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     header.type = 'button';
                     header.className = 'category-nav-group-header';
                     header.dataset.subgroup = sg.id;
-                    header.textContent = sg.title;
+                    header.textContent = t('group.' + sg.id);
                     header.addEventListener('click', (e) => {
                         e.stopPropagation();
                         activateGroup(sg.id);
@@ -779,7 +817,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     mb.type = 'button';
                     mb.className = 'category-nav-method';
                     mb.dataset.methodId = m.id;
-                    mb.textContent = m.title;
+                    mb.textContent = t('method.' + m.id);
                     mb.addEventListener('click', () => {
                         activateGroup(sg.id, m.id);
                         closeAllDropdowns();
@@ -805,7 +843,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!renderedParents.has(group.parent)) {
                     renderedParents.add(group.parent);
                     const subGroups = METHOD_GROUPS.filter((g) => g.parent === group.parent);
-                    const item = buildPillItem(group.parent, group.parentTitle, subGroups);
+                    const item = buildPillItem(group.parent, t('group.' + group.parent), subGroups);
                     categoryNav.appendChild(item);
                 }
                 const tabBtn = document.createElement('button');
@@ -813,12 +851,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 tabBtn.className = 'category-subtab-btn';
                 tabBtn.dataset.subgroup = group.id;
                 tabBtn.dataset.parent = group.parent;
-                tabBtn.textContent = group.title;
+                tabBtn.textContent = t('group.' + group.id);
                 tabBtn.addEventListener('click', () => activateGroup(group.id));
                 subTabButtons.set(group.id, tabBtn);
                 subTabRow.appendChild(tabBtn);
             } else {
-                const item = buildPillItem(group.id, group.title, [group]);
+                const item = buildPillItem(group.id, t('group.' + group.id), [group]);
                 categoryNav.appendChild(item);
             }
         });
@@ -850,6 +888,19 @@ document.addEventListener('DOMContentLoaded', () => {
     bindSettingsDrawer();
     bindDensitySlider();
     renderCategoryNav();
+    document.addEventListener('languagechange', () => {
+        renderCategoryNav();
+        if (typeof currentMode === 'string' && currentMode) {
+            switchMode(currentMode);
+        }
+        updateLangToggleLabel();
+        updateLangMenuLabel();
+        if (slideViewer && !slideViewer.hidden && slideMethodId) {
+            slideDeck = buildSlides(slideMethodId);
+            if (slideIndex >= slideDeck.length) slideIndex = slideDeck.length - 1;
+            renderSlide();
+        }
+    });
 
     // Containers
     const arrayContainer = document.getElementById('array-container'); const linkedListContainer = document.getElementById('linkedlist-container');
@@ -1152,7 +1203,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function syncHeapTutorialChrome() {
         const activeForMode = heapTutorialState.active && currentMode === heapTutorialState.mode;
-        btnHeapTutorial.textContent = activeForMode ? 'Restart Tutorial' : 'Start Tutorial';
+        btnHeapTutorial.textContent = activeForMode ? t('tutorial.restart') : t('tutorial.start');
         heapContainer.classList.toggle('tutorial-active', activeForMode);
         if (!activeForMode) {
             heapTutorialPanel.classList.add('hidden');
@@ -1175,15 +1226,18 @@ document.addEventListener('DOMContentLoaded', () => {
         heapTutorialMode.textContent = heapTutorialState.name;
 
         if (heapTutorialState.completed) {
-            heapTutorialProgress.textContent = 'Completed';
-            heapTutorialTitle.textContent = heapTutorialState.name + ' tutorial complete';
-            heapTutorialText.textContent = 'You walked through insert, peek, merge, change-key, extract, and stats for this heap. Restart to replay it or switch heap modes for another tutorial.';
+            heapTutorialProgress.textContent = t('tutorial.completed');
+            heapTutorialTitle.textContent = t('tutorial.complete-title', { name: heapTutorialState.name });
+            heapTutorialText.textContent = t('tutorial.complete-text');
             syncHeapTutorialChrome();
             return;
         }
 
         const step = heapTutorialState.steps[heapTutorialState.stepIndex];
-        heapTutorialProgress.textContent = 'Step ' + (heapTutorialState.stepIndex + 1) + ' / ' + heapTutorialState.steps.length;
+        heapTutorialProgress.textContent = t('tutorial.progress', {
+            n: heapTutorialState.stepIndex + 1,
+            total: heapTutorialState.steps.length,
+        });
         heapTutorialTitle.textContent = step.title;
         heapTutorialText.textContent = step.text;
 
@@ -1297,7 +1351,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateLayout();
         if(currentMode.includes('sort-') && sortArrData.length === 0) generateSortArray();
         renderAll();
-        statusMsg.textContent = "Switched to " + currentMode; statusMsg.style.color = '#34d399';
+        statusMsg.textContent = t('status.switched-to', { mode: t('method.' + currentMode) }); statusMsg.style.color = '#34d399';
         methodDropdownButtons.forEach((btn, mid) => {
             btn.classList.toggle('is-current-method', mid === currentMode);
         });
@@ -1651,8 +1705,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleStopClick() { if(animState === 'playing' || animState === 'paused') { animState = 'stopped'; setTimeout(() => { animState = 'idle'; setAnimControls(false); if(currentMode.includes('sort')) renderSortBars(); else if(currentMode.includes('search')) renderSearchArray(currentMode === 'search-binary' ? arrBinary : arrLinear); else if(currentMode.includes('heap-')) renderHeap(); showStatus('Stopped & Reset.', '#f87171'); }, 100); } }
     btnSearchStop.addEventListener('click', handleStopClick); btnSortStop.addEventListener('click', handleStopClick);
     function setAnimControls(isPlaying) {
-        if(currentMode.includes('search')) { btnSearchGo.disabled = isPlaying; btnSearchPause.disabled = !isPlaying; btnSearchStop.disabled = !isPlaying; btnSearchPause.textContent = animState === 'paused' ? 'Resume' : 'Pause'; }
-        else if (currentMode.includes('sort')) { btnSortStart.disabled = isPlaying; btnSortRandom.disabled = isPlaying; btnSortPause.disabled = !isPlaying; btnSortStop.disabled = !isPlaying; btnSortPause.textContent = animState === 'paused' ? 'Resume' : 'Pause'; }
+        if(currentMode.includes('search')) { btnSearchGo.disabled = isPlaying; btnSearchPause.disabled = !isPlaying; btnSearchStop.disabled = !isPlaying; btnSearchPause.textContent = animState === 'paused' ? t('btn.resume') : t('btn.pause'); }
+        else if (currentMode.includes('sort')) { btnSortStart.disabled = isPlaying; btnSortRandom.disabled = isPlaying; btnSortPause.disabled = !isPlaying; btnSortStop.disabled = !isPlaying; btnSortPause.textContent = animState === 'paused' ? t('btn.resume') : t('btn.pause'); }
         else if (currentMode.includes('heap-')) {
             btnHeapInsert.disabled = isPlaying;
             btnHeapPeek.disabled = isPlaying;
@@ -1748,14 +1802,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (vizHolder) vizHolder.classList.remove('hidden');
         if(treeDrawLoop) { cancelAnimationFrame(treeDrawLoop); treeDrawLoop = null; }
 
-        if(currentMode === 'stack-array') { codeTitle.textContent = 'stack_array.cpp'; codeDisplay.textContent = codeArray; arrayContainer.classList.remove('hidden'); stdActions.classList.remove('hidden'); btnStdAdd.textContent = 'Push()'; btnStdRemove.textContent = 'Pop()'; }
-        else if (currentMode === 'stack-list') { codeTitle.textContent = 'stack_linkedlist.cpp'; codeDisplay.textContent = codeLinkedList; linkedListContainer.classList.remove('hidden'); stdActions.classList.remove('hidden'); btnStdAdd.textContent = 'Push()'; btnStdRemove.textContent = 'Pop()'; }
-        else if (currentMode === 'queue') { codeTitle.textContent = 'queue.cpp'; codeDisplay.textContent = codeQueue; queueContainer.classList.remove('hidden'); stdActions.classList.remove('hidden'); btnStdAdd.textContent = 'Enqueue()'; btnStdRemove.textContent = 'Dequeue()'; }
+        if(currentMode === 'stack-array') { codeTitle.textContent = 'stack_array.cpp'; codeDisplay.textContent = codeArray; arrayContainer.classList.remove('hidden'); stdActions.classList.remove('hidden'); btnStdAdd.textContent = t('btn.push'); btnStdRemove.textContent = t('btn.pop'); }
+        else if (currentMode === 'stack-list') { codeTitle.textContent = 'stack_linkedlist.cpp'; codeDisplay.textContent = codeLinkedList; linkedListContainer.classList.remove('hidden'); stdActions.classList.remove('hidden'); btnStdAdd.textContent = t('btn.push'); btnStdRemove.textContent = t('btn.pop'); }
+        else if (currentMode === 'queue') { codeTitle.textContent = 'queue.cpp'; codeDisplay.textContent = codeQueue; queueContainer.classList.remove('hidden'); stdActions.classList.remove('hidden'); btnStdAdd.textContent = t('btn.enqueue'); btnStdRemove.textContent = t('btn.dequeue'); }
         else if (currentMode === 'graph') {
             codeTitle.textContent = 'graph.cpp'; codeDisplay.textContent = codeGraph; graphContainer.classList.remove('hidden'); graphActions.classList.remove('hidden');
             graphW.classList.add('hidden'); btnGraphKruskal.classList.add('hidden'); btnGraphDijkstra.classList.add('hidden'); btnGraphTopo.classList.add('hidden');
             graphSource.classList.add('hidden'); graphTarget.classList.add('hidden');
-            btnGraphClear.classList.remove('hidden'); btnGraphAdd.textContent = 'Add Edge';
+            btnGraphClear.classList.remove('hidden'); btnGraphAdd.textContent = t('btn.add-edge');
         }
         else if (currentMode === 'graph-adjlist') {
             codeTitle.textContent = 'graph_adjlist.cpp'; codeDisplay.textContent = codeGraphAdjlist; graphActions.classList.remove('hidden');
@@ -1785,19 +1839,19 @@ document.addEventListener('DOMContentLoaded', () => {
             codeTitle.textContent = 'graph_kruskal.cpp'; codeDisplay.textContent = codeGraphKruskal; graphContainer.classList.remove('hidden'); graphActions.classList.remove('hidden');
             graphW.classList.remove('hidden'); btnGraphKruskal.classList.remove('hidden'); btnGraphDijkstra.classList.add('hidden'); btnGraphTopo.classList.add('hidden');
             graphSource.classList.add('hidden'); graphTarget.classList.add('hidden');
-            btnGraphClear.classList.remove('hidden'); btnGraphAdd.textContent = 'Add Weighted Edge';
+            btnGraphClear.classList.remove('hidden'); btnGraphAdd.textContent = t('btn.add-weighted-edge');
         }
         else if (currentMode === 'graph-dijkstra') {
             codeTitle.textContent = 'graph_dijkstra.cpp'; codeDisplay.textContent = codeGraphDijkstra; graphContainer.classList.remove('hidden'); graphActions.classList.remove('hidden');
             graphW.classList.add('hidden'); btnGraphKruskal.classList.add('hidden'); btnGraphDijkstra.classList.remove('hidden'); btnGraphTopo.classList.add('hidden');
             graphSource.classList.remove('hidden'); graphTarget.classList.add('hidden');
-            btnGraphClear.classList.remove('hidden'); btnGraphAdd.textContent = 'Add Edge';
+            btnGraphClear.classList.remove('hidden'); btnGraphAdd.textContent = t('btn.add-edge');
         }
         else if (currentMode === 'graph-topo') {
             codeTitle.textContent = 'graph_topo.cpp'; codeDisplay.textContent = codeGraphTopo; graphContainer.classList.remove('hidden'); graphActions.classList.remove('hidden');
             graphW.classList.add('hidden'); btnGraphKruskal.classList.add('hidden'); btnGraphDijkstra.classList.add('hidden'); btnGraphTopo.classList.remove('hidden');
             graphSource.classList.add('hidden'); graphTarget.classList.add('hidden');
-            btnGraphClear.classList.remove('hidden'); btnGraphAdd.textContent = 'Add Edge (Directed)';
+            btnGraphClear.classList.remove('hidden'); btnGraphAdd.textContent = t('btn.add-edge-directed');
         }
         else if (currentMode === 'graph-prim') {
             codeTitle.textContent = 'graph_prim.cpp';

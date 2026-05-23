@@ -14,73 +14,92 @@
     <div class="app-container">
         <header class="app-header">
             <div class="app-header__text">
-                <h1>C++ Algorithms Visualizer</h1>
-                <p>Data Structures (Stack, Queue, Graph, Tree, List) & Validated Algorithm Sandbox.</p>
+                <h1 data-i18n-key="app.title">C++ Algorithms Visualizer</h1>
+                <p data-i18n-key="app.subtitle">Data Structures (Stack, Queue, Graph, Tree, List) & Validated Algorithm Sandbox.</p>
             </div>
-            <button id="settings-toggle" type="button" class="settings-toggle" aria-label="Open settings">⚙</button>
+            <div class="app-header__actions">
+                <div class="lang-menu" data-testid="lang-menu">
+                    <button type="button" class="lang-menu-btn"
+                            data-i18n-aria-label="aria.lang-toggle"
+                            aria-label="Switch language">
+                        <span class="lang-menu-current">English</span>
+                        <span class="lang-menu-caret" aria-hidden="true">▾</span>
+                    </button>
+                    <div class="lang-menu-dropdown" role="menu">
+                        <button type="button" class="lang-menu-option" role="menuitem" data-lang="en">English</button>
+                        <button type="button" class="lang-menu-option" role="menuitem" data-lang="zh">中文</button>
+                    </div>
+                </div>
+                <button id="settings-toggle" type="button" class="settings-toggle"
+                        data-i18n-aria-label="aria.settings-toggle"
+                        aria-label="Open settings">⚙</button>
+            </div>
         </header>
 
-        <nav id="category-nav" class="app-category-nav" aria-label="Data structure categories" data-testid="category-nav"></nav>
+        <nav id="category-nav" class="app-category-nav"
+             data-i18n-aria-label="aria.category-nav"
+             aria-label="Data structure categories"
+             data-testid="category-nav"></nav>
 
         <div class="runtime-stage" aria-hidden="true">
             <section class="visualization-panel glass-panel">
                 <div class="controls">
                     <div class="actions" id="std-actions">
-                        <input type="number" id="std-value" placeholder="Value" value="10">
-                        <button id="btn-std-add" class="btn primary">Push()</button>
-                        <button id="btn-std-remove" class="btn secondary">Pop()</button>
+                        <input type="number" id="std-value" data-i18n-placeholder="ph.value" placeholder="Value" value="10">
+                        <button id="btn-std-add" class="btn primary" data-i18n-key="btn.push">Push()</button>
+                        <button id="btn-std-remove" class="btn secondary" data-i18n-key="btn.pop">Pop()</button>
                     </div>
 
                     <div class="actions hidden" id="list-actions">
-                        <input type="number" id="list-idx" placeholder="Index" min="0" style="max-width: 80px;">
-                        <input type="number" id="list-val" placeholder="Value">
-                        <button id="btn-list-add" class="btn primary">Insert</button>
-                        <button id="btn-list-remove" class="btn secondary">Remove</button>
+                        <input type="number" id="list-idx" data-i18n-placeholder="ph.index" placeholder="Index" min="0" style="max-width: 80px;">
+                        <input type="number" id="list-val" data-i18n-placeholder="ph.value" placeholder="Value">
+                        <button id="btn-list-add" class="btn primary" data-i18n-key="btn.insert">Insert</button>
+                        <button id="btn-list-remove" class="btn secondary" data-i18n-key="btn.remove">Remove</button>
                     </div>
 
                     <div class="actions hidden" id="graph-actions">
-                        <input type="number" id="graph-u" placeholder="U(0-4)" min="0" max="4" value="0">
-                        <input type="number" id="graph-v" placeholder="V(0-4)" min="0" max="4" value="1">
-                        <input type="number" id="graph-w" placeholder="Weight" min="1" value="4">
-                        <button id="btn-graph-add" class="btn primary">Add Edge</button>
-                        <button id="btn-graph-kruskal" class="btn secondary">Run Kruskal()</button>
-                        <input type="number" id="graph-source" placeholder="Source(0-4)" min="0" max="4" value="0" class="hidden">
-                        <input type="number" id="graph-target" placeholder="Target(0-4)" min="0" max="4" value="4" class="hidden">
-                        <button id="btn-graph-dijkstra" class="btn secondary">Run Dijkstra()</button>
-                        <button id="btn-graph-topo" class="btn secondary">Run Topo Sort()</button>
-                        <button id="btn-graph-clear" class="btn exception">Reset Graph</button>
+                        <input type="number" id="graph-u" data-i18n-placeholder="ph.u-range" placeholder="U(0-4)" min="0" max="4" value="0">
+                        <input type="number" id="graph-v" data-i18n-placeholder="ph.v-range" placeholder="V(0-4)" min="0" max="4" value="1">
+                        <input type="number" id="graph-w" data-i18n-placeholder="ph.weight" placeholder="Weight" min="1" value="4">
+                        <button id="btn-graph-add" class="btn primary" data-i18n-key="btn.add-edge">Add Edge</button>
+                        <button id="btn-graph-kruskal" class="btn secondary" data-i18n-key="btn.run-kruskal">Run Kruskal()</button>
+                        <input type="number" id="graph-source" data-i18n-placeholder="ph.source-range" placeholder="Source(0-4)" min="0" max="4" value="0" class="hidden">
+                        <input type="number" id="graph-target" data-i18n-placeholder="ph.target-range" placeholder="Target(0-4)" min="0" max="4" value="4" class="hidden">
+                        <button id="btn-graph-dijkstra" class="btn secondary" data-i18n-key="btn.run-dijkstra">Run Dijkstra()</button>
+                        <button id="btn-graph-topo" class="btn secondary" data-i18n-key="btn.run-topo">Run Topo Sort()</button>
+                        <button id="btn-graph-clear" class="btn exception" data-i18n-key="btn.reset-graph">Reset Graph</button>
                     </div>
 
                     <div class="actions hidden" id="hash-actions">
-                        <input type="number" id="hash-val" placeholder="Value (e.g. 42)">
-                        <button id="btn-hash-add" class="btn primary">Hash/Insert()</button>
+                        <input type="number" id="hash-val" data-i18n-placeholder="ph.value-example" placeholder="Value (e.g. 42)">
+                        <button id="btn-hash-add" class="btn primary" data-i18n-key="btn.hash-insert">Hash/Insert()</button>
                     </div>
 
                     <div class="actions hidden" id="tree-actions">
-                        <input type="number" id="tree-val" placeholder="Node Value" value="50">
-                        <button id="btn-tree-add" class="btn primary">Insert()</button>
-                        <button id="btn-tree-search" class="btn secondary">Splay Search()</button>
+                        <input type="number" id="tree-val" data-i18n-placeholder="ph.node-value" placeholder="Node Value" value="50">
+                        <button id="btn-tree-add" class="btn primary" data-i18n-key="btn.insert-call">Insert()</button>
+                        <button id="btn-tree-search" class="btn secondary" data-i18n-key="btn.splay-search">Splay Search()</button>
                     </div>
 
                     <div class="actions hidden" id="text-tree-actions">
-                        <input type="text" id="text-tree-val" placeholder="Word (e.g. CAT)" style="text-transform: uppercase;">
-                        <button id="btn-text-tree-add" class="btn primary">Insert Word()</button>
+                        <input type="text" id="text-tree-val" data-i18n-placeholder="ph.word-example" placeholder="Word (e.g. CAT)" style="text-transform: uppercase;">
+                        <button id="btn-text-tree-add" class="btn primary" data-i18n-key="btn.insert-word">Insert Word()</button>
                     </div>
 
                     <div class="actions hidden" id="search-actions">
-                        <input type="number" id="search-val" placeholder="Target" value="38">
-                        <button id="btn-search-go" class="btn primary">Find()</button>
-                        <button id="btn-search-pause" class="btn secondary" disabled>Pause</button>
-                        <button id="btn-search-stop" class="btn exception" disabled>Stop</button>
+                        <input type="number" id="search-val" data-i18n-placeholder="ph.target" placeholder="Target" value="38">
+                        <button id="btn-search-go" class="btn primary" data-i18n-key="btn.find">Find()</button>
+                        <button id="btn-search-pause" class="btn secondary" disabled data-i18n-key="btn.pause">Pause</button>
+                        <button id="btn-search-stop" class="btn exception" disabled data-i18n-key="btn.stop">Stop</button>
                     </div>
 
                     <div class="actions hidden" id="sort-actions">
-                        <button id="btn-sort-random" class="btn secondary">Randomize</button>
-                        <button id="btn-sort-start" class="btn primary">Start()</button>
-                        <button id="btn-sort-pause" class="btn secondary" disabled>Pause</button>
-                        <button id="btn-sort-stop" class="btn exception" disabled>Stop</button>
+                        <button id="btn-sort-random" class="btn secondary" data-i18n-key="btn.randomize">Randomize</button>
+                        <button id="btn-sort-start" class="btn primary" data-i18n-key="btn.start">Start()</button>
+                        <button id="btn-sort-pause" class="btn secondary" disabled data-i18n-key="btn.pause">Pause</button>
+                        <button id="btn-sort-stop" class="btn exception" disabled data-i18n-key="btn.stop">Stop</button>
                         <div style="display: flex; align-items: center; gap: 10px; margin-left: 10px;">
-                            <span style="font-size: 0.8rem; color: #cbd5e1;">Delay</span>
+                            <span style="font-size: 0.8rem; color: #cbd5e1;" data-i18n-key="settings.delay">Delay</span>
                             <input type="range" id="sort-speed" min="10" max="600" value="100" style="width: 100px;">
                         </div>
                     </div>
@@ -90,14 +109,14 @@
                             <option value="min">Min-Heap</option>
                             <option value="max">Max-Heap</option>
                         </select>
-                        <input type="number" id="heap-val" placeholder="Value">
-                        <input type="text" id="heap-extra" placeholder="Extra list or new value">
-                        <button id="btn-heap-insert" class="btn primary">Insert()</button>
-                        <button id="btn-heap-peek" class="btn secondary">Peek()</button>
-                        <button id="btn-heap-extract" class="btn secondary">Extract()</button>
-                        <button id="btn-heap-merge" class="btn secondary">Merge(+extra)</button>
-                        <button id="btn-heap-change" class="btn secondary">Decrease/Increase</button>
-                        <button id="btn-heap-delete" class="btn exception">Delete(value)</button>
+                        <input type="number" id="heap-val" data-i18n-placeholder="ph.value" placeholder="Value">
+                        <input type="text" id="heap-extra" data-i18n-placeholder="ph.heap-extra" placeholder="Extra list or new value">
+                        <button id="btn-heap-insert" class="btn primary" data-i18n-key="btn.insert-call">Insert()</button>
+                        <button id="btn-heap-peek" class="btn secondary" data-i18n-key="btn.peek">Peek()</button>
+                        <button id="btn-heap-extract" class="btn secondary" data-i18n-key="btn.extract">Extract()</button>
+                        <button id="btn-heap-merge" class="btn secondary" data-i18n-key="btn.heap-merge">Merge(+extra)</button>
+                        <button id="btn-heap-change" class="btn secondary" data-i18n-key="btn.heap-change">Decrease/Increase</button>
+                        <button id="btn-heap-delete" class="btn exception" data-i18n-key="btn.heap-delete">Delete(value)</button>
                         <button id="btn-heap-find-min" class="btn secondary" style="font-size: 0.8rem;">Find-Min</button>
                         <button id="btn-heap-stats" class="btn secondary" style="font-size: 0.8rem;">Heap Stats</button>
                         <button id="btn-heap-tutorial" class="btn primary" style="font-size: 0.8rem;">Start Tutorial</button>
@@ -350,7 +369,9 @@
                     </div>
                     <div class="slide-viewer-header-actions">
                         <button type="button" id="slide-lang-toggle" class="slide-lang-toggle"
-                                data-testid="slide-lang-toggle" aria-label="Switch slide language">中 / EN</button>
+                                data-testid="lang-toggle"
+                                data-i18n-aria-label="aria.lang-toggle"
+                                aria-label="Switch language">EN</button>
                         <button type="button" class="slide-viewer-close" data-slide-close aria-label="Close slides">×</button>
                     </div>
                 </header>
@@ -367,12 +388,12 @@
         <button type="button" class="settings-drawer-backdrop" data-settings-close aria-label="Close settings"></button>
         <section class="settings-drawer-panel" role="dialog" aria-modal="true" aria-labelledby="settings-drawer-title" tabindex="-1">
             <header class="settings-drawer-header">
-                <h2 id="settings-drawer-title">設定 / Settings</h2>
+                <h2 id="settings-drawer-title" data-i18n-key="settings.title">Settings</h2>
                 <button type="button" class="settings-drawer-close" data-settings-close aria-label="Close">×</button>
             </header>
             <div class="settings-drawer-body">
                 <section class="settings-row">
-                    <label for="code-density-slider">程式碼面板行距 / Code panel line-height</label>
+                    <label for="code-density-slider" data-i18n-key="settings.density">Code panel line-height</label>
                     <div class="settings-row-controls">
                         <input id="code-density-slider" type="range" min="1.0" max="1.8" step="0.05" value="1.55">
                         <span id="code-density-value">1.55</span>
@@ -380,7 +401,7 @@
                     </div>
                 </section>
                 <section class="settings-row settings-row-preview">
-                    <label>預覽 / Preview</label>
+                    <label data-i18n-key="settings.preview">Preview</label>
                     <pre class="code-panel-body language-cpp"><code class="language-cpp">int sumTo(int n) {
     int total = 0;
     for (int i = 1; i &lt;= n; i++) {
@@ -399,6 +420,7 @@
     <script src="code_db.js"></script>
     <script src="slides_rendered.js"></script>
     <script src="heap_models.js"></script>
+    <script src="i18n.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
