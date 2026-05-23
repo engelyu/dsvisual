@@ -72,6 +72,34 @@ test.describe('i18n', () => {
         await context.close();
     });
 
+    test('overview pill is leftmost; shows grid; tile click loads method; toggles language', async ({ page }) => {
+        await page.addInitScript(() => {
+            try { localStorage.setItem('dsvisual-lang', 'en'); } catch (e) {}
+        });
+        await page.goto(FILE_URI);
+        // Leftmost pill is Overview, labeled "Overview" in en.
+        const firstPill = page.locator('.app-category-nav .category-nav-btn').first();
+        await expect(firstPill).toHaveText('Overview');
+        // Click → overview-section visible, runtime-stage hidden.
+        await firstPill.click();
+        await expect(page.locator('[data-testid="overview-section"]')).toBeVisible();
+        await expect(page.locator('.runtime-stage')).toBeHidden();
+        // Grid has 9 categories and 78 tiles (one per method).
+        await expect(page.locator('[data-testid="overview-grid"] .overview-category')).toHaveCount(9);
+        await expect(page.locator('[data-testid="overview-grid"] .overview-tile')).toHaveCount(78);
+        // Click a tile → overview hides, method activates.
+        await page.locator('.overview-tile[data-method-id="tree-bst"]').click();
+        await expect(page.locator('[data-testid="overview-section"]')).toBeHidden();
+        await expect(page.locator('[data-method-section="tree-bst"]'))
+            .toHaveAttribute('data-runtime-state', 'active');
+        // Re-open overview, then toggle language — content re-renders in zh.
+        await firstPill.click();
+        await expect(page.locator('[data-testid="overview-section"]')).toBeVisible();
+        await page.evaluate(() => window.I18N.setLanguage('zh'));
+        await expect(page.locator('.app-category-nav .category-nav-btn').first()).toHaveText('總覽');
+        await expect(page.locator('[data-testid="overview-section"] h2')).toHaveText('總覽');
+    });
+
     test('persistent lang-menu in header switches language on click', async ({ page }) => {
         await page.addInitScript(() => {
             try { localStorage.setItem('dsvisual-lang', 'en'); } catch (e) {}

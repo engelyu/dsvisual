@@ -30,11 +30,12 @@ test.describe('Data Structure Visualizer Full Suite', () => {
         await expect(stackArraySection.locator('.code-panel-filename')).toContainText('stack_array.cpp');
     });
 
-    test('Phase 1 category nav: renders nine top-level groups and drives method sections', async ({ page }) => {
+    test('Phase 1 category nav: renders Overview + nine top-level groups and drives method sections', async ({ page }) => {
         const categoryNav = page.locator('[data-testid="category-nav"]');
         const methodSections = page.locator('[data-testid="method-sections"]');
         await expect(categoryNav).toBeVisible();
-        await expect(categoryNav.locator('.category-nav-btn')).toHaveCount(9);
+        // 1 Overview pill + 9 category groups = 10 pills total.
+        await expect(categoryNav.locator('.category-nav-btn')).toHaveCount(10);
         await expect(categoryNav.locator('[data-testid="method-select"]')).toHaveCount(0);
         await expect(methodSections.locator('[data-testid="method-heading-title"]')).toBeVisible();
         await expect(methodSections.locator('[data-method-section="stack-array"]')).toBeVisible();

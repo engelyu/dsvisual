@@ -2132,3 +2132,69 @@ pre.code-panel-body[class*="language-"] {
 }
 .lang-menu-option:hover { background: #eff6ff; color: #1d4ed8; }
 .lang-menu-option.is-current-lang { background: #dbeafe; font-weight: 600; }
+
+/* ----- Overview page ----- */
+.overview-section {
+    padding: 24px 20px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.overview-intro h2 {
+    margin: 0 0 8px;
+    font-size: 1.6rem;
+    color: #1e293b;
+}
+.overview-intro p {
+    margin: 0 0 24px;
+    font-size: 14px;
+    color: #475569;
+    max-width: 760px;
+    line-height: 1.6;
+}
+.overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+.overview-category {
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--card-border, #cbd5e1);
+    border-radius: 10px;
+    padding: 14px 16px 16px;
+    box-shadow: var(--app-shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.04));
+}
+.overview-category-title {
+    margin: 0 0 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--primary-hover, #2980b9);
+}
+.overview-methods {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.overview-tile {
+    padding: 5px 10px;
+    border: 1px solid var(--card-border, #cbd5e1);
+    border-radius: 999px;
+    background: #fff;
+    color: #1e293b;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.overview-tile:hover {
+    background: #eff6ff;
+    border-color: #3b82f6;
+    color: #1d4ed8;
+}
+/* Overview pill in the nav — same look as category pills, but always
+   without a dropdown indicator. */
+.category-nav-item-overview .category-nav-btn.active {
+    background: var(--primary-hover, #2980b9);
+    border-color: var(--primary-hover, #2980b9);
+    color: #fff;
+}

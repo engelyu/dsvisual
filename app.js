@@ -367,7 +367,95 @@ document.addEventListener('DOMContentLoaded', () => {
     const categoryButtons = new Map();
     const subTabButtons = new Map();
     const methodDropdownButtons = new Map();
+    const overviewPillButtons = new Map();
     let dropdownGlobalListenersRegistered = false;
+
+    const runtimeStageEl = document.querySelector('.runtime-stage');
+    const overviewSection = document.getElementById('overview-section');
+    const overviewGrid = document.querySelector('[data-testid="overview-grid"]');
+
+    function isOverviewVisible() {
+        return overviewSection && !overviewSection.hidden;
+    }
+
+    function renderOverview() {
+        if (!overviewGrid) return;
+        overviewGrid.innerHTML = '';
+        const renderedParents = new Set();
+        METHOD_GROUPS.forEach((group) => {
+            let displayGroupId;
+            let methods;
+            if (group.parent) {
+                if (renderedParents.has(group.parent)) return;
+                renderedParents.add(group.parent);
+                displayGroupId = group.parent;
+                methods = METHOD_GROUPS
+                    .filter((g) => g.parent === group.parent)
+                    .flatMap((g) => g.methods.map((m) => ({ id: m.id, _groupId: g.id })));
+            } else {
+                displayGroupId = group.id;
+                methods = group.methods.map((m) => ({ id: m.id, _groupId: group.id }));
+            }
+            const card = document.createElement('div');
+            card.className = 'overview-category';
+            card.dataset.group = displayGroupId;
+            const header = document.createElement('h3');
+            header.className = 'overview-category-title';
+            header.textContent = t('group.' + displayGroupId);
+            card.appendChild(header);
+            const tiles = document.createElement('div');
+            tiles.className = 'overview-methods';
+            methods.forEach((m) => {
+                const tile = document.createElement('button');
+                tile.type = 'button';
+                tile.className = 'overview-tile';
+                tile.dataset.methodId = m.id;
+                tile.textContent = t('method.' + m.id);
+                tile.addEventListener('click', () => {
+                    hideOverview();
+                    setActiveCategory(m._groupId);
+                    selectMethod(m.id);
+                    scrollToCategory(m._groupId);
+                });
+                tiles.appendChild(tile);
+            });
+            card.appendChild(tiles);
+            overviewGrid.appendChild(card);
+        });
+    }
+
+    function showOverview() {
+        if (!overviewSection) return;
+        if (runtimeStageEl) runtimeStageEl.hidden = true;
+        if (methodSections) methodSections.hidden = true;
+        overviewSection.hidden = false;
+        overviewPillButtons.forEach((b) => {
+            b.classList.add('active');
+            b.setAttribute('aria-current', 'true');
+        });
+        categoryButtons.forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-current', 'false');
+        });
+        subTabButtons.forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-current', 'false');
+        });
+        const subTabRow = categoryNav && categoryNav.querySelector('.category-subtab-row');
+        if (subTabRow) subTabRow.classList.remove('visible');
+        renderOverview();
+    }
+
+    function hideOverview() {
+        if (!overviewSection || overviewSection.hidden) return;
+        overviewSection.hidden = true;
+        if (runtimeStageEl) runtimeStageEl.hidden = false;
+        if (methodSections) methodSections.hidden = false;
+        overviewPillButtons.forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-current', 'false');
+        });
+    }
 
     function setActiveCategory(groupId) {
         const group = getMethodGroupById(groupId);
@@ -760,10 +848,31 @@ document.addEventListener('DOMContentLoaded', () => {
         categoryButtons.clear();
         subTabButtons.clear();
         methodDropdownButtons.clear();
+        overviewPillButtons.clear();
+
+        // Overview pill — always leftmost, no dropdown, click toggles the overview view.
+        const overviewItem = document.createElement('div');
+        overviewItem.className = 'category-nav-item category-nav-item-overview';
+        overviewItem.dataset.group = '__overview__';
+        const overviewBtn = document.createElement('button');
+        overviewBtn.type = 'button';
+        overviewBtn.className = 'category-nav-btn';
+        overviewBtn.dataset.group = '__overview__';
+        overviewBtn.textContent = t('nav.overview');
+        overviewBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            categoryNav.querySelectorAll('.category-nav-item.open')
+                .forEach((it) => it.classList.remove('open'));
+            showOverview();
+        });
+        overviewItem.appendChild(overviewBtn);
+        categoryNav.appendChild(overviewItem);
+        overviewPillButtons.set('__overview__', overviewBtn);
 
         function activateGroup(groupId, methodId) {
             const group = getMethodGroupById(groupId);
             if (!group) return;
+            hideOverview();
             const nextMethod = methodId || group.methods[0]?.id;
             setActiveCategory(group.id);
             if (nextMethod) {
@@ -889,6 +998,7 @@ document.addEventListener('DOMContentLoaded', () => {
     bindDensitySlider();
     renderCategoryNav();
     document.addEventListener('languagechange', () => {
+        const overviewWasVisible = isOverviewVisible();
         renderCategoryNav();
         if (typeof currentMode === 'string' && currentMode) {
             switchMode(currentMode);
@@ -899,6 +1009,9 @@ document.addEventListener('DOMContentLoaded', () => {
             slideDeck = buildSlides(slideMethodId);
             if (slideIndex >= slideDeck.length) slideIndex = slideDeck.length - 1;
             renderSlide();
+        }
+        if (overviewWasVisible) {
+            showOverview();
         }
     });
 
