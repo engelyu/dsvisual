@@ -644,9 +644,14 @@ document.addEventListener('DOMContentLoaded', () => {
         switchMode(methodId);
     }
 
-    let slideDeck = [];
+    // Deck list = [{ id, kind: 'public'|'private', titleEn, titleZh, slides: [{title,body}], access }]
+    // Single-deck case (deckList.length === 1) hides the picker bar — behaviour
+    // identical to the pre-private-slides era.
+    let slideDeckList = [];
+    let slideDeckIndex = 0;
     let slideIndex = 0;
     let slideMethodId = null;
+    let slidePrivateSignInNeeded = false;
     const slideLangToggle = document.getElementById('slide-lang-toggle');
 
     function getMethodById(methodId) {
@@ -657,7 +662,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
-    function buildSlides(methodId) {
+    function getPrivateContext() {
+        const cfg = window.dsvisualCloudConfig;
+        const raw = (cfg && cfg.drive && cfg.drive.privateSlidesFolderId) || '';
+        // Defensive: treat literal __…__ placeholder (inject-env didn't run, or env unset)
+        // as "not configured" — feature disabled, no Drive calls.
+        const folderId = /^__.+__$/.test(raw) ? '' : raw;
+        if (!folderId) return { folderId: '', token: null };
+        const client = window.cloudClient ? window.cloudClient() : null;
+        const token = client ? client.getAccessToken() : null;
+        return { folderId: folderId, token: token };
+    }
+
+    function publicSlidesFor(methodId) {
         const lang = window.I18N ? window.I18N.getCurrentLanguage() : 'en';
         const entry = window.SLIDES_RENDERED && window.SLIDES_RENDERED[methodId];
         if (!entry || !entry.slides[lang] || entry.slides[lang].length === 0) {
@@ -667,31 +684,146 @@ document.addEventListener('DOMContentLoaded', () => {
         return entry.slides[lang];
     }
 
+    function publicDeckFor(methodId) {
+        // Both titleEn/titleZh get the current-language value; openSlides()
+        // re-rebuilds the deck list when language changes, so the picker
+        // re-renders with the correct title for the new language.
+        const title = t('method.' + methodId) || methodId;
+        return {
+            id: methodId + '-public',
+            kind: 'public',
+            titleEn: title,
+            titleZh: title,
+            slides: publicSlidesFor(methodId),
+            access: 'ok',
+        };
+    }
+
+    function privateDeckToViewerShape(d) {
+        const lang = window.I18N ? window.I18N.getCurrentLanguage() : 'en';
+        const md = (lang === 'zh') ? d.zh : d.en;
+        const parsed = (window.slideMarkdown && md)
+            ? window.slideMarkdown.parseDeck(md) : { slides: [] };
+        const slides = parsed.slides.map((s) => ({ title: '', body: s.html }));
+        if (slides.length === 0) {
+            slides.push({ title: '', body: '<p>' + t('slide.private-no-access') + '</p>' });
+        }
+        return {
+            id: d.id,
+            kind: 'private',
+            titleEn: d.titleEn,
+            titleZh: d.titleZh,
+            slides: slides,
+            access: d.access,
+        };
+    }
+
+    function deckTitle(deck) {
+        const lang = window.I18N ? window.I18N.getCurrentLanguage() : 'en';
+        const base = (lang === 'zh') ? deck.titleZh : deck.titleEn;
+        return deck.kind === 'private' ? '🔒 ' + base : base;
+    }
+
+    function renderDeckBar() {
+        if (slideDeckList.length <= 1 && !slidePrivateSignInNeeded) return '';
+        const items = slideDeckList.slice();
+        if (slidePrivateSignInNeeded) items.push({ __signInRow: true });
+        const html = items.map((d, i) => {
+            if (d.__signInRow) {
+                return '<button type="button" class="slide-deck-btn slide-deck-btn--signin"' +
+                       ' data-testid="slide-signin-row">' + t('slide.private-signin-row') + '</button>';
+            }
+            const classes = ['slide-deck-btn'];
+            if (i === slideDeckIndex) classes.push('slide-deck-btn--active');
+            if (d.kind === 'private') classes.push('slide-deck-btn--private');
+            if (d.kind === 'private' && d.access === 'denied') classes.push('slide-deck-btn--denied');
+            if (d.kind === 'private' && d.access === 'error')  classes.push('slide-deck-btn--error');
+            const disabled = (d.kind === 'private' && (d.access === 'denied' || d.access === 'error'));
+            const suffix =
+                (d.kind === 'private' && d.access === 'denied')
+                    ? ' <span class="slide-deck-btn__sub">— ' + t('slide.private-no-access') + '</span>'
+                : (d.kind === 'private' && d.access === 'error')
+                    ? ' <span class="slide-deck-btn__sub">— ' + t('slide.private-fetch-error') + '</span>'
+                : '';
+            return '<button type="button" class="' + classes.join(' ') + '"' +
+                   ' data-deck-index="' + i + '" data-testid="slide-deck-' + i + '"' +
+                   (disabled ? ' disabled' : '') + '>' +
+                   deckTitle(d) + suffix + '</button>';
+        }).join('');
+        return '<div class="slide-deck-bar" role="tablist" data-testid="slide-deck-bar">' + html + '</div>';
+    }
+
     function renderSlide() {
-        if (!slideViewer || slideDeck.length === 0) return;
-        const slide = slideDeck[slideIndex];
-        slideViewerTitle.textContent = slide.title;
+        if (!slideViewer || slideDeckList.length === 0) return;
+        const deck = slideDeckList[slideDeckIndex];
+        const slide = deck.slides[slideIndex] || { title: '', body: '' };
+        slideViewerTitle.textContent = slide.title || deckTitle(deck);
         slideViewerProgress.textContent = t('slide.progress', {
             n: slideIndex + 1,
-            total: slideDeck.length,
+            total: deck.slides.length,
         });
-        slideViewerBody.innerHTML = slide.body;
+        slideViewerBody.innerHTML = renderDeckBar() + slide.body;
+        // Wire deck-bar clicks.
+        slideViewerBody.querySelectorAll('[data-deck-index]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.getAttribute('data-deck-index'), 10);
+                if (slideDeckList[idx] &&
+                    !(slideDeckList[idx].kind === 'private' &&
+                      (slideDeckList[idx].access === 'denied' || slideDeckList[idx].access === 'error'))) {
+                    slideDeckIndex = idx;
+                    slideIndex = 0;
+                    renderSlide();
+                }
+            });
+        });
+        const signinRow = slideViewerBody.querySelector('[data-testid="slide-signin-row"]');
+        if (signinRow) {
+            signinRow.addEventListener('click', () => {
+                closeSlides();
+                if (typeof window.openCloudDrawer === 'function') window.openCloudDrawer();
+            });
+        }
         slidePrev.disabled = slideIndex === 0;
-        slideNext.disabled = slideIndex >= slideDeck.length - 1;
-        // Scroll to top of slide for better readability
+        slideNext.disabled = slideIndex >= deck.slides.length - 1;
         slideViewerBody.scrollTop = 0;
+    }
+
+    async function fetchAndMergePrivate(methodId) {
+        const ctx = getPrivateContext();
+        if (!ctx.folderId) { slidePrivateSignInNeeded = false; return; }
+        if (!ctx.token) { slidePrivateSignInNeeded = true; return; }
+        slidePrivateSignInNeeded = false;
+        try {
+            const all = await window.privateDecksClient.fetchPrivateDecks({
+                accessToken: ctx.token, folderId: ctx.folderId,
+            });
+            const forThisMethod = all.filter((d) => d.method === methodId);
+            if (forThisMethod.length === 0) return;
+            // Append private decks (in cache order). Re-render if viewer still open.
+            forThisMethod.forEach((d) => slideDeckList.push(privateDeckToViewerShape(d)));
+            if (!slideViewer.hidden && slideMethodId === methodId) renderSlide();
+        } catch (_) {
+            // Silent — leave the picker as public-only.
+        }
     }
 
     function openSlides(methodId) {
         slideMethodId = methodId;
-        slideDeck = buildSlides(methodId);
+        slideDeckList = [publicDeckFor(methodId)];
+        slideDeckIndex = 0;
         slideIndex = 0;
+        // Compute sign-in state synchronously so first paint is correct.
+        const ctx = getPrivateContext();
+        slidePrivateSignInNeeded = Boolean(ctx.folderId) && !ctx.token;
         renderSlide();
         slideViewer.hidden = false;
         slideViewer.classList.add('open');
         slideViewer.querySelector('.slide-viewer-panel').focus();
-        // Trap keyboard focus within modal
         slideViewer.addEventListener('keydown', handleSlideKeydown);
+        // Kick off async private-deck fetch + merge.
+        if (ctx.folderId && ctx.token) {
+            fetchAndMergePrivate(methodId);
+        }
     }
 
     function closeSlides() {
@@ -702,43 +834,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleSlideKeydown(e) {
+        const deck = slideDeckList[slideDeckIndex];
+        if (!deck) return;
         if (e.key === 'Escape') {
             closeSlides();
         } else if (e.key === 'ArrowRight' || e.key === ' ') {
             e.preventDefault();
-            if (slideIndex < slideDeck.length - 1) {
-                slideIndex++;
-                renderSlide();
-            }
+            if (slideIndex < deck.slides.length - 1) { slideIndex++; renderSlide(); }
         } else if (e.key === 'ArrowLeft') {
             e.preventDefault();
-            if (slideIndex > 0) {
-                slideIndex--;
-                renderSlide();
-            }
+            if (slideIndex > 0) { slideIndex--; renderSlide(); }
         }
     }
 
     slideCloseButtons.forEach((button) => button.addEventListener('click', closeSlides));
     slidePrev.addEventListener('click', () => {
-        if (slideIndex > 0) {
-            slideIndex--;
-            renderSlide();
-        }
+        const deck = slideDeckList[slideDeckIndex];
+        if (deck && slideIndex > 0) { slideIndex--; renderSlide(); }
     });
     slideNext.addEventListener('click', () => {
-        if (slideIndex < slideDeck.length - 1) {
-            slideIndex++;
-            renderSlide();
-        }
+        const deck = slideDeckList[slideDeckIndex];
+        if (deck && slideIndex < deck.slides.length - 1) { slideIndex++; renderSlide(); }
     });
 
     if (slideLangToggle) {
         slideLangToggle.addEventListener('click', () => {
             const next = window.I18N.getCurrentLanguage() === 'zh' ? 'en' : 'zh';
             window.I18N.setLanguage(next);
+            if (!slideViewer.hidden && slideMethodId) {
+                // Rebuild deck list with the new language.
+                openSlides(slideMethodId);
+            }
         });
     }
+
+    // Refresh private decks when user signs in/out from the cloud drawer.
+    window.addEventListener('cloud-auth-changed', () => {
+        if (window.privateDecksClient) window.privateDecksClient._resetPrivateDecksCache();
+        if (!slideViewer.hidden && slideMethodId) openSlides(slideMethodId);
+    });
 
     function updateLangToggleLabel() {
         if (!slideLangToggle) return;
