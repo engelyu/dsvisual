@@ -703,4 +703,31 @@ const descDB = {
             <span class="badge space">Space: O(N)</span>
         </div>
     `,
+    'graph-aoe': `
+        <h3>AOE Networks &amp; Critical Path</h3>
+        <p>Activity-on-edge networks model project scheduling.</p>
+        <hr>
+        <ul>
+            <li><strong>Forward pass:</strong> earliest event time ee(v)</li>
+            <li><strong>Backward pass:</strong> latest event time le(v)</li>
+            <li><strong>Critical activity:</strong> e(i) = l(i); critical path = longest path</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Time: O(V + E)</span>
+            <span class="badge space">Space: O(V + E)</span>
+        </div>
+    `,
+    'expr-infix-postfix': `
+        <h3>Infix → Postfix (Shunting-Yard)</h3>
+        <p>Convert infix expressions to postfix using an operator stack, then evaluate.</p>
+        <hr>
+        <ul>
+            <li><strong>Convert:</strong> operator stack + output queue (precedence rules)</li>
+            <li><strong>Evaluate:</strong> value stack over the postfix tokens</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Time: O(N)</span>
+            <span class="badge space">Space: O(N)</span>
+        </div>
+    `,
 };

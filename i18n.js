@@ -57,6 +57,8 @@
             'method.graph-prim':            "Prim's MST",
             'method.graph-bellman-ford':    'Bellman-Ford',
             'method.graph-floyd-warshall':  'Floyd-Warshall',
+            'method.graph-aoe':             'AOE / Critical Path',
+            'method.expr-infix-postfix':    'Infix → Postfix (Stack)',
 
             // Methods — Hash & Probabilistic
             'method.hash-chain':            'Hash Chaining',
@@ -253,6 +255,8 @@
             'method.graph-prim':            "Prim's MST",
             'method.graph-bellman-ford':    'Bellman-Ford',
             'method.graph-floyd-warshall':  'Floyd-Warshall',
+            'method.graph-aoe':             'AOE 網路 / 關鍵路徑',
+            'method.expr-infix-postfix':    '中序轉後序(堆疊)',
 
             // Methods — Hash & Probabilistic
             'method.hash-chain':            '鏈結雜湊',

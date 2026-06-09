@@ -20577,4 +20577,60 @@ SLIDES_DB["huffman"] = {
       ] }
   ]
 };
+SLIDES_DB["graph-aoe"] = {
+  "category": "Graphs",
+  "title": { "zh": "AOE 網路與關鍵路徑", "en": "AOE Networks & Critical Path" },
+  "slides": [
+    { "heading": { "zh": "AOE 網路", "en": "AOE Networks" },
+      "blocks": [
+        { "type": "paragraph", "text": { "zh": "Activity-on-Edge:頂點是事件,邊是有工時的活動,用於專案排程。", "en": "Activity-on-Edge: vertices are events, edges are activities with durations — used for project scheduling." } },
+        { "type": "bullets", "items": [
+          { "zh": "ee(v):事件最早發生時間(forward pass)", "en": "ee(v): earliest event time (forward pass)" },
+          { "zh": "le(v):事件最晚發生時間(backward pass)", "en": "le(v): latest event time (backward pass)" },
+          { "zh": "關鍵活動:e(i)=l(i),構成關鍵路徑", "en": "Critical activity: e(i)=l(i), forming the critical path" }
+        ] }
+      ] },
+    { "heading": { "zh": "兩趟掃描", "en": "Two Passes" },
+      "blocks": [
+        { "type": "steps", "items": [
+          { "zh": "依拓樸序做 forward pass 求 ee。", "en": "Forward pass in topological order to get ee." },
+          { "zh": "依反拓樸序做 backward pass 求 le。", "en": "Backward pass in reverse topological order to get le." },
+          { "zh": "活動 (u,v,w) 關鍵 ⟺ ee[u] = le[v] − w。", "en": "Activity (u,v,w) is critical iff ee[u] = le[v] − w." }
+        ] },
+        { "type": "math", "tex": "ee(v) = \\max_{(u,v)\\in E}\\, ee(u)+w(u,v)", "caption": { "zh": "forward pass 遞迴式", "en": "Forward-pass recurrence" } }
+      ] },
+    { "heading": { "zh": "複雜度", "en": "Complexity" },
+      "blocks": [
+        { "type": "bullets", "items": [
+          { "zh": "時間 O(V+E);空間 O(V+E)", "en": "Time O(V+E); Space O(V+E)" },
+          { "zh": "關鍵路徑長 = ee(sink) = 專案最短完工時間", "en": "Critical-path length = ee(sink) = minimum project completion time" }
+        ] }
+      ] }
+  ]
+};
+SLIDES_DB["expr-infix-postfix"] = {
+  "category": "Linear Structures",
+  "title": { "zh": "中序轉後序與求值", "en": "Infix → Postfix & Evaluation" },
+  "slides": [
+    { "heading": { "zh": "為什麼用後序式", "en": "Why Postfix" },
+      "blocks": [
+        { "type": "paragraph", "text": { "zh": "後序式(逆波蘭)不需括號與優先權規則,適合用堆疊機械式求值。", "en": "Postfix (reverse Polish) needs no parentheses or precedence rules and is evaluated mechanically with a stack." } }
+      ] },
+    { "heading": { "zh": "Shunting-Yard 轉換", "en": "Shunting-Yard Conversion" },
+      "blocks": [
+        { "type": "steps", "items": [
+          { "zh": "運算元直接輸出。", "en": "Operands go straight to output." },
+          { "zh": "運算子:先彈出堆疊中優先權 ≥ 自己者,再入堆疊。", "en": "Operator: pop operators with precedence ≥ its own, then push." },
+          { "zh": "( 入堆疊;) 彈出到 ( 為止。", "en": "Push ( ; on ) pop until (." },
+          { "zh": "掃描完畢,彈出剩餘運算子。", "en": "At end, pop remaining operators." }
+        ] },
+        { "type": "code", "lang": "cpp", "file": "expr_infix_postfix.cpp", "code": "while (!ops.empty() && ops.top() != '(' &&\n       prec(ops.top()) >= prec(c)) {\n    out += ops.top(); out += ' '; ops.pop();\n}\nops.push(c);" }
+      ] },
+    { "heading": { "zh": "後序求值", "en": "Postfix Evaluation" },
+      "blocks": [
+        { "type": "paragraph", "text": { "zh": "由左到右掃描:遇運算元入堆疊,遇運算子彈出兩個、運算後推回。", "en": "Scan left to right: push operands; on an operator pop two, compute, push the result." } },
+        { "type": "note", "text": { "zh": "例:A*(B+C)*D → A B C + * D *", "en": "e.g. A*(B+C)*D → A B C + * D *" } }
+      ] }
+  ]
+};
 module.exports = SLIDES_DB;

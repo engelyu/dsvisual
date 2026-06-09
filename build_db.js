@@ -78,6 +78,8 @@ const mappings = {
     'tree_fenwick.cpp': 'codeTreeFenwick',
     'tree_traversal.cpp': 'codeTreeTraversal',
     'huffman.cpp': 'codeHuffman',
+    'expr_infix_postfix.cpp': 'codeExprInfixPostfix',
+    'graph_aoe.cpp': 'codeGraphAoe',
     'graph_prim.cpp': 'codeGraphPrim',
     'graph_bellman_ford.cpp': 'codeGraphBellmanFord',
     'graph_floyd_warshall.cpp': 'codeGraphFloydWarshall'

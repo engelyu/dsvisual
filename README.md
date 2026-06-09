@@ -56,6 +56,16 @@ open index.html
 | Radix Sort | Non-comparison |
 | Heap Sort | Non-comparison |
 
+### Graphs
+| Algorithm | Description |
+|-----------|-------------|
+| AOE / Critical Path | Forward/backward pass, critical activities |
+
+### Linear Structures / Stack
+| Algorithm | Description |
+|-----------|-------------|
+| Infix → Postfix | Shunting-yard conversion + stack evaluation |
+
 ### Search Algorithms
 - Linear Search
 - Binary Search

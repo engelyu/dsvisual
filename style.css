@@ -2352,4 +2352,17 @@ pre.code-panel-body[class*="language-"] {
 .hf-code-table { border-collapse: collapse; margin-top: 8px; }
 .hf-code-table th, .hf-code-table td { border: 1px solid #cbd5e1; padding: 4px 12px; text-align: center; }
 .hf-stats { margin-top: 6px; font-weight: 600; color: #2c5282; }
+.expr-controls { display: flex; gap: 8px; margin-bottom: 10px; }
+.expr-controls .expr-input { flex: 1; }
+.expr-phasebadge { font-weight: 700; color: #0f3a5f; margin: 4px 0; }
+.expr-stack, .expr-out { margin: 6px 0; min-height: 30px; }
+.expr-cell { display: inline-block; min-width: 26px; padding: 3px 8px; margin: 2px; background: #e2e8f0; border: 1px solid #cbd5e1; border-radius: 5px; text-align: center; font-weight: 600; }
+.expr-cell.out { background: #dcfce7; border-color: #86efac; }
+.expr-phase { margin-top: 6px; color: #1e40af; font-style: italic; }
+.aoe-stage { position: relative; width: 100%; overflow: hidden; }
+.aoe-svg { display: block; }
+.aoe-table { margin-top: 8px; }
+.aoe-tbl { border-collapse: collapse; }
+.aoe-tbl th, .aoe-tbl td { border: 1px solid #cbd5e1; padding: 3px 12px; text-align: center; }
+.aoe-phase { margin-top: 6px; color: #1e40af; font-style: italic; }
 

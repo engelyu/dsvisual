@@ -104,6 +104,7 @@ const METHOD_GROUPS = [
             { id: 'list-array', title: 'Array List', file: 'list_array.cpp', visualizer: 'array-list', controls: 'list' },
             { id: 'list-linked', title: 'Singly Linked List', file: 'list_linked.cpp', visualizer: 'linked-list', controls: 'list' },
             { id: 'deque', title: 'Deque (Double-Ended Queue)', file: 'deque.cpp', visualizer: 'deque', controls: 'deque' },
+            { id: 'expr-infix-postfix', title: 'Infix → Postfix (Stack)', file: 'expr_infix_postfix.cpp', visualizer: 'expr', controls: 'expr' },
         ],
     },
     {
@@ -141,6 +142,7 @@ const METHOD_GROUPS = [
             { id: 'graph-prim', title: "Prim's MST", file: 'graph_prim.cpp', visualizer: 'graph-step', controls: 'graph-step' },
             { id: 'graph-bellman-ford', title: 'Bellman-Ford', file: 'graph_bellman_ford.cpp', visualizer: 'graph-step', controls: 'graph-step' },
             { id: 'graph-floyd-warshall', title: 'Floyd-Warshall', file: 'graph_floyd_warshall.cpp', visualizer: 'matrix', controls: 'matrix' },
+            { id: 'graph-aoe', title: 'AOE / Critical Path', file: 'graph_aoe.cpp', visualizer: 'aoe', controls: 'aoe' },
         ],
     },
     {
@@ -272,6 +274,7 @@ function getCodeForMethod(methodId) {
         'list-array': codeListArray,
         'list-linked': codeListLinked,
         'deque': codeDeque,
+        'expr-infix-postfix': codeExprInfixPostfix,
         'tree-bst': codeTreeBST,
         'tree-avl': codeTreeAVL,
         'tree-rb': codeTreeRB,
@@ -297,6 +300,7 @@ function getCodeForMethod(methodId) {
         'graph-prim': codeGraphPrim,
         'graph-bellman-ford': codeGraphBellmanFord,
         'graph-floyd-warshall': codeGraphFloydWarshall,
+        'graph-aoe': codeGraphAoe,
         'hash-chain': codeHashChain,
         'hash-open': codeHashOpen,
         'hash-bucket': codeHashBucket,
@@ -2206,6 +2210,14 @@ document.addEventListener('DOMContentLoaded', () => {
             codeTitle.textContent = 'huffman.cpp';
             codeDisplay.textContent = codeHuffman;
         }
+        else if (currentMode === 'graph-aoe') {
+            codeTitle.textContent = 'graph_aoe.cpp';
+            codeDisplay.textContent = codeGraphAoe;
+        }
+        else if (currentMode === 'expr-infix-postfix') {
+            codeTitle.textContent = 'expr_infix_postfix.cpp';
+            codeDisplay.textContent = codeExprInfixPostfix;
+        }
         else if (currentMode === 'search-linear') { codeTitle.textContent = 'search_linear.cpp'; codeDisplay.textContent = codeSearchLinear; searchContainer.classList.remove('hidden'); searchActions.classList.remove('hidden'); }
         else if (currentMode === 'search-binary') { codeTitle.textContent = 'search_binary.cpp'; codeDisplay.textContent = codeSearchBinary; searchContainer.classList.remove('hidden'); searchActions.classList.remove('hidden'); }
         else if (currentMode === 'search-kmp') {
@@ -2421,6 +2433,8 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (currentMode === 'tree-fenwick') renderFenwick();
         else if (currentMode === 'tree-traversal') renderTreeTraversal();
         else if (currentMode === 'huffman') renderHuffman();
+        else if (currentMode === 'graph-aoe') renderGraphAoe();
+        else if (currentMode === 'expr-infix-postfix') renderExprInfixPostfix();
         else if (['tree-bst', 'tree-avl', 'tree-rb', 'tree-splay'].includes(currentMode)) renderTree();
         else if (['tree-trie', 'tree-radix', 'tree-ternary', 'tree-btree', 'tree-bplus'].includes(currentMode)) renderAdvTrees();
         else if (currentMode === 'search-kmp') renderKMP();
@@ -4152,6 +4166,108 @@ document.addEventListener('DOMContentLoaded', () => {
             const v = host.querySelector('.hf-input').value;
             if (v && v.length) { st.text = v; renderHuffman(); }
         };
+    }
+
+    function renderGraphAoe() {
+        const host = acquireDynamicVizHost();
+        const langOf = (m) => (window.I18N && window.I18N.getCurrentLanguage() === 'zh') ? m.zh : m.en;
+        const net = AoeViz.AOE_PRESET;
+        const built = AoeViz.buildAoeFrames(net.nodes, net.edges);
+        const frames = built.frames;
+        let idx = 0;
+        const nodeById = (id) => net.nodes.find((n) => n.id === id);
+
+        host.innerHTML =
+            '<div class="aoe-stage"><svg class="aoe-svg" viewBox="0 0 700 280" width="100%">' +
+              '<defs><marker id="aoe-arrow" markerWidth="9" markerHeight="9" refX="14" refY="3" orient="auto">' +
+              '<path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"/></marker></defs>' +
+              '<g class="aoe-edges"></g><g class="aoe-nodes"></g></svg></div>' +
+            '<div class="aoe-table"></div>' +
+            '<div class="aoe-phase"></div>';
+
+        const edgesG = host.querySelector('.aoe-edges');
+        const nodesG = host.querySelector('.aoe-nodes');
+
+        function paint() {
+            if (!host.querySelector('.aoe-table')) return; // host wiped (method switched) — ignore stale tick
+            const fr = frames[idx];
+            const crit = new Set((fr.criticalEdges || []).map((e) => e.u + '-' + e.v));
+            edgesG.innerHTML = net.edges.map((e) => {
+                const a = nodeById(e.u), b = nodeById(e.v);
+                const isC = crit.has(e.u + '-' + e.v);
+                const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+                return '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '" ' +
+                    'stroke="' + (isC ? '#dc2626' : '#94a3b8') + '" stroke-width="' + (isC ? 3 : 2) + '" marker-end="url(#aoe-arrow)"/>' +
+                    '<text x="' + mx + '" y="' + (my - 4) + '" fill="' + (isC ? '#dc2626' : '#475569') + '" font-size="12" text-anchor="middle">' + e.w + '</text>';
+            }).join('');
+            nodesG.innerHTML = net.nodes.map((n) => {
+                const active = fr.current === n.id;
+                const eeT = fr.ee[n.id] != null ? 'ee=' + fr.ee[n.id] : '';
+                const leT = fr.le[n.id] != null ? 'le=' + fr.le[n.id] : '';
+                return '<circle cx="' + n.x + '" cy="' + n.y + '" r="16" fill="' + (active ? '#f59e0b' : '#fff') + '" stroke="#1e40af" stroke-width="2"/>' +
+                    '<text x="' + n.x + '" y="' + (n.y + 4) + '" text-anchor="middle" font-size="13" font-weight="700">' + n.id + '</text>' +
+                    '<text x="' + n.x + '" y="' + (n.y - 22) + '" text-anchor="middle" font-size="10" fill="#2563eb">' + eeT + '</text>' +
+                    '<text x="' + n.x + '" y="' + (n.y + 30) + '" text-anchor="middle" font-size="10" fill="#7c3aed">' + leT + '</text>';
+            }).join('');
+            const rows = net.nodes.map((n) => '<tr><td>' + n.id + '</td><td>' + (fr.ee[n.id] != null ? fr.ee[n.id] : '') + '</td><td>' + (fr.le[n.id] != null ? fr.le[n.id] : '') + '</td></tr>').join('');
+            host.querySelector('.aoe-table').innerHTML = '<table class="aoe-tbl"><thead><tr><th>v</th><th>ee</th><th>le</th></tr></thead><tbody>' + rows + '</tbody></table>';
+            host.querySelector('.aoe-phase').textContent = langOf(fr.msg);
+        }
+        function step() { if (idx < frames.length - 1) { idx++; paint(); return idx < frames.length - 1; } return false; }
+        function reset() { idx = 0; paint(); }
+
+        host.appendChild(buildStepControls(step, reset, 800));
+        paint();
+    }
+    let _exprState = null;
+    function renderExprInfixPostfix() {
+        const host = acquireDynamicVizHost();
+        if (!_exprState) _exprState = { text: 'A*(B+C)*D' };
+        const st = _exprState;
+        const langOf = (m) => (window.I18N && window.I18N.getCurrentLanguage() === 'zh') ? m.zh : m.en;
+        let frames = [], postfix = [];
+        try {
+            const tokens = ExprViz.tokenize(st.text);
+            const conv = ExprViz.buildShuntingYardFrames(tokens);
+            postfix = conv.postfix;
+            const evalRes = ExprViz.buildPostfixEvalFrames(postfix);
+            frames = conv.frames.concat(evalRes.frames);
+        } catch (e) {
+            host.innerHTML = '<div class="expr-controls"><input type="text" class="expr-input"><button type="button" class="expr-apply">Apply</button></div>' +
+                '<div class="expr-error" style="color:#dc2626;margin-top:8px;"></div>';
+            host.querySelector('.expr-input').value = st.text;
+            host.querySelector('.expr-error').textContent = 'Parse error: ' + e.message;
+            host.querySelector('.expr-apply').onclick = () => { st.text = host.querySelector('.expr-input').value; renderExprInfixPostfix(); };
+            return;
+        }
+        let idx = 0;
+
+        host.innerHTML =
+            '<div class="expr-controls"><input type="text" class="expr-input"><button type="button" class="expr-apply">Apply</button></div>' +
+            '<div class="expr-phasebadge"></div>' +
+            '<div class="expr-stack"><strong>Stack:</strong> <span class="expr-stack-cells"></span></div>' +
+            '<div class="expr-out"><strong>Output:</strong> <span class="expr-out-cells"></span></div>' +
+            '<div class="expr-phase"></div>';
+        host.querySelector('.expr-input').value = st.text;
+
+        function paint() {
+            const fr = frames[idx];
+            if (!host.querySelector('.expr-stack-cells')) return;
+            host.querySelector('.expr-phasebadge').textContent = fr.phase === 'convert'
+                ? 'Phase 1 — Convert (postfix: ' + postfix.join(' ') + ')'
+                : 'Phase 2 — Evaluate';
+            const stackArr = fr.phase === 'convert' ? fr.opStack : fr.valStack;
+            const outArr = fr.phase === 'convert' ? fr.output : [];
+            host.querySelector('.expr-stack-cells').innerHTML = stackArr.map((v) => '<span class="expr-cell">' + v + '</span>').join('');
+            host.querySelector('.expr-out-cells').innerHTML = outArr.map((v) => '<span class="expr-cell out">' + v + '</span>').join('');
+            host.querySelector('.expr-phase').textContent = (fr.token ? '[' + fr.token + '] ' : '') + langOf(fr.msg);
+        }
+        function step() { if (idx < frames.length - 1) { idx++; paint(); return idx < frames.length - 1; } return false; }
+        function reset() { idx = 0; paint(); }
+
+        host.appendChild(buildStepControls(step, reset, 700));
+        paint();
+        host.querySelector('.expr-apply').onclick = () => { st.text = host.querySelector('.expr-input').value; renderExprInfixPostfix(); };
     }
 
     function renderSegmentTree() {

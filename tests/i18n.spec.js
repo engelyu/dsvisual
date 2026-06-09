@@ -88,7 +88,7 @@ test.describe('i18n', () => {
         await expect(page.locator('[data-testid="method-sections"]')).toBeHidden();
         // Grid has 9 categories and 80 tiles (one per method).
         await expect(page.locator('[data-testid="overview-grid"] .overview-category')).toHaveCount(9);
-        await expect(page.locator('[data-testid="overview-grid"] .overview-tile')).toHaveCount(80);
+        await expect(page.locator('[data-testid="overview-grid"] .overview-tile')).toHaveCount(82);
         // Click a tile → overview hides, method activates.
         await page.locator('.overview-tile[data-method-id="tree-bst"]').click();
         await expect(page.locator('[data-testid="overview-section"]')).toBeHidden();
