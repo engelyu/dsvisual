@@ -674,5 +674,33 @@ const descDB = {
             <span class="badge space">One active strategy instance</span>
             <span class="badge exception">Polymorphic dispatch overhead</span>
         </div>
-    `
+    `,
+    'tree-traversal': `
+        <h3>Binary Tree Traversal</h3>
+        <p>Systematic visiting of every node exactly once.</p>
+        <hr>
+        <ul>
+            <li><strong>Preorder:</strong> node → left → right</li>
+            <li><strong>Inorder:</strong> left → node → right (sorted for a BST)</li>
+            <li><strong>Postorder:</strong> left → right → node</li>
+            <li><strong>Level-order:</strong> breadth-first via a queue</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Time: O(N)</span>
+            <span class="badge space">Space: O(h) DFS / O(w) BFS</span>
+        </div>
+    `,
+    'huffman': `
+        <h3>Huffman Coding</h3>
+        <p>Greedy construction of an optimal prefix-free code from symbol frequencies.</p>
+        <hr>
+        <ul>
+            <li><strong>Core:</strong> repeatedly merge the two lowest-frequency subtrees</li>
+            <li><strong>Result:</strong> prefix-free codes minimizing total encoded length</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Build: O(N log N)</span>
+            <span class="badge space">Space: O(N)</span>
+        </div>
+    `,
 };

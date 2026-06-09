@@ -42,6 +42,8 @@
             'method.tree-dsu':              'Disjoint Set (Union-Find)',
             'method.tree-segment':          'Segment Tree',
             'method.tree-fenwick':          'Fenwick Tree (BIT)',
+            'method.tree-traversal':        'Tree Traversal',
+            'method.huffman':               'Huffman Coding',
 
             // Methods — Graphs
             'method.graph':                 'Undirected Graph',
@@ -236,6 +238,8 @@
             'method.tree-dsu':              '互斥集合（並查集）',
             'method.tree-segment':          '線段樹',
             'method.tree-fenwick':          'Fenwick 樹（BIT）',
+            'method.tree-traversal':        '二元樹走訪',
+            'method.huffman':               'Huffman 編碼',
 
             // Methods — Graphs
             'method.graph':                 '無向圖',
