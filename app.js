@@ -513,37 +513,11 @@ document.addEventListener('DOMContentLoaded', () => {
         outBtn.addEventListener('click', () => applyZoom(zoom - 0.1));
         resetBtn.addEventListener('click', () => applyZoom(1.0));
 
-        // Wheel/pinch listeners stay on .method-section-visual so wheel-over-visualizer zooms.
-        visualHost.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            applyZoom(zoom + (e.deltaY < 0 ? 0.05 : -0.05));
-        }, { passive: false });
-
-        const pointers = new Map();
-        let pinchStart = null;
-        visualHost.addEventListener('pointerdown', (e) => {
-            pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-            if (pointers.size === 2) {
-                const [a, b] = Array.from(pointers.values());
-                pinchStart = { dist: Math.hypot(a.x - b.x, a.y - b.y), zoom };
-            }
-        });
-        visualHost.addEventListener('pointermove', (e) => {
-            if (!pointers.has(e.pointerId)) return;
-            pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-            if (pointers.size === 2 && pinchStart && pinchStart.dist > 0) {
-                const [a, b] = Array.from(pointers.values());
-                const dist = Math.hypot(a.x - b.x, a.y - b.y);
-                applyZoom(pinchStart.zoom * (dist / pinchStart.dist));
-            }
-        });
-        function endPointer(e) {
-            pointers.delete(e.pointerId);
-            if (pointers.size < 2) pinchStart = null;
-        }
-        visualHost.addEventListener('pointerup', endPointer);
-        visualHost.addEventListener('pointercancel', endPointer);
-
+        // Zoom is controlled exclusively via the +/−/reset buttons above.
+        // Gesture-based zoom (mouse wheel + multi-touch pinch) is intentionally NOT bound:
+        // on a Mac trackpad, two-finger scroll and pinch both arrive as `wheel` events, which
+        // made the visualization zoom during ordinary scrolling. Keeping zoom button-only avoids
+        // that and lets the page scroll normally over the visualizer.
         applyZoom(1.0);
     }
 

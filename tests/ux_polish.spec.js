@@ -165,15 +165,14 @@ test.describe('UX polish — visualizer zoom', () => {
         await expect(newReset).toHaveText('100%');
     });
 
-    test('wheel scroll inside visualizer zooms by ±5%', async ({ page }) => {
+    test('wheel scroll inside visualizer does NOT zoom (gesture zoom disabled)', async ({ page }) => {
         const visual = page.locator('.method-section-visual').first();
         const reset = page.locator('.viz-zoom-controls button[data-zoom="reset"]').first();
-        // Simulate wheel up (zoom in 5%)
+        // A Mac trackpad two-finger scroll arrives as a wheel event; it must not change zoom.
         await visual.evaluate((el) => {
             el.dispatchEvent(new WheelEvent('wheel', { deltaY: -100, bubbles: true, cancelable: true }));
         });
-        await expect(reset).toHaveText('105%');
-        // Wheel down (zoom out 5%)
+        await expect(reset).toHaveText('100%');
         await visual.evaluate((el) => {
             el.dispatchEvent(new WheelEvent('wheel', { deltaY: 100, bubbles: true, cancelable: true }));
         });
