@@ -104,6 +104,7 @@ const METHOD_GROUPS = [
             { id: 'list-array', title: 'Array List', file: 'list_array.cpp', visualizer: 'array-list', controls: 'list' },
             { id: 'list-linked', title: 'Singly Linked List', file: 'list_linked.cpp', visualizer: 'linked-list', controls: 'list' },
             { id: 'deque', title: 'Deque (Double-Ended Queue)', file: 'deque.cpp', visualizer: 'deque', controls: 'deque' },
+            { id: 'expr-infix-postfix', title: 'Infix → Postfix (Stack)', file: 'expr_infix_postfix.cpp', visualizer: 'expr', controls: 'expr' },
         ],
     },
     {
@@ -141,6 +142,7 @@ const METHOD_GROUPS = [
             { id: 'graph-prim', title: "Prim's MST", file: 'graph_prim.cpp', visualizer: 'graph-step', controls: 'graph-step' },
             { id: 'graph-bellman-ford', title: 'Bellman-Ford', file: 'graph_bellman_ford.cpp', visualizer: 'graph-step', controls: 'graph-step' },
             { id: 'graph-floyd-warshall', title: 'Floyd-Warshall', file: 'graph_floyd_warshall.cpp', visualizer: 'matrix', controls: 'matrix' },
+            { id: 'graph-aoe', title: 'AOE / Critical Path', file: 'graph_aoe.cpp', visualizer: 'aoe', controls: 'aoe' },
         ],
     },
     {
@@ -272,6 +274,7 @@ function getCodeForMethod(methodId) {
         'list-array': codeListArray,
         'list-linked': codeListLinked,
         'deque': codeDeque,
+        'expr-infix-postfix': codeExprInfixPostfix,
         'tree-bst': codeTreeBST,
         'tree-avl': codeTreeAVL,
         'tree-rb': codeTreeRB,
@@ -297,6 +300,7 @@ function getCodeForMethod(methodId) {
         'graph-prim': codeGraphPrim,
         'graph-bellman-ford': codeGraphBellmanFord,
         'graph-floyd-warshall': codeGraphFloydWarshall,
+        'graph-aoe': codeGraphAoe,
         'hash-chain': codeHashChain,
         'hash-open': codeHashOpen,
         'hash-bucket': codeHashBucket,
@@ -2206,6 +2210,14 @@ document.addEventListener('DOMContentLoaded', () => {
             codeTitle.textContent = 'huffman.cpp';
             codeDisplay.textContent = codeHuffman;
         }
+        else if (currentMode === 'graph-aoe') {
+            codeTitle.textContent = 'graph_aoe.cpp';
+            codeDisplay.textContent = codeGraphAoe;
+        }
+        else if (currentMode === 'expr-infix-postfix') {
+            codeTitle.textContent = 'expr_infix_postfix.cpp';
+            codeDisplay.textContent = codeExprInfixPostfix;
+        }
         else if (currentMode === 'search-linear') { codeTitle.textContent = 'search_linear.cpp'; codeDisplay.textContent = codeSearchLinear; searchContainer.classList.remove('hidden'); searchActions.classList.remove('hidden'); }
         else if (currentMode === 'search-binary') { codeTitle.textContent = 'search_binary.cpp'; codeDisplay.textContent = codeSearchBinary; searchContainer.classList.remove('hidden'); searchActions.classList.remove('hidden'); }
         else if (currentMode === 'search-kmp') {
@@ -2421,6 +2433,8 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (currentMode === 'tree-fenwick') renderFenwick();
         else if (currentMode === 'tree-traversal') renderTreeTraversal();
         else if (currentMode === 'huffman') renderHuffman();
+        else if (currentMode === 'graph-aoe') renderGraphAoe();
+        else if (currentMode === 'expr-infix-postfix') renderExprInfixPostfix();
         else if (['tree-bst', 'tree-avl', 'tree-rb', 'tree-splay'].includes(currentMode)) renderTree();
         else if (['tree-trie', 'tree-radix', 'tree-ternary', 'tree-btree', 'tree-bplus'].includes(currentMode)) renderAdvTrees();
         else if (currentMode === 'search-kmp') renderKMP();
@@ -4153,6 +4167,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (v && v.length) { st.text = v; renderHuffman(); }
         };
     }
+
+    function renderGraphAoe() { const host = acquireDynamicVizHost(); host.textContent = 'graph-aoe (pending)'; }
+    function renderExprInfixPostfix() { const host = acquireDynamicVizHost(); host.textContent = 'expr-infix-postfix (pending)'; }
 
     function renderSegmentTree() {
         const host = acquireDynamicVizHost();
