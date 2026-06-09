@@ -4036,7 +4036,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 [n.left, n.right].forEach(c => {
                     if (!c) return;
                     const a = metaById[n.id], b = metaById[c.id];
-                    edgesEl.innerHTML += '<line x1="' + (a.x + 20) + '" y1="' + (a.y + 20) + '" x2="' + (b.x + 20) + '" y2="' + (b.y + 20) + '" stroke="#94a3b8" stroke-width="2"/>';
+                    edgesEl.innerHTML += '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '" stroke="#94a3b8" stroke-width="2"/>';
                     walk(c);
                 });
             })(root);
@@ -4149,7 +4149,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 nodesEl.appendChild(d);
                 const n = nodes[id];
                 [n.left, n.right].forEach(c => {
-                    if (c && meta[c]) edgesEl.innerHTML += '<line x1="' + (m.x + 20) + '" y1="' + (m.y + 20) + '" x2="' + (meta[c].x + 20) + '" y2="' + (meta[c].y + 20) + '" stroke="#94a3b8" stroke-width="2"/>';
+                    if (c && meta[c]) edgesEl.innerHTML += '<line x1="' + m.x + '" y1="' + m.y + '" x2="' + meta[c].x + '" y2="' + meta[c].y + '" stroke="#94a3b8" stroke-width="2"/>';
                 });
             });
             if (fr.phase === 'done') {

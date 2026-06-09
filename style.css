@@ -2329,10 +2329,10 @@ pre.code-panel-body[class*="language-"] {
 .slideviewer-deck-btn__sub { font-size: 0.72rem; opacity: 0.85; margin-left: 0.25rem; }
 
 .tt-controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; }
-.tt-stage { position: relative; height: 320px; }
+.tt-stage { position: relative; height: 320px; overflow: hidden; }
 .tt-stage .tt-edges { position: absolute; inset: 0; width: 100%; height: 100%; }
 .tt-stage .tt-nodes { position: absolute; inset: 0; }
-.tree-node.active { background: #f59e0b; border-color: #b45309; transform: scale(1.12); }
+.tree-node.active { background: #f59e0b; border-color: #b45309; transform: translate(-50%, -50%) scale(1.12); }
 .tree-node.visited { background: #34d399; border-color: #059669; }
 .tt-aux { margin: 8px 0; min-height: 28px; }
 .tt-aux-label { font-weight: 700; color: #2c5282; }
@@ -2343,7 +2343,7 @@ pre.code-panel-body[class*="language-"] {
 .hf-controls .hf-input { flex: 1; }
 .hf-pq { margin: 6px 0; }
 .hf-pq-card { display: inline-block; padding: 3px 8px; margin: 2px; background: #dbeafe; border: 1px solid #93c5fd; border-radius: 6px; font-weight: 600; }
-.hf-stage { position: relative; height: 300px; margin: 8px 0; }
+.hf-stage { position: relative; height: 300px; margin: 8px 0; overflow: hidden; }
 .hf-stage .hf-edges { position: absolute; inset: 0; width: 100%; height: 100%; }
 .hf-stage .hf-nodes { position: absolute; inset: 0; }
 .hf-node.leaf { background: #bfdbfe; }
