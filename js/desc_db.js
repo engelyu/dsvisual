@@ -783,4 +783,31 @@ const descDB = {
             <span class="badge space">Space: O(m + n)</span>
         </div>
     `,
+    'maze-stack': `
+        <h3>Maze Solving — Stack Backtracking</h3>
+        <p>Depth-first search with an explicit stack; the stack holds the current path.</p>
+        <hr>
+        <ul>
+            <li><strong>Advance:</strong> push the first unvisited open neighbour</li>
+            <li><strong>Dead end:</strong> pop (backtrack)</li>
+            <li><strong>Found:</strong> the stack from S to E is the path</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Time: O(R·C)</span>
+            <span class="badge space">Space: O(R·C)</span>
+        </div>
+    `,
+    'list-doubly': `
+        <h3>Doubly / Circular Linked List</h3>
+        <p>Each node has prev and next pointers, enabling forward and backward traversal.</p>
+        <hr>
+        <ul>
+            <li><strong>Doubly:</strong> ends point to null</li>
+            <li><strong>Circular:</strong> head.prev = tail, tail.next = head</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Insert/Delete at node: O(1)</span>
+            <span class="badge space">Space: O(N)</span>
+        </div>
+    `,
 };
