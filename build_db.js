@@ -89,6 +89,8 @@ const mappings = {
     'poly_padd.cpp': 'codePolyPadd',
     'maze_stack.cpp': 'codeMazeStack',
     'list_doubly.cpp': 'codeListDoubly',
+    'search_fibonacci.cpp': 'codeSearchFibonacci',
+    'search_interpolation.cpp': 'codeSearchInterpolation',
 };
 
 let out = '// Auto-generated code DB for visualization\n';

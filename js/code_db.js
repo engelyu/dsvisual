@@ -5226,3 +5226,39 @@ public:
 };
 `;
 
+const codeSearchFibonacci = `#include <vector>
+#include <algorithm>
+
+// Fibonacci search on a sorted array. Returns index of target or -1.
+int fibonacciSearch(const std::vector<int>& a, int target) {
+    int n = (int)a.size();
+    int fib2 = 0, fib1 = 1, fibM = fib2 + fib1;
+    while (fibM < n) { fib2 = fib1; fib1 = fibM; fibM = fib2 + fib1; }
+    int offset = -1;
+    while (fibM > 1) {
+        int i = std::min(offset + fib2, n - 1);
+        if (a[i] < target) { fibM = fib1; fib1 = fib2; fib2 = fibM - fib1; offset = i; }
+        else if (a[i] > target) { fibM = fib2; fib1 = fib1 - fib2; fib2 = fibM - fib1; }
+        else return i;
+    }
+    if (fib1 == 1 && offset + 1 < n && a[offset + 1] == target) return offset + 1;
+    return -1;
+}
+`;
+
+const codeSearchInterpolation = `#include <vector>
+
+// Interpolation search on a sorted (ideally uniform) array. Returns index or -1.
+int interpolationSearch(const std::vector<int>& a, int target) {
+    int lo = 0, hi = (int)a.size() - 1;
+    while (lo <= hi && target >= a[lo] && target <= a[hi]) {
+        if (a[hi] == a[lo]) return (a[lo] == target) ? lo : -1;
+        int pos = lo + (int)((long long)(target - a[lo]) * (hi - lo) / (a[hi] - a[lo]));
+        if (a[pos] == target) return pos;
+        else if (a[pos] < target) lo = pos + 1;
+        else hi = pos - 1;
+    }
+    return -1;
+}
+`;
+
