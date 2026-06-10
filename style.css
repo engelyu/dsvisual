@@ -1773,6 +1773,8 @@ pre.code-panel-body[class*="language-"] {
 }
 .category-nav-item:hover .category-nav-dropdown,
 .category-nav-item.open .category-nav-dropdown { display: block; }
+/* After picking a method, keep the dropdown closed despite :hover until the cursor leaves. */
+.category-nav-item.nav-picked .category-nav-dropdown { display: none !important; }
 .category-nav-method {
     display: block;
     width: 100%;

@@ -1126,6 +1126,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     mb.addEventListener('click', () => {
                         activateGroup(sg.id, m.id);
                         closeAllDropdowns();
+                        // Suppress the CSS :hover re-open until the cursor leaves the item,
+                        // so the dropdown closes immediately after a selection.
+                        item.classList.add('nav-picked');
+                        item.addEventListener('mouseleave', () => item.classList.remove('nav-picked'), { once: true });
                     });
                     methodDropdownButtons.set(m.id, mb);
                     dropdown.appendChild(mb);
