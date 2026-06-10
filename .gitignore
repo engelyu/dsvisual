@@ -12,3 +12,7 @@ queue_test
 graph_test
 tree_test
 
+# Compiled C++ binaries (additional)
+*_test
+search_binary
+search_linear
