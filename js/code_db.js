@@ -5151,3 +5151,78 @@ std::vector<Term> padd(const std::vector<Term>& A, const std::vector<Term>& B) {
 }
 `;
 
+const codeMazeStack = `#include <vector>
+#include <stack>
+#include <string>
+
+// Maze solving by DFS with an explicit stack (the stack IS the current path).
+struct Cell { int r, c; };
+
+bool solveMaze(std::vector<std::string>& grid, Cell start, Cell end, std::vector<Cell>& path) {
+    const int R = (int)grid.size();
+    const int dr[4] = { -1, 0, 1, 0 }, dc[4] = { 0, 1, 0, -1 };
+    auto open = [&](int r, int c) {
+        return r >= 0 && r < R && c >= 0 && c < (int)grid[r].size() && grid[r][c] != '#';
+    };
+    std::vector<std::vector<bool>> seen(R, std::vector<bool>());
+    for (int r = 0; r < R; r++) seen[r].assign(grid[r].size(), false);
+    std::stack<Cell> st;
+    st.push(start); seen[start.r][start.c] = true;
+    while (!st.empty()) {
+        Cell cur = st.top();
+        if (cur.r == end.r && cur.c == end.c) {
+            std::stack<Cell> tmp = st;
+            while (!tmp.empty()) { path.push_back(tmp.top()); tmp.pop(); }
+            return true;
+        }
+        bool moved = false;
+        for (int k = 0; k < 4; k++) {
+            int nr = cur.r + dr[k], nc = cur.c + dc[k];
+            if (open(nr, nc) && !seen[nr][nc]) { seen[nr][nc] = true; st.push({ nr, nc }); moved = true; break; }
+        }
+        if (!moved) st.pop();
+    }
+    return false;
+}
+`;
+
+const codeListDoubly = `#include <cstddef>
+
+// Doubly linked list (optionally circular).
+struct Node { int val; Node* prev; Node* next; };
+
+class DoublyList {
+    Node* head = nullptr;
+    Node* tail = nullptr;
+    bool circular = false;
+public:
+    explicit DoublyList(bool circ) : circular(circ) {}
+
+    void pushFront(int v) {
+        Node* n = new Node{ v, nullptr, head };
+        if (head) head->prev = n;
+        head = n;
+        if (!tail) tail = n;
+        if (circular) { head->prev = tail; tail->next = head; }
+    }
+
+    void pushBack(int v) {
+        Node* n = new Node{ v, tail, nullptr };
+        if (!head) { head = tail = n; }
+        else { tail->next = n; tail = n; }
+        if (circular) { tail->next = head; head->prev = tail; }
+    }
+
+    // Insert v before the node at position idx (0-based).
+    void insertAt(int idx, int v) {
+        if (idx <= 0 || !head) { pushFront(v); return; }
+        Node* cur = head;
+        for (int i = 0; i < idx && cur->next && cur->next != head; i++) cur = cur->next;
+        Node* n = new Node{ v, cur, cur->next };
+        if (cur->next) cur->next->prev = n;
+        cur->next = n;
+        if (cur == tail) tail = n;
+    }
+};
+`;
+

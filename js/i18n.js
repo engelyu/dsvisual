@@ -29,6 +29,8 @@
             'method.list-array':            'Array List',
             'method.list-linked':           'Singly Linked List',
             'method.deque':                 'Deque (Double-Ended Queue)',
+            'method.maze-stack':            'Maze (Stack Backtracking)',
+            'method.list-doubly':           'Doubly / Circular Linked List',
 
             // Methods — Trees
             'method.tree-bst':              'Binary Search Tree',
@@ -233,6 +235,8 @@
             'method.list-array':            '陣列串列',
             'method.list-linked':           '單向鏈結串列',
             'method.deque':                 '雙端佇列',
+            'method.maze-stack':            '迷宮(堆疊回溯)',
+            'method.list-doubly':           '雙向 / 環狀串列',
 
             // Methods — Trees
             'method.tree-bst':              '二元搜尋樹',

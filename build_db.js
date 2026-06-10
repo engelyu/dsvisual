@@ -87,6 +87,8 @@ const mappings = {
     'sort_external.cpp': 'codeSortExternal',
     'matrix_sparse.cpp': 'codeMatrixSparse',
     'poly_padd.cpp': 'codePolyPadd',
+    'maze_stack.cpp': 'codeMazeStack',
+    'list_doubly.cpp': 'codeListDoubly',
 };
 
 let out = '// Auto-generated code DB for visualization\n';

@@ -2419,3 +2419,29 @@ pre.code-panel-body[class*="language-"] {
 .pp-term.pp-cur { background: #fde68a; border-color: #f59e0b; }
 .pp-term.out { background: #dcfce7; border-color: #86efac; }
 .pp-phase { margin-top: 6px; color: #1e40af; font-style: italic; }
+.mz-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+.mz-controls .mz-input { flex: 1; min-width: 220px; }
+.mz-cols { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+.mz-tbl { border-collapse: collapse; }
+.mz-cell { width: 30px; height: 30px; border: 1px solid #e2e8f0; text-align: center; font-weight: 700; }
+.mz-cell.wall { background: #334155; }
+.mz-cell.open { background: #fff; }
+.mz-cell.start { background: #22c55e; color: #fff; }
+.mz-cell.end { background: #ef4444; color: #fff; }
+.mz-cell.visited { background: #e0e7ff; }
+.mz-cell.instack { background: #bfdbfe; }
+.mz-cell.cur { background: #f59e0b; }
+.mz-cell.path { background: #fde047; }
+.mz-stack-cells { display: flex; flex-direction: column-reverse; gap: 2px; margin-top: 4px; }
+.mz-scell { display: inline-block; padding: 2px 8px; background: #e2e8f0; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; }
+.mz-phase { margin-top: 6px; color: #1e40af; font-style: italic; }
+.dl-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+.dl-controls .dl-input { flex: 1; min-width: 160px; }
+.dl-row { display: flex; align-items: center; flex-wrap: wrap; gap: 2px; }
+.dl-node { display: inline-flex; align-items: stretch; border: 2px solid #1e40af; border-radius: 6px; overflow: hidden; }
+.dl-node.cur { border-color: #f59e0b; box-shadow: 0 0 0 2px #fde68a; }
+.dl-ptr { background: #e2e8f0; color: #475569; padding: 6px 6px; font-size: 12px; min-width: 22px; text-align: center; }
+.dl-val { background: #fff; padding: 6px 12px; font-weight: 700; }
+.dl-link { color: #64748b; font-size: 18px; padding: 0 2px; }
+.dl-wrap { margin-left: 10px; color: #7c3aed; font-weight: 600; }
+.dl-phase { margin-top: 8px; color: #1e40af; font-style: italic; }

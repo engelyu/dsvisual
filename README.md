@@ -67,6 +67,8 @@ open index.html
 | Algorithm | Description |
 |-----------|-------------|
 | Infix → Postfix | Shunting-yard conversion + stack evaluation |
+| Maze (Stack Backtracking) | DFS with an explicit path stack |
+| Doubly / Circular Linked List | prev/next pointers, forward & backward |
 
 ### Arrays
 | Algorithm | Description |

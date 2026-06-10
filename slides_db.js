@@ -20738,4 +20738,46 @@ SLIDES_DB["poly-padd"] = {
       ] }
   ]
 };
+SLIDES_DB["maze-stack"] = {
+  "category": "Linear Structures",
+  "title": { "zh": "迷宮回溯(堆疊)", "en": "Maze Backtracking (Stack)" },
+  "slides": [
+    { "heading": { "zh": "用堆疊解迷宮", "en": "Solving a Maze with a Stack" },
+      "blocks": [
+        { "type": "paragraph", "text": { "zh": "深度優先搜尋用顯式堆疊記錄目前路徑;走得通就推入,走不通就彈出回溯。", "en": "Depth-first search keeps the current path on an explicit stack: push when you can advance, pop to backtrack." } },
+        { "type": "steps", "items": [
+          { "zh": "推入起點。", "en": "Push the start cell." },
+          { "zh": "嘗試走到第一個未訪的通道鄰格並推入。", "en": "Move to the first unvisited open neighbour and push it." },
+          { "zh": "無路可走則彈出(回溯)。", "en": "If stuck, pop (backtrack)." },
+          { "zh": "到達終點時,堆疊即為解路徑。", "en": "When you reach the end, the stack is the solution path." }
+        ] }
+      ] },
+    { "heading": { "zh": "複雜度", "en": "Complexity" },
+      "blocks": [
+        { "type": "bullets", "items": [
+          { "zh": "每格最多訪一次:O(R·C)", "en": "Each cell visited at most once: O(R·C)" },
+          { "zh": "堆疊/visited 空間 O(R·C)", "en": "Stack/visited space O(R·C)" }
+        ] }
+      ] }
+  ]
+};
+SLIDES_DB["list-doubly"] = {
+  "category": "Linear Structures",
+  "title": { "zh": "雙向 / 環狀串列", "en": "Doubly / Circular Linked List" },
+  "slides": [
+    { "heading": { "zh": "雙向串列", "en": "Doubly Linked List" },
+      "blocks": [
+        { "type": "paragraph", "text": { "zh": "每個節點同時保有 prev 與 next 指標,可正向與反向走訪。", "en": "Each node holds both prev and next pointers, allowing forward and backward traversal." } },
+        { "type": "note", "text": { "zh": "已知節點時,插入/刪除為 O(1)。", "en": "Given a node, insertion/deletion is O(1)." } }
+      ] },
+    { "heading": { "zh": "環狀串列", "en": "Circular Variant" },
+      "blocks": [
+        { "type": "bullets", "items": [
+          { "zh": "尾節點的 next 指回頭節點。", "en": "The tail's next points back to the head." },
+          { "zh": "頭節點的 prev 指向尾節點。", "en": "The head's prev points to the tail." },
+          { "zh": "適合輪詢 / 環形緩衝等場景。", "en": "Useful for round-robin / ring buffers." }
+        ] }
+      ] }
+  ]
+};
 module.exports = SLIDES_DB;

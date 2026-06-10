@@ -105,6 +105,8 @@ const METHOD_GROUPS = [
             { id: 'list-linked', title: 'Singly Linked List', file: 'list_linked.cpp', visualizer: 'linked-list', controls: 'list' },
             { id: 'deque', title: 'Deque (Double-Ended Queue)', file: 'deque.cpp', visualizer: 'deque', controls: 'deque' },
             { id: 'expr-infix-postfix', title: 'Infix → Postfix (Stack)', file: 'expr_infix_postfix.cpp', visualizer: 'expr', controls: 'expr' },
+            { id: 'maze-stack', title: 'Maze (Stack Backtracking)', file: 'maze_stack.cpp', visualizer: 'maze', controls: 'maze' },
+            { id: 'list-doubly', title: 'Doubly / Circular Linked List', file: 'list_doubly.cpp', visualizer: 'doubly', controls: 'doubly' },
         ],
     },
     {
@@ -285,6 +287,8 @@ function getCodeForMethod(methodId) {
         'list-linked': codeListLinked,
         'deque': codeDeque,
         'expr-infix-postfix': codeExprInfixPostfix,
+        'maze-stack': codeMazeStack,
+        'list-doubly': codeListDoubly,
         'tree-bst': codeTreeBST,
         'tree-avl': codeTreeAVL,
         'tree-rb': codeTreeRB,
@@ -2252,6 +2256,14 @@ document.addEventListener('DOMContentLoaded', () => {
             codeTitle.textContent = 'expr_infix_postfix.cpp';
             codeDisplay.textContent = codeExprInfixPostfix;
         }
+        else if (currentMode === 'maze-stack') {
+            codeTitle.textContent = 'maze_stack.cpp';
+            codeDisplay.textContent = codeMazeStack;
+        }
+        else if (currentMode === 'list-doubly') {
+            codeTitle.textContent = 'list_doubly.cpp';
+            codeDisplay.textContent = codeListDoubly;
+        }
         else if (currentMode === 'search-linear') { codeTitle.textContent = 'search_linear.cpp'; codeDisplay.textContent = codeSearchLinear; searchContainer.classList.remove('hidden'); searchActions.classList.remove('hidden'); }
         else if (currentMode === 'search-binary') { codeTitle.textContent = 'search_binary.cpp'; codeDisplay.textContent = codeSearchBinary; searchContainer.classList.remove('hidden'); searchActions.classList.remove('hidden'); }
         else if (currentMode === 'search-kmp') {
@@ -2451,7 +2463,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.Prism && codeDisplay.isConnected) Prism.highlightElement(codeDisplay);
     }
     function renderAll() {
-        if(currentMode.includes('stack')) renderStack();
+        if(currentMode === 'maze-stack') renderMazeStack();
+        else if(currentMode.includes('stack')) renderStack();
         else if (currentMode === 'queue') renderQueue();
         else if (currentMode === 'deque') renderDeque();
         else if (currentMode === 'bloom-filter') renderBloomFilter();
@@ -2473,6 +2486,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (currentMode === 'sort-external') renderSortExternal();
         else if (currentMode === 'graph-aoe') renderGraphAoe();
         else if (currentMode === 'expr-infix-postfix') renderExprInfixPostfix();
+        else if (currentMode === 'list-doubly') renderListDoubly();
         else if (['tree-bst', 'tree-avl', 'tree-rb', 'tree-splay'].includes(currentMode)) renderTree();
         else if (['tree-trie', 'tree-radix', 'tree-ternary', 'tree-btree', 'tree-bplus'].includes(currentMode)) renderAdvTrees();
         else if (currentMode === 'search-kmp') renderKMP();
@@ -4556,6 +4570,103 @@ document.addEventListener('DOMContentLoaded', () => {
             const a = host.querySelector('.pp-a').value.trim();
             const b = host.querySelector('.pp-b').value.trim();
             if (a && b) { st.a = a; st.b = b; renderPolyPadd(); }
+        };
+    }
+
+    let _mazeState = null;
+    function renderMazeStack() {
+        const host = acquireDynamicVizHost();
+        if (!_mazeState) _mazeState = { text: 'S....;.###.;.#...;.#.#.;...#E' };
+        const st = _mazeState;
+        const langOf = (m) => (window.I18N && window.I18N.getCurrentLanguage() === 'zh') ? m.zh : m.en;
+        const maze = MazeViz.parseMaze(st.text);
+        const res = MazeViz.buildMazeFrames(maze);
+        const frames = res.frames;
+        let idx = 0;
+
+        host.innerHTML =
+            '<div class="mz-controls"><input type="text" class="mz-input" value="' + st.text + '">' +
+            '<button type="button" class="mz-apply">Apply</button>' +
+            '<span class="sm-hint"># wall, . open, S start, E end; rows split by ;</span></div>' +
+            '<div class="mz-cols"><div class="mz-grid"></div><div class="mz-stack"><strong>Path stack:</strong><div class="mz-stack-cells"></div></div></div>' +
+            '<div class="mz-phase"></div>';
+
+        function paint() {
+            const fr = frames[idx];
+            if (!host.querySelector('.mz-grid')) return;
+            const inStack = new Set((fr.stack || []).map((p) => p[0] + ',' + p[1]));
+            const inPath = new Set((fr.path || []).map((p) => p[0] + ',' + p[1]));
+            const visited = new Set((fr.visited || []).map((p) => p[0] + ',' + p[1]));
+            const cur = fr.current ? fr.current[0] + ',' + fr.current[1] : '';
+            let html = '<table class="mz-tbl">';
+            for (let r = 0; r < maze.grid.length; r++) {
+                html += '<tr>';
+                for (let c = 0; c < maze.grid[r].length; c++) {
+                    const ch = maze.grid[r][c];
+                    const k = r + ',' + c;
+                    let cls = ch === '#' ? 'wall' : 'open';
+                    if (ch === 'S') cls = 'start';
+                    else if (ch === 'E') cls = 'end';
+                    if (inPath.has(k)) cls += ' path';
+                    else if (k === cur) cls += ' cur';
+                    else if (inStack.has(k)) cls += ' instack';
+                    else if (visited.has(k)) cls += ' visited';
+                    html += '<td class="mz-cell ' + cls + '">' + (ch === '#' ? '' : (ch === 'S' || ch === 'E' ? ch : '')) + '</td>';
+                }
+                html += '</tr>';
+            }
+            html += '</table>';
+            host.querySelector('.mz-grid').innerHTML = html;
+            host.querySelector('.mz-stack-cells').innerHTML = (fr.stack || []).map((p) => '<span class="mz-scell">(' + p[0] + ',' + p[1] + ')</span>').join('');
+            host.querySelector('.mz-phase').textContent = langOf(fr.msg);
+        }
+        function step() { if (idx < frames.length - 1) { idx++; paint(); return idx < frames.length - 1; } return false; }
+        function reset() { idx = 0; paint(); }
+
+        host.appendChild(buildStepControls(step, reset, 500));
+        paint();
+        host.querySelector('.mz-apply').onclick = () => { const v = host.querySelector('.mz-input').value.trim(); if (v) { st.text = v; renderMazeStack(); } };
+    }
+    let _doublyState = null;
+    function renderListDoubly() {
+        const host = acquireDynamicVizHost();
+        if (!_doublyState) _doublyState = { vals: [10, 20, 30, 40], circular: false };
+        const st = _doublyState;
+        const langOf = (m) => (window.I18N && window.I18N.getCurrentLanguage() === 'zh') ? m.zh : m.en;
+        const res = DoublyViz.buildDoublyFrames(st.vals, st.circular);
+        const frames = res.frames;
+        let idx = 0;
+
+        host.innerHTML =
+            '<div class="dl-controls">' +
+              '<input type="text" class="dl-input" value="' + st.vals.join(',') + '">' +
+              '<label><input type="checkbox" class="dl-circular"' + (st.circular ? ' checked' : '') + '> circular</label>' +
+              '<button type="button" class="dl-apply">Apply</button>' +
+            '</div>' +
+            '<div class="dl-row' + (st.circular ? ' dl-circular-on' : '') + '"></div>' +
+            '<div class="dl-phase"></div>';
+
+        function paint() {
+            const fr = frames[idx];
+            if (!host.querySelector('.dl-row')) return;
+            host.querySelector('.dl-row').innerHTML = fr.nodes.map((n, i) =>
+                '<span class="dl-node' + (i === fr.current ? ' cur' : '') + '">' +
+                  '<span class="dl-ptr">' + (n.prevVal == null ? '∅' : n.prevVal) + '</span>' +
+                  '<span class="dl-val">' + n.val + '</span>' +
+                  '<span class="dl-ptr">' + (n.nextVal == null ? '∅' : n.nextVal) + '</span>' +
+                '</span>' + (i < fr.nodes.length - 1 ? '<span class="dl-link">⇄</span>' : '')
+            ).join('') + (fr.circular ? '<span class="dl-wrap">↩ circular</span>' : '');
+            host.querySelector('.dl-phase').textContent = langOf(fr.msg);
+        }
+        function step() { if (idx < frames.length - 1) { idx++; paint(); return idx < frames.length - 1; } return false; }
+        function reset() { idx = 0; paint(); }
+
+        host.appendChild(buildStepControls(step, reset, 600));
+        paint();
+        host.querySelector('.dl-apply').onclick = () => {
+            const vals = host.querySelector('.dl-input').value.split(',').map((s) => parseInt(s.trim(), 10)).filter(Number.isFinite);
+            const circular = host.querySelector('.dl-circular').checked;
+            if (vals.length) { st.vals = vals; st.circular = circular; renderListDoubly(); }
         };
     }
 
