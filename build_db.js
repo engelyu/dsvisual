@@ -100,4 +100,4 @@ for (const [file, varName] of Object.entries(mappings)) {
 
 
 
-fs.writeFileSync('code_db.js', out);
+fs.writeFileSync('js/code_db.js', out);

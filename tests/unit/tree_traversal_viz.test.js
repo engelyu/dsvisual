@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { buildTreeFromValues, buildTraversalFrames, SAMPLE_VALUES } = require('../../tree_traversal_viz');
+const { buildTreeFromValues, buildTraversalFrames, SAMPLE_VALUES } = require('../../js/tree_traversal_viz');
 
 const TREE = buildTreeFromValues(SAMPLE_VALUES); // BST of [50,30,70,20,40,60,80]
 const finalVisited = (order, mode) => {

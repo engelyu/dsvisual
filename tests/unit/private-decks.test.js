@@ -6,7 +6,7 @@ const vm = require('node:vm');
 const path = require('node:path');
 
 function loadModule(fetchMock) {
-  const code = fs.readFileSync(path.join(__dirname, '../../private-decks.js'), 'utf8');
+  const code = fs.readFileSync(path.join(__dirname, '../../js/private-decks.js'), 'utf8');
   const sandbox = {
     window: {},
     fetch: fetchMock,

@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { parsePoly, formatPoly, buildPaddFrames } = require('../../poly_padd_viz');
+const { parsePoly, formatPoly, buildPaddFrames } = require('../../js/poly_padd_viz');
 
 test('parsePoly reads "coef:exp" terms sorted by descending exponent', () => {
   assert.deepEqual(parsePoly('2:1,3:2,1:0'), [

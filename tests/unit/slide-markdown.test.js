@@ -6,7 +6,7 @@ const vm = require('node:vm');
 const path = require('node:path');
 
 function loadParser() {
-  const code = fs.readFileSync(path.join(__dirname, '../../slide-markdown.js'), 'utf8');
+  const code = fs.readFileSync(path.join(__dirname, '../../js/slide-markdown.js'), 'utf8');
   const sandbox = { window: {} };
   vm.createContext(sandbox);
   vm.runInContext(code, sandbox);

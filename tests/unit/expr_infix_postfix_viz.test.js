@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { tokenize, buildShuntingYardFrames, buildPostfixEvalFrames } = require('../../expr_infix_postfix_viz');
+const { tokenize, buildShuntingYardFrames, buildPostfixEvalFrames } = require('../../js/expr_infix_postfix_viz');
 
 const postfixOf = (infix) => buildShuntingYardFrames(tokenize(infix)).postfix.join(' ');
 

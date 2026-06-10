@@ -228,7 +228,7 @@ async function main() {
   }
 
   const out = 'window.SLIDES_RENDERED = ' + JSON.stringify(rendered, null, 2) + ';\n';
-  fs.writeFileSync(path.join(__dirname, 'slides_rendered.js'), out);
+  fs.writeFileSync(path.join(__dirname, 'js', 'slides_rendered.js'), out);
   console.log('Generated ' + Object.keys(slidesDb).length + ' decks for ' + LANGS.join(', '));
 }
 

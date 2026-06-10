@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { AOE_PRESET, topoOrder, buildAoeFrames } = require('../../graph_aoe_viz');
+const { AOE_PRESET, topoOrder, buildAoeFrames } = require('../../js/graph_aoe_viz');
 
 test('topoOrder returns a valid topological order of the preset', () => {
   const { nodes, edges } = AOE_PRESET;

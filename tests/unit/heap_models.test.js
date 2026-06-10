@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createHeapModel } = require('../../heap_models');
+const { createHeapModel } = require('../../js/heap_models');
 
 const heapModes = [
     'heap-binary',

@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 // Load i18n.js into a Node-compatible shape. The file targets the browser,
 // so we mount a minimal globalThis stub before requiring it.
 function loadI18n() {
-    delete require.cache[require.resolve('../../i18n.js')];
+    delete require.cache[require.resolve('../../js/i18n.js')];
     const stubLocalStorage = (() => {
         let store = {};
         return {
@@ -27,7 +27,7 @@ function loadI18n() {
     globalThis.CustomEvent = class CustomEvent {
         constructor(type, init) { this.type = type; this.detail = (init || {}).detail; }
     };
-    require('../../i18n.js');
+    require('../../js/i18n.js');
     return globalThis.I18N;
 }
 

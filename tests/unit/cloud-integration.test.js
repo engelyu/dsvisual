@@ -7,7 +7,7 @@ const path = require('node:path');
 
 // Load cloud-integration.js into a sandboxed window-like context.
 function loadIntegration() {
-  const code = fs.readFileSync(path.join(__dirname, '../../cloud-integration.js'), 'utf8');
+  const code = fs.readFileSync(path.join(__dirname, '../../js/cloud-integration.js'), 'utf8');
   const sandbox = {
     window: {},
     globalThis: {},

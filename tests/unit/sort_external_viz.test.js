@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { buildWinnerTree, buildExternalSortFrames } = require('../../sort_external_viz');
+const { buildWinnerTree, buildExternalSortFrames } = require('../../js/sort_external_viz');
 
 test('buildWinnerTree puts the overall minimum at index 1', () => {
   const tree = buildWinnerTree([5, 2, 8, 1]);

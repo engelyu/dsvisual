@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ' *)",
+      "Bash(git show *)",
+      "Bash(python3)",
+      "Bash(git -C /Users/skhuang/course/dsvisual status)",
+      "Bash(git -C /Users/skhuang/course/dsvisual add slides_db.js slides slides_rendered.js)",
+      "Bash(git -C /Users/skhuang/course/dsvisual commit -m ' *)",
+      "Bash(node -e \"const d=require\\('./slides_db.js'\\); const k=Object.keys\\(d\\); console.log\\('Total keys:', k.length\\); console.log\\('Has search-linear:', k.includes\\('search-linear'\\)\\); console.log\\('Has search-binary:', k.includes\\('search-binary'\\)\\);\")",
+      "Bash(./node_modules/.bin/clang-format --style=file)",
+      "Read(//Users/skhuang/.claude/plugins/cache/claude-plugins-official/superpowers/5.1.0/skills/requesting-code-review/**)"
+    ],
+    "additionalDirectories": [
+      "/tmp"
+    ]
+  }
+}

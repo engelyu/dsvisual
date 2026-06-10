@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { toTriples, buildFastTransposeFrames } = require('../../matrix_sparse_viz');
+const { toTriples, buildFastTransposeFrames } = require('../../js/matrix_sparse_viz');
 
 const M = [
   [0, 0, 3, 0],

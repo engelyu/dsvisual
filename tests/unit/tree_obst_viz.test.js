@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { buildObstFrames } = require('../../tree_obst_viz');
+const { buildObstFrames } = require('../../js/tree_obst_viz');
 
 function inorder(node, out) { if (!node) return out; inorder(node.left, out); out.push(node.val); inorder(node.right, out); return out; }
 

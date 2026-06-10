@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { computeFrequencies, buildHuffmanFrames } = require('../../huffman_viz');
+const { computeFrequencies, buildHuffmanFrames } = require('../../js/huffman_viz');
 
 function isPrefixFree(codes) {
   const list = Object.values(codes);
