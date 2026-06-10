@@ -10,7 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const configPath = path.join(projectRoot, 'cloud-config.js');
+const configPath = path.join(projectRoot, 'js', 'cloud-config.js');
 
 // Load .env file if present (does NOT override existing process.env).
 try {
