@@ -426,6 +426,18 @@
             </header>
             <div class="settings-drawer-body">
                 <section class="settings-row">
+                    <label for="input-difficulty" data-i18n-key="settings.difficulty">Random input difficulty</label>
+                    <div class="settings-row-controls">
+                        <select id="input-difficulty">
+                            <option value="normal" data-i18n-key="difficulty.normal">Normal</option>
+                            <option value="special" data-i18n-key="difficulty.special">Special</option>
+                            <option value="edge" data-i18n-key="difficulty.edge">Edge case</option>
+                            <option value="large" data-i18n-key="difficulty.large">Large</option>
+                        </select>
+                    </div>
+                    <small id="input-difficulty-cat" style="color:#94a3b8;font-size:0.75rem;"></small>
+                </section>
+                <section class="settings-row">
                     <label for="code-density-slider" data-i18n-key="settings.density">Code panel line-height</label>
                     <div class="settings-row-controls">
                         <input id="code-density-slider" type="range" min="1.0" max="1.8" step="0.05" value="1.55">
@@ -474,6 +486,7 @@
     <script src="js/slide-markdown.js" defer></script>
     <script src="js/private-decks.js" defer></script>
     <script src="js/cloud-drawer.js" defer></script>
+    <script src="js/random_input.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

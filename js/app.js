@@ -1001,6 +1001,40 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const DENSITY_STORAGE_KEY = 'dsvisual.codeDensity';
+    const DIFFICULTY_KEY_PREFIX = 'dsvisual.inputDifficulty.';
+    const DIFFICULTY_VALUES = ['normal', 'special', 'edge', 'large'];
+
+    function getInputDifficulty() {
+        const gid = getMethodGroupForMode(currentMode).id;
+        let v = null;
+        try { v = localStorage.getItem(DIFFICULTY_KEY_PREFIX + gid); } catch (e) { v = null; }
+        return DIFFICULTY_VALUES.indexOf(v) === -1 ? 'normal' : v;
+    }
+
+    function setInputDifficulty(groupId, value) {
+        if (DIFFICULTY_VALUES.indexOf(value) === -1) return;
+        try { localStorage.setItem(DIFFICULTY_KEY_PREFIX + groupId, value); } catch (e) { /* ignore */ }
+    }
+
+    function syncDifficultySelect() {
+        const sel = document.getElementById('input-difficulty');
+        if (!sel) return;
+        sel.value = getInputDifficulty();
+        const cap = document.getElementById('input-difficulty-cat');
+        if (cap) {
+            const g = getMethodGroupForMode(currentMode);
+            cap.textContent = (typeof t === 'function' ? t('group.' + g.id) : g.id) || g.id;
+        }
+    }
+
+    function bindDifficultySelect() {
+        const sel = document.getElementById('input-difficulty');
+        if (!sel) return;
+        sel.addEventListener('change', () => {
+            setInputDifficulty(getMethodGroupForMode(currentMode).id, sel.value);
+        });
+        syncDifficultySelect();
+    }
 
     function applySavedDensity() {
         const v = localStorage.getItem(DENSITY_STORAGE_KEY);
@@ -1328,6 +1362,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
     };
     renderMethodSections(getMethodGroupForMode(currentMode).id);
+    bindDifficultySelect();
     const MAX_SIZE = 5;
 
     // Search Vectors
@@ -2493,6 +2528,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.Prism && codeDisplay.isConnected) Prism.highlightElement(codeDisplay);
     }
     function renderAll() {
+        syncDifficultySelect();
         if(currentMode === 'maze-stack') renderMazeStack();
         else if(currentMode.includes('stack')) renderStack();
         else if (currentMode === 'queue') renderQueue();

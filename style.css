@@ -2483,3 +2483,14 @@ pre.code-panel-body[class*="language-"] {
 .tree-node.et-op { background: #f59e0b; border-color: #b45309; }
 .et-result { font-weight: 700; color: #059669; min-height: 20px; margin-top: 4px; }
 .et-phase { margin-top: 6px; color: #1e40af; font-style: italic; }
+.rand-btn {
+    cursor: pointer;
+    border: 1px solid #475569;
+    background: #1e293b;
+    color: #e2e8f0;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+.rand-btn:hover { background: #334155; }
