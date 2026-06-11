@@ -4136,7 +4136,7 @@ document.addEventListener('DOMContentLoaded', () => {
             '<div class="tt-controls">' +
               '<input type="text" class="tt-input" placeholder="50,30,70,..." value="' + st.values.join(',') + '">' +
               '<button type="button" class="tt-build">Build</button>' +
-              '<button type="button" class="tt-rand">Random</button>' +
+              '<button type="button" class="rand-btn" title="Random">🎲</button>' +
               '<select class="tt-order">' +
                 '<option value="preorder">Preorder</option>' +
                 '<option value="inorder">Inorder</option>' +
@@ -4215,11 +4215,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const vals = host.querySelector('.tt-input').value.split(',').map(s => parseInt(s.trim(), 10)).filter(n => Number.isFinite(n));
             if (vals.length) { st.values = vals; renderTreeTraversal(); }
         };
-        host.querySelector('.tt-rand').onclick = () => {
-            const n = 6 + Math.floor(Math.random() * 3);
-            const set = new Set();
-            while (set.size < n) set.add(10 + Math.floor(Math.random() * 90));
-            st.values = Array.from(set);
+        host.querySelector('.rand-btn').onclick = () => {
+            const inp = window.RandomInput && RandomInput.randomInputFor('tree-traversal', getInputDifficulty());
+            if (!inp) return;
+            st.values = inp.vals;
             renderTreeTraversal();
         };
     }
@@ -4237,6 +4236,7 @@ document.addEventListener('DOMContentLoaded', () => {
         host.innerHTML =
             '<div class="hf-controls">' +
               '<input type="text" class="hf-input">' +
+              '<button type="button" class="rand-btn" title="Random">🎲</button>' +
               '<button type="button" class="hf-apply">Apply</button>' +
             '</div>' +
             '<div class="hf-pq"><strong>Priority queue:</strong> <span class="hf-pq-list"></span></div>' +
@@ -4309,6 +4309,12 @@ document.addEventListener('DOMContentLoaded', () => {
         host.querySelector('.hf-apply').onclick = () => {
             const v = host.querySelector('.hf-input').value;
             if (v && v.length) { st.text = v; renderHuffman(); }
+        };
+        host.querySelector('.rand-btn').onclick = () => {
+            const inp = window.RandomInput && RandomInput.randomInputFor('huffman', getInputDifficulty());
+            if (!inp) return;
+            _hfState.text = inp.text;
+            renderHuffman();
         };
     }
 
@@ -4429,6 +4435,7 @@ document.addEventListener('DOMContentLoaded', () => {
             '<div class="obst-controls">' +
               '<input type="text" class="obst-keys" value="' + st.keys.join(',') + '" placeholder="keys e.g. 10,20,30">' +
               '<input type="text" class="obst-freqs" value="' + st.freqs.join(',') + '" placeholder="freqs e.g. 4,2,6">' +
+              '<button type="button" class="rand-btn" title="Random">🎲</button>' +
               '<button type="button" class="obst-apply">Apply</button>' +
             '</div>' +
             '<div class="obst-grid"></div>' +
@@ -4475,6 +4482,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const ks = host.querySelector('.obst-keys').value.split(',').map((s) => parseInt(s.trim(), 10)).filter(Number.isFinite);
             const fs = host.querySelector('.obst-freqs').value.split(',').map((s) => parseInt(s.trim(), 10)).filter(Number.isFinite);
             if (ks.length && ks.length === fs.length) { ks.sort((a, b) => a - b); st.keys = ks; st.freqs = fs; renderTreeObst(); }
+        };
+        host.querySelector('.rand-btn').onclick = () => {
+            const inp = window.RandomInput && RandomInput.randomInputFor('tree-obst', getInputDifficulty());
+            if (!inp) return;
+            _obstState.keys = inp.keys;
+            _obstState.freqs = inp.freqs;
+            renderTreeObst();
         };
     }
     let _extState = null;
@@ -4843,7 +4857,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let idx = 0;
 
         host.innerHTML =
-            '<div class="th-controls"><input type="text" class="th-input" value="' + st.vals.join(',') + '"><button type="button" class="th-build">Build</button>' +
+            '<div class="th-controls"><input type="text" class="th-input" value="' + st.vals.join(',') + '"><button type="button" class="rand-btn" title="Random">🎲</button><button type="button" class="th-build">Build</button>' +
             '<span class="sm-hint">values build a BST; dashed = inorder thread</span></div>' +
             '<div class="th-stage"><svg class="th-edges"></svg><div class="th-nodes"></div></div>' +
             '<div class="th-output"><strong>Inorder:</strong> <span class="th-seq"></span></div>' +
@@ -4880,6 +4894,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const vals = host.querySelector('.th-input').value.split(',').map((s) => parseInt(s.trim(), 10)).filter(Number.isFinite);
             if (vals.length) { st.vals = vals; renderTreeThreaded(); }
         };
+        host.querySelector('.rand-btn').onclick = () => {
+            const inp = window.RandomInput && RandomInput.randomInputFor('tree-threaded', getInputDifficulty());
+            if (!inp) return;
+            _threadedState.vals = inp.vals;
+            renderTreeThreaded();
+        };
     }
     let _mwayState = null;
     function renderTreeMway() {
@@ -4895,6 +4915,7 @@ document.addEventListener('DOMContentLoaded', () => {
             '<div class="mw-controls">' +
               '<input type="text" class="mw-keys" value="' + st.keys.join(',') + '">' +
               'm <input type="number" class="mw-m" min="3" max="6" value="' + st.m + '" style="width:54px">' +
+              '<button type="button" class="rand-btn" title="Random">🎲</button>' +
               '<button type="button" class="mw-apply">Apply</button>' +
             '</div>' +
             '<div class="mw-stage"><svg class="mw-edges"></svg><div class="mw-nodes"></div></div>' +
@@ -4949,6 +4970,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const m = parseInt(host.querySelector('.mw-m').value, 10);
             if (keys.length && m >= 3) { st.keys = keys; st.m = m; renderTreeMway(); }
         };
+        host.querySelector('.rand-btn').onclick = () => {
+            const inp = window.RandomInput && RandomInput.randomInputFor('tree-mway', getInputDifficulty());
+            if (!inp) return;
+            _mwayState.keys = inp.keys;
+            _mwayState.m = inp.m;
+            renderTreeMway();
+        };
     }
 
     let _exprTreeState = null;
@@ -4963,7 +4991,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let idx = 0;
 
         host.innerHTML =
-            '<div class="et-controls"><input type="text" class="et-input" value="' + st.text + '"><button type="button" class="et-apply">Apply</button>' +
+            '<div class="et-controls"><input type="text" class="et-input" value="' + st.text + '"><button type="button" class="rand-btn" title="Random">🎲</button><button type="button" class="et-apply">Apply</button>' +
             '<span class="sm-hint">postfix; operands + operators (+ - * /), space-separated</span></div>' +
             '<div class="et-stack"><strong>Subtree stack:</strong> <span class="et-stack-cells"></span></div>' +
             '<div class="et-stage"><svg class="et-edges"></svg><div class="et-nodes"></div></div>' +
@@ -5004,6 +5032,12 @@ document.addEventListener('DOMContentLoaded', () => {
         host.appendChild(buildStepControls(step, reset, 700));
         paint();
         host.querySelector('.et-apply').onclick = () => { const v = host.querySelector('.et-input').value.trim(); if (v) { st.text = v; renderTreeExpression(); } };
+        host.querySelector('.rand-btn').onclick = () => {
+            const inp = window.RandomInput && RandomInput.randomInputFor('tree-expression', getInputDifficulty());
+            if (!inp) return;
+            _exprTreeState.text = inp.text;
+            renderTreeExpression();
+        };
     }
 
     function renderSegmentTree() {

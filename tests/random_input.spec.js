@@ -26,3 +26,23 @@ test('difficulty is remembered per category and persists across reload', async (
   const stored = await page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith('dsvisual.inputDifficulty.')));
   expect(stored.length).toBeGreaterThanOrEqual(1);
 });
+
+async function loadMethod(page, methodId) {
+  const navItem = page.locator(
+    `.category-nav-item:has(.category-nav-method[data-method-id="${methodId}"])`);
+  await navItem.locator('.category-nav-btn').click();
+  await navItem.locator(`.category-nav-method[data-method-id="${methodId}"]`).click();
+  const card = page.locator(`[data-method-section="${methodId}"]`);
+  await expect(card).toHaveAttribute('data-runtime-state', 'active');
+}
+
+test('random button on tree-traversal changes the input field', async ({ page }) => {
+  await page.goto(fileUri);
+  await loadMethod(page, 'tree-traversal');
+
+  const section = page.locator('[data-method-section="tree-traversal"]');
+  const input = section.locator('.tt-input');
+  const before = await input.inputValue();
+  await section.locator('.rand-btn').click();
+  await expect(input).not.toHaveValue(before);
+});
