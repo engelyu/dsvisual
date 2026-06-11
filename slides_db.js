@@ -21070,4 +21070,42 @@ SLIDES_DB["file-isam"] = {
       ] }
   ]
 };
+
+SLIDES_DB["file-inverted"] = {
+  "category": "File Structures",
+  "title": { "zh": "倒排索引", "en": "Inverted Index" },
+  "slides": [
+    { "heading": { "zh": "倒排索引與全文檢索", "en": "Inverted Index & Full-Text Search" },
+      "blocks": [
+        { "type": "paragraph", "text": { "zh": "倒排索引(inverted index)是全文檢索的核心資料結構:它不是記「每份文件有哪些字」,而是反過來記「每個字出現在哪些文件」。輸入一批文件後,索引把每個詞(term)對應到一串文件編號(posting list)。", "en": "An inverted index is the core data structure behind full-text search. Instead of recording which terms each document contains, it inverts the relationship: each term maps to the list of documents that contain it (its posting list)." } },
+        { "type": "bullets", "items": [
+          { "zh": "term(詞):文件經分詞、轉小寫後得到的關鍵字。", "en": "Term: a keyword obtained after tokenizing a document and lower-casing it." },
+          { "zh": "posting list(倒排串列):某個 term 出現過的文件編號清單,通常排序且去重。", "en": "Posting list: the sorted, de-duplicated list of document ids in which a term appears." }
+        ] }
+      ] },
+    { "heading": { "zh": "建立索引:掃描文件、追加 docId", "en": "Building the Index: Scan Docs, Append docIds" },
+      "blocks": [
+        { "type": "paragraph", "text": { "zh": "建立流程:依序處理每份文件,對文件內的每個詞,若該文件編號尚未出現在該詞的倒排串列,就把它追加進去。同一份文件中重複的詞只記一次。", "en": "Build process: process each document in turn; for every term in it, append the document id to that term's posting list if not already present. A term repeated within the same document is recorded only once." } },
+        { "type": "code", "lang": "cpp", "file": "file_inverted.cpp", "code": "map<string, set<int>> index;\nfor (size_t d = 0; d < docs.size(); ++d) {\n    istringstream iss(docs[d]); string w;\n    while (iss >> w) index[w].insert((int)d);\n}" },
+        { "type": "note", "text": { "zh": "本視覺化逐格呈現每一次「詞 → docId」的插入:左側是文件清單,右側是逐步長出的倒排索引表。", "en": "The visualization steps through each term-to-docId insertion: documents on the left, the inverted index table growing step by step on the right." } }
+      ] },
+    { "heading": { "zh": "查詢:取出 term 的倒排串列", "en": "Query: Retrieve a Term's Posting List" },
+      "blocks": [
+        { "type": "steps", "items": [
+          { "zh": "把查詢字轉小寫(大小寫不敏感),在索引中查找對應的 term。", "en": "Lower-case the query (case-insensitive) and look the term up in the index." },
+          { "zh": "若找到,回傳其倒排串列;那些文件即為命中結果。", "en": "If found, return its posting list; those documents are the hits." },
+          { "zh": "若該 term 不存在,回傳空串列(無命中)。", "en": "If the term is absent, return an empty posting list (no hits)." }
+        ] },
+        { "type": "note", "text": { "zh": "視覺化會把查詢字所在的索引列高亮,並在左側文件清單標出命中的文件。", "en": "The visualization highlights the index row for the query term and marks the matching documents in the left-hand document list." } }
+      ] },
+    { "heading": { "zh": "多詞查詢:倒排串列的交集 (AND)", "en": "Multi-Term Query: Intersecting Posting Lists (AND)" },
+      "blocks": [
+        { "type": "paragraph", "text": { "zh": "查詢多個詞時,布林 AND 查詢相當於對各 term 的倒排串列取交集:只有同時出現在所有串列中的文件編號才算命中。因串列已排序,可用合併掃描(merge)在線性時間內完成。", "en": "For multi-term queries, a boolean AND query corresponds to intersecting the posting lists of the terms: only document ids present in every list are hits. Because posting lists are sorted, the intersection can be computed with a linear merge scan." } },
+        { "type": "bullets", "items": [
+          { "zh": "AND:取交集;OR:取聯集;NOT:取補集(差集)。", "en": "AND: intersection; OR: union; NOT: complement (difference)." },
+          { "zh": "排序的倒排串列讓交集、聯集都能以線性合併高效完成,是搜尋引擎可規模化的關鍵。", "en": "Sorted posting lists let intersection and union run as efficient linear merges — a key reason search engines scale." }
+        ] }
+      ] }
+  ]
+};
 module.exports = SLIDES_DB;

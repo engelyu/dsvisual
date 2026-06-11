@@ -55,3 +55,13 @@ test('file-isam loads, searches, steps', async ({ page }) => {
   await page.click('.isam-search');
   await page.click('[data-action="step"]');
 });
+
+test('file-inverted loads, queries, steps', async ({ page }) => {
+  await page.goto(fileUri);
+  await loadMethod(page, 'file-inverted');
+  await expect(page.locator('[data-method-section][data-runtime-state="active"]')).toBeVisible();
+  await expect(page.locator('.inv-index').first()).toBeVisible();
+  await page.fill('.inv-query', 'dog');
+  await page.click('.inv-query-btn');
+  await page.click('[data-action="step"]');
+});
