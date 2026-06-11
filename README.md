@@ -44,6 +44,7 @@ open index.html
 | Optimal BST | DP table → reconstructed minimum-cost tree |
 | Threaded Binary Tree | Inorder-successor threads; stack-free traversal |
 | m-way Search Tree | Up to m−1 keys / m children per node |
+| Expression Tree | Build from postfix via a subtree stack, then evaluate |
 
 ### Sorting Algorithms
 | Algorithm | Category |
