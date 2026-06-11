@@ -91,6 +91,8 @@ const mappings = {
     'list_doubly.cpp': 'codeListDoubly',
     'search_fibonacci.cpp': 'codeSearchFibonacci',
     'search_interpolation.cpp': 'codeSearchInterpolation',
+    'tree_threaded.cpp': 'codeTreeThreaded',
+    'tree_mway.cpp': 'codeTreeMway',
 };
 
 let out = '// Auto-generated code DB for visualization\n';

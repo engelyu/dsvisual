@@ -42,6 +42,8 @@ open index.html
 | Tree Traversal | Pre/In/Post/Level-order, recursive & iterative |
 | Huffman Coding | Greedy optimal prefix-code tree construction |
 | Optimal BST | DP table → reconstructed minimum-cost tree |
+| Threaded Binary Tree | Inorder-successor threads; stack-free traversal |
+| m-way Search Tree | Up to m−1 keys / m children per node |
 
 ### Sorting Algorithms
 | Algorithm | Category |

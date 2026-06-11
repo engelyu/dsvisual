@@ -136,6 +136,8 @@ const METHOD_GROUPS = [
             { id: 'tree-traversal', title: 'Tree Traversal', file: 'tree_traversal.cpp', visualizer: 'tree', controls: 'tree' },
             { id: 'huffman', title: 'Huffman Coding', file: 'huffman.cpp', visualizer: 'tree', controls: 'tree' },
             { id: 'tree-obst', title: 'Optimal BST', file: 'tree_obst.cpp', visualizer: 'obst', controls: 'obst' },
+            { id: 'tree-threaded', title: 'Threaded Binary Tree', file: 'tree_threaded.cpp', visualizer: 'threaded', controls: 'threaded' },
+            { id: 'tree-mway', title: 'm-way Search Tree', file: 'tree_mway.cpp', visualizer: 'mway', controls: 'mway' },
         ],
     },
     {
@@ -308,6 +310,8 @@ function getCodeForMethod(methodId) {
         'matrix-sparse': codeMatrixSparse,
         'poly-padd': codePolyPadd,
         'tree-obst': codeTreeObst,
+        'tree-threaded': codeTreeThreaded,
+        'tree-mway': codeTreeMway,
         'sort-external': codeSortExternal,
         graph: codeGraph,
         'graph-adjlist': codeGraphAdjlist,
@@ -2248,6 +2252,14 @@ document.addEventListener('DOMContentLoaded', () => {
             codeTitle.textContent = 'tree_obst.cpp';
             codeDisplay.textContent = codeTreeObst;
         }
+        else if (currentMode === 'tree-threaded') {
+            codeTitle.textContent = 'tree_threaded.cpp';
+            codeDisplay.textContent = codeTreeThreaded;
+        }
+        else if (currentMode === 'tree-mway') {
+            codeTitle.textContent = 'tree_mway.cpp';
+            codeDisplay.textContent = codeTreeMway;
+        }
         else if (currentMode === 'sort-external') {
             codeTitle.textContent = 'sort_external.cpp';
             codeDisplay.textContent = codeSortExternal;
@@ -2495,6 +2507,8 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (currentMode === 'matrix-sparse') renderMatrixSparse();
         else if (currentMode === 'poly-padd') renderPolyPadd();
         else if (currentMode === 'tree-obst') renderTreeObst();
+        else if (currentMode === 'tree-threaded') renderTreeThreaded();
+        else if (currentMode === 'tree-mway') renderTreeMway();
         else if (currentMode === 'sort-external') renderSortExternal();
         else if (currentMode === 'graph-aoe') renderGraphAoe();
         else if (currentMode === 'expr-infix-postfix') renderExprInfixPostfix();
@@ -4771,6 +4785,126 @@ document.addEventListener('DOMContentLoaded', () => {
             const arr = host.querySelector('.ss-arr').value.split(',').map((s) => parseInt(s.trim(), 10)).filter(Number.isFinite).sort((a, b) => a - b);
             const target = parseInt(host.querySelector('.ss-target').value, 10);
             if (arr.length && Number.isFinite(target)) { st.arr = arr; st.target = target; renderSearchInterpolation(); }
+        };
+    }
+
+    let _threadedState = null;
+    function renderTreeThreaded() {
+        const host = acquireDynamicVizHost();
+        if (!_threadedState) _threadedState = { vals: ThreadedViz.SAMPLE.slice() };
+        const st = _threadedState;
+        const langOf = (m) => (window.I18N && window.I18N.getCurrentLanguage() === 'zh') ? m.zh : m.en;
+        const root = ThreadedViz.buildTreeFromValues(st.vals);
+        const res = ThreadedViz.buildThreadedFrames(root);
+        const frames = res.frames;
+        let idx = 0;
+
+        host.innerHTML =
+            '<div class="th-controls"><input type="text" class="th-input" value="' + st.vals.join(',') + '"><button type="button" class="th-build">Build</button>' +
+            '<span class="sm-hint">values build a BST; dashed = inorder thread</span></div>' +
+            '<div class="th-stage"><svg class="th-edges"></svg><div class="th-nodes"></div></div>' +
+            '<div class="th-output"><strong>Inorder:</strong> <span class="th-seq"></span></div>' +
+            '<div class="th-phase"></div>';
+
+        const meta = [];
+        computeTreeLayout(root, 200, 30, 90, meta);
+        const byId = {}; meta.forEach((m) => { byId[m.id] = m; });
+        const nodesEl = host.querySelector('.th-nodes');
+
+        function paint() {
+            const fr = frames[idx];
+            if (!host.querySelector('.th-edges')) return;
+            const edgesEl = host.querySelector('.th-edges');
+            let svg = '';
+            (function walk(n) { if (!n) return; [n.left, n.right].forEach((c) => { if (!c) return; const a = byId[n.id], b = byId[c.id]; svg += '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '" stroke="#94a3b8" stroke-width="2"/>'; walk(c); }); })(root);
+            (fr.threads || []).forEach((t) => {
+                const a = byId[t.fromId], b = byId[t.toId];
+                if (!a || !b) return;
+                const midY = Math.min(a.y, b.y) - 30;
+                svg += '<path d="M' + a.x + ',' + a.y + ' Q' + ((a.x + b.x) / 2) + ',' + midY + ' ' + b.x + ',' + b.y + '" fill="none" stroke="#a855f7" stroke-width="2" stroke-dasharray="5 4"/>';
+            });
+            edgesEl.innerHTML = svg;
+            nodesEl.innerHTML = meta.map((m) => '<div class="tree-node' + (fr.current === m.id ? ' active' : (fr.visited.includes(m.val) ? ' visited' : '')) + '" style="left:' + m.x + 'px;top:' + m.y + 'px">' + m.val + '</div>').join('');
+            host.querySelector('.th-seq').textContent = fr.visited.join(', ');
+            host.querySelector('.th-phase').textContent = langOf(fr.msg);
+        }
+        function step() { if (idx < frames.length - 1) { idx++; paint(); return idx < frames.length - 1; } return false; }
+        function reset() { idx = 0; paint(); }
+
+        host.appendChild(buildStepControls(step, reset, 700));
+        paint();
+        host.querySelector('.th-build').onclick = () => {
+            const vals = host.querySelector('.th-input').value.split(',').map((s) => parseInt(s.trim(), 10)).filter(Number.isFinite);
+            if (vals.length) { st.vals = vals; renderTreeThreaded(); }
+        };
+    }
+    let _mwayState = null;
+    function renderTreeMway() {
+        const host = acquireDynamicVizHost();
+        if (!_mwayState) _mwayState = { keys: [50, 30, 70, 20, 40, 60, 80, 10, 25], m: 3 };
+        const st = _mwayState;
+        const langOf = (m) => (window.I18N && window.I18N.getCurrentLanguage() === 'zh') ? m.zh : m.en;
+        const res = MwayViz.buildMwayFrames(st.keys, st.m);
+        const frames = res.frames;
+        let idx = 0;
+
+        host.innerHTML =
+            '<div class="mw-controls">' +
+              '<input type="text" class="mw-keys" value="' + st.keys.join(',') + '">' +
+              'm <input type="number" class="mw-m" min="3" max="6" value="' + st.m + '" style="width:54px">' +
+              '<button type="button" class="mw-apply">Apply</button>' +
+            '</div>' +
+            '<div class="mw-stage"><svg class="mw-edges"></svg><div class="mw-nodes"></div></div>' +
+            '<div class="mw-phase"></div>';
+
+        function layout(tree) {
+            const pos = {}; let leaf = 0; const W = host.querySelector('.mw-stage').clientWidth || 720;
+            function place(node, depth) {
+                if (!node) return;
+                const kids = node.children.filter((c) => c);
+                if (kids.length === 0) { pos[node.id] = { col: leaf++, depth, node }; return; }
+                kids.forEach((c) => place(c, depth + 1));
+                const cols = kids.map((c) => pos[c.id].col);
+                pos[node.id] = { col: (Math.min(...cols) + Math.max(...cols)) / 2, depth, node };
+            }
+            place(tree, 0);
+            const maxCol = Math.max(1, leaf - 1);
+            const xOf = (col) => 40 + (col / maxCol) * (W - 120);
+            return { pos, xOf };
+        }
+
+        function paint() {
+            const fr = frames[idx];
+            if (!host.querySelector('.mw-nodes')) return;
+            const nodesEl = host.querySelector('.mw-nodes');
+            const edgesEl = host.querySelector('.mw-edges');
+            nodesEl.innerHTML = ''; edgesEl.innerHTML = '';
+            if (!fr.tree) { host.querySelector('.mw-phase').textContent = langOf(fr.msg); return; }
+            const { pos, xOf } = layout(fr.tree);
+            const onPath = new Set(fr.descendPath || []);
+            let svg = '';
+            Object.keys(pos).forEach((id) => {
+                const p = pos[id];
+                p.node.children.forEach((c) => { if (c && pos[c.id]) svg += '<line x1="' + xOf(p.col) + '" y1="' + (p.depth * 78 + 24) + '" x2="' + xOf(pos[c.id].col) + '" y2="' + (pos[c.id].depth * 78 + 8) + '" stroke="#94a3b8" stroke-width="2"/>'; });
+            });
+            edgesEl.innerHTML = svg;
+            nodesEl.innerHTML = Object.keys(pos).map((id) => {
+                const p = pos[id];
+                const cls = 'mw-node' + (id === fr.current ? ' cur' : (onPath.has(id) ? ' onpath' : ''));
+                const cells = p.node.keys.map((k) => '<span class="mw-key">' + k + '</span>').join('');
+                return '<div class="' + cls + '" style="left:' + xOf(p.col) + 'px;top:' + (p.depth * 78 + 8) + 'px">' + cells + '</div>';
+            }).join('');
+            host.querySelector('.mw-phase').textContent = langOf(fr.msg);
+        }
+        function step() { if (idx < frames.length - 1) { idx++; paint(); return idx < frames.length - 1; } return false; }
+        function reset() { idx = 0; paint(); }
+
+        host.appendChild(buildStepControls(step, reset, 700));
+        paint();
+        host.querySelector('.mw-apply').onclick = () => {
+            const keys = host.querySelector('.mw-keys').value.split(',').map((s) => parseInt(s.trim(), 10)).filter(Number.isFinite);
+            const m = parseInt(host.querySelector('.mw-m').value, 10);
+            if (keys.length && m >= 3) { st.keys = keys; st.m = m; renderTreeMway(); }
         };
     }
 

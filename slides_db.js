@@ -20820,4 +20820,46 @@ SLIDES_DB["search-interpolation"] = {
       ] }
   ]
 };
+SLIDES_DB["tree-threaded"] = {
+  "category": "Trees",
+  "title": { "zh": "引線二元樹", "en": "Threaded Binary Tree" },
+  "slides": [
+    { "heading": { "zh": "概念", "en": "Idea" },
+      "blocks": [
+        { "type": "paragraph", "text": { "zh": "一般二元樹有許多浪費的空(null)指標;引線樹讓「右空指標」指向中序後繼。", "en": "A binary tree wastes many null pointers; a threaded tree makes each null right pointer point to the inorder successor." } },
+        { "type": "bullets", "items": [
+          { "zh": "右指標為空 → 設為指向中序後繼的引線。", "en": "Null right pointer → a thread to the inorder successor." },
+          { "zh": "可在 O(1) 額外空間下完成中序走訪(免遞迴/堆疊)。", "en": "Enables inorder traversal in O(1) extra space (no recursion/stack)." }
+        ] }
+      ] },
+    { "heading": { "zh": "走訪", "en": "Traversal" },
+      "blocks": [
+        { "type": "steps", "items": [
+          { "zh": "從根往左走到最左節點。", "en": "From the root, go left to the leftmost node." },
+          { "zh": "造訪節點;若右為引線,沿引線到後繼。", "en": "Visit the node; if its right is a thread, follow it to the successor." },
+          { "zh": "否則往右子樹再走到最左。", "en": "Otherwise go to the right subtree and then leftmost." }
+        ] }
+      ] }
+  ]
+};
+SLIDES_DB["tree-mway"] = {
+  "category": "Trees",
+  "title": { "zh": "m 路搜尋樹", "en": "m-way Search Tree" },
+  "slides": [
+    { "heading": { "zh": "定義", "en": "Definition" },
+      "blocks": [
+        { "type": "paragraph", "text": { "zh": "二元搜尋樹的推廣:每個節點最多有 m−1 個排序鍵與 m 個子節點。", "en": "A generalization of the BST: each node has up to m−1 sorted keys and up to m children." } },
+        { "type": "note", "text": { "zh": "鍵把鍵值區間切成數段,各段對應一個子指標。", "en": "Keys partition the value range into segments, each with a child pointer." } }
+      ] },
+    { "heading": { "zh": "插入", "en": "Insertion" },
+      "blocks": [
+        { "type": "steps", "items": [
+          { "zh": "在節點內找到鍵應落的區間。", "en": "Within a node, find the segment the key belongs to." },
+          { "zh": "若該子指標為空:節點未滿則直接插入,已滿則新建子節點。", "en": "If that child is null: insert into the node if it has room, else create a new child." },
+          { "zh": "否則往該子節點下降,重複。", "en": "Otherwise descend into that child and repeat." }
+        ] },
+        { "type": "code", "lang": "cpp", "file": "tree_mway.cpp", "code": "if (p->children[i] == nullptr) {\n    if ((int)p->keys.size() < m - 1)\n        p->keys.insert(p->keys.begin() + i, key);\n    else\n        p->children[i] = makeLeaf(key);\n    return root;\n}\np = p->children[i];" }
+      ] }
+  ]
+};
 module.exports = SLIDES_DB;

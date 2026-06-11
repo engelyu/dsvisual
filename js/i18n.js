@@ -47,6 +47,8 @@
             'method.tree-fenwick':          'Fenwick Tree (BIT)',
             'method.tree-traversal':        'Tree Traversal',
             'method.huffman':               'Huffman Coding',
+            'method.tree-threaded': 'Threaded Binary Tree',
+            'method.tree-mway': 'm-way Search Tree',
 
             // Methods — Graphs
             'method.graph':                 'Undirected Graph',
@@ -255,6 +257,8 @@
             'method.tree-fenwick':          'Fenwick 樹（BIT）',
             'method.tree-traversal':        '二元樹走訪',
             'method.huffman':               'Huffman 編碼',
+            'method.tree-threaded': '引線二元樹',
+            'method.tree-mway': 'm 路搜尋樹',
 
             // Methods — Graphs
             'method.graph':                 '無向圖',

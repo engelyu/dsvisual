@@ -5262,3 +5262,68 @@ int interpolationSearch(const std::vector<int>& a, int target) {
 }
 `;
 
+const codeTreeThreaded = `#include <iostream>
+
+// Right-threaded binary tree: a node's null right pointer becomes a thread to
+// its inorder successor, enabling stack-free inorder traversal.
+struct Node {
+    int val;
+    Node* left = nullptr;
+    Node* right = nullptr;   // child or thread
+    bool rightThread = false;
+};
+
+void inorderThreaded(Node* root) {
+    Node* cur = root;
+    while (cur && cur->left) cur = cur->left;       // leftmost
+    while (cur) {
+        std::cout << cur->val << ' ';
+        if (cur->rightThread) {
+            cur = cur->right;                       // follow thread to successor
+        } else {
+            cur = cur->right;                       // go right...
+            while (cur && cur->left) cur = cur->left; // ...then leftmost
+        }
+    }
+}
+`;
+
+const codeTreeMway = `#include <vector>
+#include <algorithm>
+
+// m-way search tree (unbalanced): each node holds up to m-1 sorted keys and
+// up to m children. Insertion descends; fills a non-full node or creates a
+// new child where the search falls off.
+struct MwayNode {
+    std::vector<int> keys;
+    std::vector<MwayNode*> children; // size keys.size()+1
+};
+
+MwayNode* makeLeaf(int k) {
+    MwayNode* n = new MwayNode();
+    n->keys.push_back(k);
+    n->children.assign(2, nullptr);
+    return n;
+}
+
+MwayNode* insert(MwayNode* root, int key, int m) {
+    if (!root) return makeLeaf(key);
+    MwayNode* p = root;
+    while (true) {
+        int i = 0;
+        while (i < (int)p->keys.size() && key > p->keys[i]) i++;
+        if (i < (int)p->keys.size() && p->keys[i] == key) return root; // duplicate
+        if (p->children[i] == nullptr) {
+            if ((int)p->keys.size() < m - 1) {
+                p->keys.insert(p->keys.begin() + i, key);
+                p->children.insert(p->children.begin() + i, nullptr);
+            } else {
+                p->children[i] = makeLeaf(key);
+            }
+            return root;
+        }
+        p = p->children[i];
+    }
+}
+`;
+

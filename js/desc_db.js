@@ -836,4 +836,30 @@ const descDB = {
             <span class="badge space">Space: O(1)</span>
         </div>
     `,
+    'tree-threaded': `
+        <h3>Threaded Binary Tree</h3>
+        <p>Null right pointers become threads to the inorder successor, enabling stack-free traversal.</p>
+        <hr>
+        <ul>
+            <li><strong>Thread:</strong> a null-right node points to its inorder successor</li>
+            <li><strong>Traversal:</strong> follow threads instead of recursion / a stack</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Inorder: O(N)</span>
+            <span class="badge space">Space: O(1) (no stack)</span>
+        </div>
+    `,
+    'tree-mway': `
+        <h3>m-way Search Tree</h3>
+        <p>Each node holds up to m−1 sorted keys and up to m children — a generalization of the BST.</p>
+        <hr>
+        <ul>
+            <li><strong>Search:</strong> within a node, descend the child between the bounding keys</li>
+            <li><strong>Insert:</strong> fill a non-full node or create a child where the search falls off</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Search: O(h · log m)</span>
+            <span class="badge space">Space: O(N)</span>
+        </div>
+    `,
 };
