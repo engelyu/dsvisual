@@ -93,6 +93,7 @@ const mappings = {
     'search_interpolation.cpp': 'codeSearchInterpolation',
     'tree_threaded.cpp': 'codeTreeThreaded',
     'tree_mway.cpp': 'codeTreeMway',
+    'tree_expression.cpp': 'codeTreeExpression',
 };
 
 let out = '// Auto-generated code DB for visualization\n';
