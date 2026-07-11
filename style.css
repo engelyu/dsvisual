@@ -1909,9 +1909,15 @@ pre.code-panel-body[class*="language-"] {
 
 /* Spec 4 — shared weighted graph */
 .wgraph-svg { max-width: 340px; }
+.wgraph-edge.wgraph-neg { stroke: #dc2626; stroke-dasharray: 5 3; }
+.wgraph-weight.wgraph-neg { fill: #dc2626; font-weight: 700; }
 .wgraph-node.wgraph-in { fill: #34d399; }
 .wgraph-edge.wgraph-in { stroke: #059669; stroke-width: 3; }
 .wgraph-edge.wgraph-cur { stroke: #f59e0b; stroke-width: 4; }
+.wgraph-node.wgraph-cur { stroke: #f59e0b; stroke-width: 3; }
+.wgraph-edge.wgraph-cycle { stroke: #dc2626; stroke-width: 4; stroke-dasharray: none; }
+.wgraph-node.wgraph-cycle { fill: #fee2e2; stroke: #dc2626; stroke-width: 3; }
+.wgraph-node.wgraph-poison { fill: #ffedd5; stroke: #f97316; stroke-width: 2; stroke-dasharray: 3 2; }
 
 /* Spec 4 — Prim's MST */
 .prim-wrap { display: flex; flex-direction: column; gap: 8px; align-items: center; }
@@ -1919,11 +1925,32 @@ pre.code-panel-body[class*="language-"] {
 
 /* Spec 4 — Bellman-Ford */
 .bellman-wrap { display: flex; flex-direction: column; gap: 8px; align-items: center; }
-.bellman-darr { display: flex; gap: 6px; }
+.bellman-wrap.bf-wide .wgraph-svg { max-width: 680px; }
+.bf-presets { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.bf-presets-label { font-size: 13px; color: #475569; }
+.bf-preset-btn { padding: 4px 12px; border: 1px solid #cbd5e1; border-radius: 999px;
+  background: #fff; color: #334155; cursor: pointer; font-size: 12px; }
+.bf-preset-btn:hover { background: #f1f5f9; }
+.bf-preset-btn.active { background: #1e40af; color: #fff; border-color: #1e40af; }
+.bf-legend { font-size: 11px; color: #64748b; }
+.bellman-darr { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
 .bellman-dcol { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.bf-wide .bellman-dcell, .bf-wide .bellman-pcell { width: 38px; }
+.bellman-dhead { justify-content: flex-end; }
+.bellman-dlabel { font-family: monospace; font-size: 11px; color: #94a3b8;
+  height: 32px; display: flex; align-items: center; }
 .bellman-didx { font-family: monospace; font-size: 11px; color: #64748b; }
 .bellman-dcell { width: 44px; height: 32px; display: flex; align-items: center; justify-content: center;
-  border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc; font-family: monospace; font-weight: 700; }
+  border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc; font-family: monospace; font-weight: 700;
+  transition: background 0.25s, border-color 0.25s; }
+.bellman-dcell.chg { background: #bbf7d0; border-color: #16a34a; }
+.bellman-dcell.poison { background: #fef2f2; border-color: #dc2626; color: #dc2626; }
+.bellman-focus .bellman-didx { color: #7c3aed; font-weight: 700; }
+.bellman-dcell.hfocus { border: 2px solid #7c3aed; background: #f5f3ff; color: #6d28d9; box-shadow: 0 0 0 2px #ede9fe; }
+.bellman-dcell.hfocus.chg { background: #ede9fe; border-color: #6d28d9; box-shadow: 0 0 0 3px #c4b5fd; }
+.bellman-pcell { width: 44px; height: 32px; display: flex; align-items: center; justify-content: center;
+  border: 1px dashed #e2e8f0; border-radius: 4px; background: #fff; font-family: monospace;
+  font-size: 12px; color: #7c3aed; }
 .bellman-msg { font-family: monospace; font-size: 12px; color: #475569; min-height: 1.2em; text-align: center; }
 
 /* Spec 4 — Floyd-Warshall */

@@ -4191,10 +4191,10 @@ document.addEventListener('DOMContentLoaded', () => {
         draw();
     }
 
-    function buildWeightedGraphSvg(nodes, edges, directed) {
+    function buildWeightedGraphSvg(nodes, edges, directed, viewBox) {
         function nodeById(id) { return nodes.find((nd) => nd.id === id); }
         function hasEdge(u, v) { return edges.some((ed) => ed.u === u && ed.v === v); }
-        let svg = '<svg class="wgraph-svg" viewBox="0 0 320 250" width="100%" ' +
+        let svg = '<svg class="wgraph-svg" viewBox="' + (viewBox || '0 0 320 250') + '" width="100%" ' +
                   'xmlns="http://www.w3.org/2000/svg">';
         if (directed) {
             svg += '<defs><marker id="wg-arrow" markerWidth="9" markerHeight="9" refX="8" refY="3" ' +
@@ -4217,12 +4217,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const x1 = (a.x + ux * 18 + ox).toFixed(1), y1 = (a.y + uy * 18 + oy).toFixed(1);
             const x2 = (b.x - ux * 18 + ox).toFixed(1), y2 = (b.y - uy * 18 + oy).toFixed(1);
-            svg += '<line class="wgraph-edge" data-edge="' + e.u + '-' + e.v + '" x1="' + x1 +
+            const neg = e.w < 0 ? ' wgraph-neg' : '';
+            svg += '<line class="wgraph-edge' + neg + '" data-edge="' + e.u + '-' + e.v + '" x1="' + x1 +
                    '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 +
                    '" stroke="#94a3b8" stroke-width="2"' +
                    (directed ? ' marker-end="url(#wg-arrow)"' : '') + '/>';
-            const mx = ((a.x + b.x) / 2 + ox).toFixed(1), my = ((a.y + b.y) / 2 + oy - 4).toFixed(1);
-            svg += '<text class="wgraph-weight" x="' + mx + '" y="' + my +
+            // nudge labels sideways on near-vertical edges so they clear the line
+            const lx = Math.abs(dx) < 20 ? 12 : 0;
+            const mx = ((a.x + b.x) / 2 + ox + lx).toFixed(1), my = ((a.y + b.y) / 2 + oy - 4).toFixed(1);
+            svg += '<text class="wgraph-weight' + neg + '" x="' + mx + '" y="' + my +
                    '" text-anchor="middle" font-size="11" fill="#475569">' + e.w + '</text>';
         }
         for (const nd of nodes) {
@@ -6412,79 +6415,415 @@ document.addEventListener('DOMContentLoaded', () => {
         draw();
     }
 
-    function renderBellmanFord() {
-        const host = acquireDynamicVizHost();
-        const nodes = [
-            { id: 0, label: '0', x: 45, y: 70 },
-            { id: 1, label: '1', x: 160, y: 35 },
-            { id: 2, label: '2', x: 160, y: 160 },
-            { id: 3, label: '3', x: 275, y: 60 },
-            { id: 4, label: '4', x: 275, y: 185 },
-        ];
-        const edges = [
-            { u: 0, v: 1, w: 6 }, { u: 0, v: 2, w: 7 }, { u: 1, v: 2, w: 8 },
-            { u: 1, v: 3, w: 5 }, { u: 1, v: 4, w: -4 }, { u: 2, v: 3, w: -3 },
-            { u: 2, v: 4, w: 9 }, { u: 3, v: 1, w: -2 }, { u: 4, v: 0, w: 2 },
-            { u: 4, v: 3, w: 7 },
-        ];
+    // Three fixed Bellman-Ford examples: the compact CLRS classic (default,
+    // kept small so every state fits at a glance), an 8-node teaching
+    // walkthrough that is Bellman-Ford's WORST case — a "wheel" where A…G sit on
+    // an irregular polygon (chain A→B→…→G→H) and every rim node also has a
+    // direct spoke to the hub H. dist[H] is updated every single pass: it starts
+    // at the big direct edge A→H, then improves to A→B→H, A→B→C→H, … until the
+    // full rim A→B→…→G→H turns out to be shortest — edges are scanned so that
+    // within a single pass dist[H] tightens step by step (no negative edges) —
+    // and a 15-node negative-cycle example: a healthy region that converges by
+    // pass 2, a J→K→L→J cycle summing to −1 that keeps lowering its region by 1
+    // per pass, and a detection pass after V−1 rounds that proves the cycle.
+    let _bellmanPreset = 'classic';
+    let _bellmanKeyHandler = null;
+    const BELLMAN_PRESETS = {
+        classic: {
+            viewBox: '0 0 320 250', wide: false, delay: 400,
+            nodes: [
+                { id: 0, label: '0', x: 45, y: 70 },
+                { id: 1, label: '1', x: 160, y: 35 },
+                { id: 2, label: '2', x: 160, y: 160 },
+                { id: 3, label: '3', x: 275, y: 60 },
+                { id: 4, label: '4', x: 275, y: 185 },
+            ],
+            edges: [
+                { u: 0, v: 1, w: 6 }, { u: 0, v: 2, w: 7 }, { u: 1, v: 2, w: 8 },
+                { u: 1, v: 3, w: 5 }, { u: 1, v: 4, w: -4 }, { u: 2, v: 3, w: -3 },
+                { u: 2, v: 4, w: 9 }, { u: 3, v: 1, w: -2 }, { u: 4, v: 0, w: 2 },
+                { u: 4, v: 3, w: 7 },
+            ],
+        },
+        walkthrough: {
+            viewBox: '0 0 530 410', wide: true, delay: 350, focusNode: 7, detailPasses: 1,
+            // A…G are the vertices of an irregular convex polygon; H is the hub
+            // in the middle. The rim is the chain A→B→…→G→H; every rim node also
+            // has a direct spoke to H.
+            nodes: [
+                { id: 0, label: 'A', x: 75, y: 130 },
+                { id: 1, label: 'B', x: 60, y: 275 },
+                { id: 2, label: 'C', x: 185, y: 355 },
+                { id: 3, label: 'D', x: 345, y: 350 },
+                { id: 4, label: 'E', x: 455, y: 250 },
+                { id: 5, label: 'F', x: 450, y: 105 },
+                { id: 6, label: 'G', x: 295, y: 55 },
+                { id: 7, label: 'H', x: 265, y: 210 },
+            ],
+            // Edges are scanned node by node (A, B, C, …); for each node its spoke
+            // to H comes first, then the rim edge to the next node. So within the
+            // first pass dist[H] tightens step by step as longer-but-cheaper paths
+            // are found: A→H (20) → A→B→H (18) → A→B→C→H (16) → … → the whole rim
+            // A→B→…→G→H (7). A second pass confirms 0 updates. No negative edges.
+            edges: [
+                { u: 0, v: 7, w: 20 }, { u: 0, v: 1, w: 1 },
+                { u: 1, v: 7, w: 17 }, { u: 1, v: 2, w: 1 },
+                { u: 2, v: 7, w: 14 }, { u: 2, v: 3, w: 1 },
+                { u: 3, v: 7, w: 11 }, { u: 3, v: 4, w: 1 },
+                { u: 4, v: 7, w: 8 }, { u: 4, v: 5, w: 1 },
+                { u: 5, v: 7, w: 5 }, { u: 5, v: 6, w: 1 },
+                { u: 6, v: 7, w: 1 },
+            ],
+        },
+        negcycle: {
+            viewBox: '0 0 780 360', wide: true, delay: 300,
+            // Passes 1–2 play edge by edge; later passes collapse to one frame
+            // each so the "only the cycle region keeps dropping" ratchet is
+            // obvious instead of tedious. After V−1 passes an extra check proves
+            // the negative cycle.
+            detailPasses: 2, detectCycle: true,
+            nodes: [
+                { id: 0, label: 'A', x: 45, y: 180 },
+                { id: 1, label: 'B', x: 170, y: 80 },
+                { id: 2, label: 'C', x: 170, y: 180 },
+                { id: 3, label: 'D', x: 170, y: 285 },
+                { id: 4, label: 'E', x: 315, y: 70 },
+                { id: 5, label: 'F', x: 315, y: 175 },
+                { id: 6, label: 'G', x: 315, y: 285 },
+                { id: 7, label: 'H', x: 475, y: 285 },
+                { id: 8, label: 'I', x: 620, y: 255 },
+                { id: 9, label: 'J', x: 475, y: 60 },
+                { id: 10, label: 'K', x: 585, y: 110 },
+                { id: 11, label: 'L', x: 475, y: 160 },
+                { id: 12, label: 'M', x: 700, y: 60 },
+                { id: 13, label: 'N', x: 700, y: 160 },
+                { id: 14, label: 'O', x: 735, y: 310 },
+            ],
+            // Healthy region (A–I, O) converges by pass 2 — including two
+            // ordinary negative edges (C→B, F→E) to show that a negative EDGE
+            // is fine; only a negative CYCLE (J→K→L→J, total −1) breaks
+            // shortest paths. M and N are reachable from the cycle, so their
+            // distances are dragged down forever too (−∞), while I and O stay
+            // valid.
+            edges: [
+                { u: 0, v: 1, w: 3 }, { u: 0, v: 2, w: 5 }, { u: 0, v: 3, w: 2 },
+                { u: 1, v: 4, w: 4 },
+                { u: 2, v: 1, w: -3 }, { u: 2, v: 5, w: 4 },
+                { u: 3, v: 6, w: 4 },
+                { u: 4, v: 9, w: 3 },
+                { u: 5, v: 4, w: -2 }, { u: 5, v: 8, w: 6 },
+                { u: 6, v: 7, w: 3 },
+                { u: 7, v: 8, w: 2 }, { u: 7, v: 14, w: 6 },
+                { u: 8, v: 14, w: 3 },
+                { u: 9, v: 10, w: 2 },
+                { u: 10, v: 11, w: -4 }, { u: 10, v: 12, w: 3 },
+                { u: 11, v: 9, w: 1 }, { u: 11, v: 13, w: 5 },
+            ],
+        },
+    };
+
+    function buildBellmanFrames(nodes, edges, opts) {
+        opts = opts || {};
+        const detailPasses = opts.detailPasses != null ? opts.detailPasses : Infinity;
+        const detectCycle = !!opts.detectCycle;
         const V = nodes.length;
         const INF = Infinity;
+        const L = (i) => nodes[i].label;
+        const fmt = (x) => (x === INF ? '∞' : String(x));
         const dist = new Array(V).fill(INF);
+        const parent = new Array(V).fill(-1);
         dist[0] = 0;
-        const frames = [{ dist: dist.slice(), edge: null, msg: 'init: dist[0] = 0, others ∞' }];
+        const frames = [];
+        const snap = (edge, changed, msg, extra) => frames.push({
+            dist: dist.slice(), parent: parent.slice(), edge, changed, msg,
+            tree: (extra && extra.tree) || null,
+            changedSet: (extra && extra.changedSet) || null,
+            cycle: (extra && extra.cycle) || null,
+            poison: (extra && extra.poison) || null,
+        });
+        snap(null, 0, {
+            zh: '初始化：起點 dist[' + L(0) + '] = 0，其他節點為 ∞',
+            en: 'init: source dist[' + L(0) + '] = 0, all other nodes ∞',
+        });
+        let ranPasses = 0;
+        let converged = false;
         for (let pass = 1; pass <= V - 1; pass++) {
-            let changed = false;
+            ranPasses = pass;
+            let changes = 0;
+            const detail = pass <= detailPasses;
+            const changedSet = [];
             for (const e of edges) {
-                if (dist[e.u] !== INF && dist[e.u] + e.w < dist[e.v]) {
-                    dist[e.v] = dist[e.u] + e.w;
-                    changed = true;
-                    frames.push({ dist: dist.slice(), edge: [e.u, e.v],
-                        msg: 'pass ' + pass + ': relax ' + e.u + '→' + e.v +
-                             '   dist[' + e.v + '] = ' + dist[e.v] });
-                } else {
-                    frames.push({ dist: dist.slice(), edge: [e.u, e.v],
-                        msg: 'pass ' + pass + ': edge ' + e.u + '→' + e.v + ' — no improvement' });
+                const du = dist[e.u];
+                const old = dist[e.v];
+                const arrow = L(e.u) + '→' + L(e.v);
+                if (du !== INF && du + e.w < old) {
+                    dist[e.v] = du + e.w;
+                    parent[e.v] = e.u;
+                    changes++;
+                    changedSet.push(e.v);
+                    if (detail) snap([e.u, e.v], e.v, {
+                        zh: '第 ' + pass + ' 輪 · 鬆弛 ' + arrow + '：' + du + ' + (' + e.w + ') = ' +
+                            dist[e.v] + ' < ' + fmt(old) + '，更新 dist[' + L(e.v) + ']',
+                        en: 'pass ' + pass + ' · relax ' + arrow + ': ' + du + ' + (' + e.w + ') = ' +
+                            dist[e.v] + ' < ' + fmt(old) + ' ⇒ update dist[' + L(e.v) + ']',
+                    });
+                } else if (detail) {
+                    snap([e.u, e.v], -1, du === INF ? {
+                        zh: '第 ' + pass + ' 輪 · ' + arrow + '：dist[' + L(e.u) + '] 還是 ∞，無法鬆弛',
+                        en: 'pass ' + pass + ' · ' + arrow + ': dist[' + L(e.u) + '] still ∞ — cannot relax',
+                    } : {
+                        zh: '第 ' + pass + ' 輪 · ' + arrow + '：' + du + ' + (' + e.w + ') = ' +
+                            (du + e.w) + ' ≥ ' + fmt(old) + '，不更新',
+                        en: 'pass ' + pass + ' · ' + arrow + ': ' + du + ' + (' + e.w + ') = ' +
+                            (du + e.w) + ' ≥ ' + fmt(old) + ' — no improvement',
+                    });
                 }
             }
-            if (!changed) break;
+            if (changes === 0) {
+                converged = true;
+                snap(null, -1, {
+                    zh: '第 ' + pass + ' 輪掃完：0 次更新 ⇒ 已收斂，提早結束（上限 V−1 = ' + (V - 1) + ' 輪）',
+                    en: 'pass ' + pass + ' done: 0 updates ⇒ converged — stop early (limit is V−1 = ' + (V - 1) + ' passes)',
+                });
+                break;
+            }
+            if (detail) {
+                snap(null, -1, {
+                    zh: '第 ' + pass + ' 輪掃完：共 ' + changes + ' 次更新，還要再掃一輪確認',
+                    en: 'pass ' + pass + ' done: ' + changes + ' update(s) — scan again to be sure',
+                });
+            } else {
+                snap(null, -1, {
+                    zh: '第 ' + pass + ' 輪（收合顯示）：' + changes + ' 次更新，只剩負環一帶還在下降',
+                    en: 'pass ' + pass + ' (collapsed): ' + changes + ' update(s) — only the cycle region keeps dropping',
+                }, { changedSet: changedSet.slice() });
+            }
         }
+
+        // After V−1 passes a graph with no negative cycle is fully settled.
+        // If any edge can STILL be relaxed, a negative cycle is reachable.
+        if (detectCycle && !converged) {
+            let hit = null;
+            for (const e of edges) {
+                if (dist[e.u] !== INF && dist[e.u] + e.w < dist[e.v]) { hit = e; break; }
+            }
+            if (hit) {
+                // Walk π back V steps from the offending endpoint: this is
+                // guaranteed to land on a vertex that lies on the cycle.
+                let x = hit.v;
+                for (let i = 0; i < V; i++) x = parent[x] >= 0 ? parent[x] : x;
+                const cycleNodes = [];
+                let y = x;
+                do { cycleNodes.push(y); y = parent[y]; }
+                while (y !== x && y >= 0 && cycleNodes.length <= V);
+                const cycleEdges = [];
+                for (let i = 0; i < cycleNodes.length; i++) {
+                    const b = cycleNodes[i];
+                    const a = cycleNodes[(i + 1) % cycleNodes.length]; // a = parent[b]
+                    cycleEdges.push([a, b]);
+                }
+                const ringLabel = cycleNodes.slice().reverse().map(L).join('→') + '→' + L(cycleNodes[cycleNodes.length - 1]);
+                const arrow = L(hit.u) + '→' + L(hit.v);
+                snap([hit.u, hit.v], -1, {
+                    zh: '跑滿 V−1 = ' + (V - 1) + ' 輪後再檢查一次：' + arrow + ' 竟然還能鬆弛（' +
+                        dist[hit.u] + ' + (' + hit.w + ') = ' + (dist[hit.u] + hit.w) + ' < ' + fmt(dist[hit.v]) +
+                        '）⇒ 圖中存在負權環！',
+                    en: 'one extra check after V−1 = ' + (V - 1) + ' passes: ' + arrow + ' can STILL relax (' +
+                        dist[hit.u] + ' + (' + hit.w + ') = ' + (dist[hit.u] + hit.w) + ' < ' + fmt(dist[hit.v]) +
+                        ') ⇒ the graph has a negative cycle!',
+                }, { cycle: cycleEdges });
+
+                // Nodes reachable from the cycle have no finite shortest path.
+                const poison = [];
+                const seen = new Array(V).fill(false);
+                const stack = cycleNodes.slice();
+                cycleNodes.forEach((n) => { seen[n] = true; });
+                while (stack.length) {
+                    const u = stack.pop();
+                    poison.push(u);
+                    for (const e of edges) if (e.u === u && !seen[e.v]) { seen[e.v] = true; stack.push(e.v); }
+                }
+                snap(null, -1, {
+                    zh: '負權環 ' + ringLabel + ' 總權重為負，每繞一圈距離就再減。環上及其可達節點（紅／橘）最短路徑無定義（−∞）；其餘健康節點的結果仍有效。',
+                    en: 'cycle ' + ringLabel + ' has negative total weight — each loop lowers the distance again. Nodes on/after it (red/orange) have no shortest path (−∞); the other healthy nodes are still valid.',
+                }, { cycle: cycleEdges, poison: poison });
+                return frames;
+            }
+        }
+
+        const tree = [];
+        for (let v = 0; v < V; v++) if (parent[v] >= 0) tree.push([parent[v], v]);
+        snap(null, -1, {
+            zh: '完成：綠色為最短路徑樹（π 回溯），實際只跑了 ' + ranPasses + ' 輪' +
+                (converged ? '' : '（達到 V−1 上限）'),
+            en: 'done: green = shortest-path tree (follow π back), finished in ' + ranPasses +
+                ' pass(es)' + (converged ? '' : ' (hit the V−1 limit)'),
+        }, { tree: tree });
+        return frames;
+    }
+
+    function renderBellmanFord() {
+        const host = acquireDynamicVizHost();
+        const preset = BELLMAN_PRESETS[_bellmanPreset] || BELLMAN_PRESETS.classic;
+        const nodes = preset.nodes;
+        const edges = preset.edges;
+        const V = nodes.length;
+        const INF = Infinity;
+        const isZh = () => window.I18N && I18N.getCurrentLanguage() === 'zh';
+        const langOf = (m) => (isZh() ? m.zh : m.en);
+        const frames = buildBellmanFrames(nodes, edges,
+            { detailPasses: preset.detailPasses, detectCycle: preset.detectCycle });
         let idx = 0;
 
         const wrap = document.createElement('div');
-        wrap.className = 'bellman-wrap';
-        wrap.innerHTML = buildWeightedGraphSvg(nodes, edges, true) +
+        wrap.className = 'bellman-wrap' + (preset.wide ? ' bf-wide' : '');
+        const presetBtn = (key, m) =>
+            '<button type="button" class="bf-preset-btn' + (_bellmanPreset === key ? ' active' : '') +
+            '" data-preset="' + key + '">' + langOf(m) + '</button>';
+        const legend = preset.detectCycle
+            ? { zh: '紅色虛線＝負權邊 · 紅色實線＝負權環 · 橘色虛線節點＝被環拖累（−∞）· 綠色＝最短路徑樹',
+                en: 'dashed red = negative edge · solid red = negative cycle · dashed orange node = dragged to −∞ · green = shortest-path tree' }
+            : { zh: '紅色虛線＝負權邊 · 橘色＝正在檢查的邊 · 綠色＝最短路徑樹（結束時）',
+                en: 'dashed red = negative edge · orange = edge being checked · green = shortest-path tree (at the end)' };
+        wrap.innerHTML =
+            '<div class="bf-presets" data-testid="bf-presets">' +
+              '<span class="bf-presets-label">' + langOf({ zh: '範例：', en: 'Example:' }) + '</span>' +
+              presetBtn('classic', { zh: '經典（5 節點）', en: 'Classic (5 nodes)' }) +
+              presetBtn('walkthrough', { zh: '教學範例（8 節點）', en: 'Teaching walkthrough (8 nodes)' }) +
+              presetBtn('negcycle', { zh: '負權環偵測（15 節點）', en: 'Negative cycle (15 nodes)' }) +
+            '</div>' +
+            buildWeightedGraphSvg(nodes, edges, true, preset.viewBox) +
+            (preset.wide ? '<div class="bf-legend">' + langOf(legend) + '</div>' : '') +
             '<div class="bellman-darr"></div>' +
             '<div class="bellman-msg" data-testid="bellman-msg">&nbsp;</div>';
         host.appendChild(wrap);
         const darrEl = wrap.querySelector('.bellman-darr');
         const msgEl = wrap.querySelector('.bellman-msg');
 
+        wrap.querySelectorAll('.bf-preset-btn').forEach((btn) => {
+            btn.onclick = () => {
+                if (btn.dataset.preset === _bellmanPreset) return;
+                _bellmanPreset = btn.dataset.preset;
+                renderBellmanFord();
+            };
+        });
+
         function draw() {
             const f = frames[idx];
-            wrap.querySelectorAll('.wgraph-edge').forEach((l) => l.classList.remove('wgraph-cur'));
+            const poison = f.poison || [];
+            const inPoison = (v) => poison.indexOf(v) !== -1;
+            const cycleNodeSet = new Set();
+            if (f.cycle) f.cycle.forEach((e) => { cycleNodeSet.add(e[0]); cycleNodeSet.add(e[1]); });
+            wrap.querySelectorAll('.wgraph-edge').forEach((l) =>
+                l.classList.remove('wgraph-cur', 'wgraph-in', 'wgraph-cycle'));
+            wrap.querySelectorAll('.wgraph-node').forEach((c) =>
+                c.classList.remove('wgraph-cur', 'wgraph-in', 'wgraph-cycle', 'wgraph-poison'));
             if (f.edge) {
                 const eEl = wrap.querySelector('.wgraph-edge[data-edge="' + f.edge[0] + '-' + f.edge[1] + '"]');
                 if (eEl) eEl.classList.add('wgraph-cur');
+                for (const nid of f.edge) {
+                    const nEl = wrap.querySelector('.wgraph-node[data-node="' + nid + '"]');
+                    if (nEl) nEl.classList.add('wgraph-cur');
+                }
             }
-            let html = '';
+            if (f.tree) {
+                for (const te of f.tree) {
+                    const eEl = wrap.querySelector('.wgraph-edge[data-edge="' + te[0] + '-' + te[1] + '"]');
+                    if (eEl) eEl.classList.add('wgraph-in');
+                }
+                for (let v = 0; v < V; v++) {
+                    if (v === 0 || f.parent[v] >= 0) {
+                        const nEl = wrap.querySelector('.wgraph-node[data-node="' + v + '"]');
+                        if (nEl) nEl.classList.add('wgraph-in');
+                    }
+                }
+            }
+            if (poison.length) {
+                poison.forEach((v) => {
+                    if (cycleNodeSet.has(v)) return;
+                    const nEl = wrap.querySelector('.wgraph-node[data-node="' + v + '"]');
+                    if (nEl) nEl.classList.add('wgraph-poison');
+                });
+            }
+            if (f.cycle) {
+                f.cycle.forEach((e) => {
+                    const eEl = wrap.querySelector('.wgraph-edge[data-edge="' + e[0] + '-' + e[1] + '"]');
+                    if (eEl) eEl.classList.add('wgraph-cycle');
+                });
+                cycleNodeSet.forEach((v) => {
+                    const nEl = wrap.querySelector('.wgraph-node[data-node="' + v + '"]');
+                    if (nEl) nEl.classList.add('wgraph-cycle');
+                });
+            }
+            let html = '<div class="bellman-dcol bellman-dhead">' +
+                       '<span class="bellman-didx">&nbsp;</span>' +
+                       '<span class="bellman-dlabel">dist</span>' +
+                       '<span class="bellman-dlabel">π</span>' +
+                       '</div>';
             for (let v = 0; v < V; v++) {
-                const val = f.dist[v] === INF ? '∞' : f.dist[v];
-                html += '<div class="bellman-dcol">' +
-                        '<span class="bellman-didx">' + v + '</span>' +
-                        '<span class="bellman-dcell" data-dist="' + v + '">' + val + '</span>' +
+                const flash = f.changed === v || (f.changedSet && f.changedSet.indexOf(v) !== -1);
+                const poisoned = inPoison(v);
+                const focus = preset.focusNode === v;
+                const val = poisoned ? '−∞' : (f.dist[v] === INF ? '∞' : f.dist[v]);
+                const pre = f.parent[v] >= 0 ? nodes[f.parent[v]].label : '–';
+                html += '<div class="bellman-dcol' + (focus ? ' bellman-focus' : '') + '">' +
+                        '<span class="bellman-didx">' + nodes[v].label + '</span>' +
+                        '<span class="bellman-dcell' + (flash ? ' chg' : '') + (poisoned ? ' poison' : '') +
+                        (focus ? ' hfocus' : '') +
+                        '" data-dist="' + v + '">' + val + '</span>' +
+                        '<span class="bellman-pcell" data-pred="' + v + '">' + pre + '</span>' +
                         '</div>';
             }
             darrEl.innerHTML = html;
-            msgEl.textContent = f.msg;
+            msgEl.textContent = langOf(f.msg);
         }
-        function step() {
+        function next() {
             if (idx >= frames.length - 1) return false;
             idx++;
             draw();
             return idx < frames.length - 1;
         }
+        function prev() { if (idx > 0) { idx--; draw(); } }
         function reset() { idx = 0; draw(); }
-        wrap.appendChild(buildStepControls(step, reset, 400));
+
+        // Custom controls: Prev / Next / Run / Reset (no speed slider) plus
+        // ←/→ keyboard stepping. data-action="step"/"reset" are kept so the
+        // shared E2E selectors still work.
+        const strip = document.createElement('div');
+        strip.className = 'stepctl';
+        strip.innerHTML =
+            '<button type="button" data-action="prev">← Prev</button>' +
+            '<button type="button" data-action="step">Next →</button>' +
+            '<button type="button" data-action="run">Run</button>' +
+            '<button type="button" data-action="reset">Reset</button>';
+        const runBtn = strip.querySelector('[data-action="run"]');
+        let timer = null;
+        function stopTimer() { if (timer) { clearInterval(timer); timer = null; } runBtn.textContent = 'Run'; }
+        function startTimer() {
+            stopTimer();
+            runBtn.textContent = 'Pause';
+            timer = setInterval(() => {
+                if (!wrap.isConnected) { stopTimer(); return; }
+                if (next() === false) stopTimer();
+            }, preset.delay || 350);
+        }
+        strip.querySelector('[data-action="prev"]').onclick = () => { stopTimer(); prev(); };
+        strip.querySelector('[data-action="step"]').onclick = () => { stopTimer(); next(); };
+        runBtn.onclick = () => { timer ? stopTimer() : startTimer(); };
+        strip.querySelector('[data-action="reset"]').onclick = () => { stopTimer(); reset(); };
+        wrap.appendChild(strip);
+
+        // ←/→ arrows step back/forward. The handler self-removes once this
+        // visualization is no longer in the DOM (e.g. after a mode switch).
+        if (_bellmanKeyHandler) document.removeEventListener('keydown', _bellmanKeyHandler);
+        _bellmanKeyHandler = (e) => {
+            if (!wrap.isConnected) { document.removeEventListener('keydown', _bellmanKeyHandler); _bellmanKeyHandler = null; return; }
+            if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+            if (e.key === 'ArrowRight') { e.preventDefault(); stopTimer(); next(); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); stopTimer(); prev(); }
+        };
+        document.addEventListener('keydown', _bellmanKeyHandler);
+
         draw();
     }
 
