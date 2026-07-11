@@ -1801,6 +1801,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function switchMode(nextMode) {
         if (heapTutorialState.active && nextMode !== heapTutorialState.mode) exitHeapTutorial(true);
+        _teachingOn = false;
         visualizerRuntime.setMode(nextMode);
         stackData = []; qArr = new Array(5).fill(null); qFront = 0; qRear = -1; qCount = 0; edges = freshEdges(); weightedEdges = freshWeightedEdges(); mstEdgeKeys.clear(); graphCandidateEdgeKey = null; bstRoot = null;
         if(currentMode === 'list-array' || currentMode === 'list-linked') mainListData = [];
@@ -2677,6 +2678,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function renderAll() {
         syncDifficultySelect();
+        refreshTeachingBar();
+        if (_teachingOn && TEACHING_EXAMPLES[currentMode]) { renderTeachingExample(); return; }
         if(currentMode === 'maze-stack') renderMazeStack();
         else if(currentMode.includes('stack')) renderStack();
         else if (currentMode === 'queue') renderQueue();
@@ -4239,10 +4242,10 @@ document.addEventListener('DOMContentLoaded', () => {
         draw();
     }
 
-    function buildWeightedGraphSvg(nodes, edges, directed) {
+    function buildWeightedGraphSvg(nodes, edges, directed, viewBox) {
         function nodeById(id) { return nodes.find((nd) => nd.id === id); }
         function hasEdge(u, v) { return edges.some((ed) => ed.u === u && ed.v === v); }
-        let svg = '<svg class="wgraph-svg" viewBox="0 0 320 250" width="100%" ' +
+        let svg = '<svg class="wgraph-svg" viewBox="' + (viewBox || '0 0 320 250') + '" width="100%" ' +
                   'xmlns="http://www.w3.org/2000/svg">';
         if (directed) {
             svg += '<defs><marker id="wg-arrow" markerWidth="9" markerHeight="9" refX="8" refY="3" ' +
@@ -4265,13 +4268,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const x1 = (a.x + ux * 18 + ox).toFixed(1), y1 = (a.y + uy * 18 + oy).toFixed(1);
             const x2 = (b.x - ux * 18 + ox).toFixed(1), y2 = (b.y - uy * 18 + oy).toFixed(1);
-            svg += '<line class="wgraph-edge" data-edge="' + e.u + '-' + e.v + '" x1="' + x1 +
+            const neg = (typeof e.w === 'number' && e.w < 0) ? ' wgraph-neg' : '';
+            svg += '<line class="wgraph-edge' + neg + '" data-edge="' + e.u + '-' + e.v + '" x1="' + x1 +
                    '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 +
                    '" stroke="#94a3b8" stroke-width="2"' +
                    (directed ? ' marker-end="url(#wg-arrow)"' : '') + '/>';
-            const mx = ((a.x + b.x) / 2 + ox).toFixed(1), my = ((a.y + b.y) / 2 + oy - 4).toFixed(1);
-            svg += '<text class="wgraph-weight" x="' + mx + '" y="' + my +
-                   '" text-anchor="middle" font-size="11" fill="#475569">' + e.w + '</text>';
+            if (e.w != null) {
+                // nudge labels sideways on near-vertical edges so they clear the line
+                const lx = Math.abs(dx) < 20 ? 12 : 0;
+                const mx = ((a.x + b.x) / 2 + ox + lx).toFixed(1), my = ((a.y + b.y) / 2 + oy - 4).toFixed(1);
+                svg += '<text class="wgraph-weight' + neg + '" x="' + mx + '" y="' + my +
+                       '" text-anchor="middle" font-size="11" fill="#475569">' + e.w + '</text>';
+            }
         }
         for (const nd of nodes) {
             svg += '<circle class="wgraph-node" data-node="' + nd.id + '" cx="' + nd.x + '" cy="' +
@@ -7394,6 +7402,986 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         paint();
     }
+
+    // ── Teaching examples ─────────────────────────────────────────────────
+    // Textbook-grade fixed examples for the graph family. Each one states a
+    // single thing the learner should watch (the 👀 goal banner) and plays as
+    // a frame-stepper. The default interactive visualizations are untouched;
+    // a bar above the visualizer toggles between the two.
+    let _teachingOn = false;
+    const tvizLang = (m) => (window.I18N && I18N.getCurrentLanguage() === 'zh') ? m.zh : m.en;
+
+    function refreshTeachingBar() {
+        let bar = document.getElementById('teaching-bar');
+        const entry = TEACHING_EXAMPLES[currentMode];
+        if (!entry) { if (bar) bar.remove(); return; }
+        if (!bar) {
+            bar = document.createElement('div');
+            bar.id = 'teaching-bar';
+            bar.className = 'teaching-bar';
+        }
+        if (runtimeVisualizer.firstChild !== bar) runtimeVisualizer.insertBefore(bar, runtimeVisualizer.firstChild);
+        bar.innerHTML = '<button type="button" class="teaching-btn' + (_teachingOn ? ' active' : '') +
+            '" data-testid="teaching-toggle">' +
+            (_teachingOn
+                ? tvizLang({ zh: '⬅ 返回互動模式', en: '⬅ Back to interactive' })
+                : tvizLang({ zh: '📖 教學範例', en: '📖 Teaching example' })) +
+            '</button>';
+        bar.querySelector('button').onclick = () => {
+            _teachingOn = !_teachingOn;
+            updateLayout();
+            renderAll();
+        };
+    }
+
+    function renderTeachingExample() {
+        const entry = TEACHING_EXAMPLES[currentMode];
+        const host = acquireDynamicVizHost();
+        runtimeControls.querySelectorAll('.actions').forEach((a) => a.classList.add('hidden'));
+        entry.render(host);
+        host.querySelectorAll('.wgraph-svg').forEach((s) => s.classList.add('tviz-wide'));
+        const goal = document.createElement('div');
+        goal.className = 'viz-goal';
+        goal.textContent = '👀 ' + tvizLang(entry.goal);
+        host.insertBefore(goal, host.firstChild);
+    }
+
+    // Shared mini-player: frames[] + draw(frame) + step controls.
+    function tvizPlayer(host, frames, draw, delay) {
+        let idx = 0;
+        const paint = () => draw(frames[idx], idx);
+        const step = () => { if (idx < frames.length - 1) { idx++; paint(); return idx < frames.length - 1; } return false; };
+        const reset = () => { idx = 0; paint(); };
+        host.appendChild(buildStepControls(step, reset, delay || 600));
+        paint();
+    }
+
+    // dist/π table shared by the shortest-path style examples.
+    function tvizTableHtml(nodes, dist, parent, opts) {
+        const INF = Infinity;
+        const settled = (opts && opts.settled) || [];
+        const changed = (opts && opts.changed != null) ? opts.changed : -1;
+        let html = '<div class="tviz-col tviz-head"><span class="tviz-idx">&nbsp;</span>' +
+                   '<span class="tviz-lbl">dist</span><span class="tviz-lbl">π</span></div>';
+        for (let v = 0; v < nodes.length; v++) {
+            const val = dist[v] === INF ? '∞' : dist[v];
+            const pre = parent[v] >= 0 ? nodes[parent[v]].label : '–';
+            html += '<div class="tviz-col"><span class="tviz-idx">' + nodes[v].label + '</span>' +
+                    '<span class="tviz-cell' + (settled.indexOf(v) !== -1 ? ' settled' : '') +
+                    (changed === v ? ' chg' : '') + '" data-tdist="' + v + '">' + val + '</span>' +
+                    '<span class="tviz-cell tviz-pi">' + pre + '</span></div>';
+        }
+        return html;
+    }
+
+    // ── Dijkstra: CLRS fig 24.6 ──────────────────────────────────────────
+    function renderTeachDijkstra(host) {
+        const nodes = [
+            { id: 0, label: 's', x: 60, y: 150 },
+            { id: 1, label: 't', x: 210, y: 60 },
+            { id: 2, label: 'x', x: 400, y: 60 },
+            { id: 3, label: 'y', x: 210, y: 240 },
+            { id: 4, label: 'z', x: 400, y: 240 },
+        ];
+        const edges = [
+            { u: 0, v: 1, w: 10 }, { u: 0, v: 3, w: 5 },
+            { u: 1, v: 2, w: 1 }, { u: 1, v: 3, w: 2 },
+            { u: 2, v: 4, w: 4 },
+            { u: 3, v: 1, w: 3 }, { u: 3, v: 2, w: 9 }, { u: 3, v: 4, w: 2 },
+            { u: 4, v: 0, w: 7 }, { u: 4, v: 2, w: 6 },
+        ];
+        const V = nodes.length;
+        const INF = Infinity;
+        const L = (i) => nodes[i].label;
+        const dist = new Array(V).fill(INF); dist[0] = 0;
+        const parent = new Array(V).fill(-1);
+        const settled = [];
+        const frames = [];
+        const snap = (edge, cur, changed, msg, tree) => frames.push({
+            dist: dist.slice(), parent: parent.slice(), settled: settled.slice(),
+            edge, cur, changed, msg, tree: tree || null,
+        });
+        snap(null, -1, 0, {
+            zh: '初始化：dist[s] = 0，其他 ∞。未定案節點放進優先佇列',
+            en: 'init: dist[s] = 0, all others ∞. Unsettled nodes sit in a priority queue',
+        });
+        const inS = new Array(V).fill(false);
+        for (let k = 0; k < V; k++) {
+            let u = -1;
+            for (let i = 0; i < V; i++) if (!inS[i] && (u === -1 || dist[i] < dist[u])) u = i;
+            if (u === -1 || dist[u] === INF) break;
+            inS[u] = true; settled.push(u);
+            const others = nodes.map((n, i) => i).filter((i) => !inS[i] && dist[i] !== INF)
+                .map((i) => L(i) + '=' + dist[i]).join(', ') || '—';
+            snap(null, u, -1, {
+                zh: '定案 ' + L(u) + '（dist = ' + dist[u] + '，未定案中最小；其餘：' + others + '）。它的距離從此不會再變',
+                en: 'settle ' + L(u) + ' (dist = ' + dist[u] + ', smallest unsettled; rest: ' + others + '). Its distance is now final',
+            });
+            for (const e of edges) {
+                if (e.u !== u) continue;
+                const cand = dist[u] + e.w;
+                if (inS[e.v]) {
+                    snap([e.u, e.v], u, -1, {
+                        zh: '看 ' + L(u) + '→' + L(e.v) + '：' + L(e.v) + ' 已定案，跳過',
+                        en: 'edge ' + L(u) + '→' + L(e.v) + ': ' + L(e.v) + ' already settled — skip',
+                    });
+                } else if (cand < dist[e.v]) {
+                    const old = dist[e.v];
+                    dist[e.v] = cand; parent[e.v] = u;
+                    snap([e.u, e.v], u, e.v, {
+                        zh: '鬆弛 ' + L(u) + '→' + L(e.v) + '：' + dist[u] + ' + ' + e.w + ' = ' + cand +
+                            (old === INF ? ' < ∞' : ' < ' + old) + '，更新' +
+                            (old !== INF ? '（原路徑被繞路打敗！）' : ''),
+                        en: 'relax ' + L(u) + '→' + L(e.v) + ': ' + dist[u] + ' + ' + e.w + ' = ' + cand +
+                            (old === INF ? ' < ∞' : ' < ' + old) + ' — update' +
+                            (old !== INF ? ' (the detour beats the old path!)' : ''),
+                    });
+                } else {
+                    snap([e.u, e.v], u, -1, {
+                        zh: '看 ' + L(u) + '→' + L(e.v) + '：' + dist[u] + ' + ' + e.w + ' = ' + cand + ' ≥ ' + dist[e.v] + '，不更新',
+                        en: 'edge ' + L(u) + '→' + L(e.v) + ': ' + dist[u] + ' + ' + e.w + ' = ' + cand + ' ≥ ' + dist[e.v] + ' — keep',
+                    });
+                }
+            }
+        }
+        const tree = [];
+        for (let v = 0; v < V; v++) if (parent[v] >= 0) tree.push([parent[v], v]);
+        snap(null, -1, -1, {
+            zh: '完成。定案順序 = ' + settled.map(L).join(', ') + '（依距離遞增）。綠色為最短路徑樹',
+            en: 'done. Settle order = ' + settled.map(L).join(', ') + ' (increasing distance). Green = shortest-path tree',
+        }, tree);
+
+        host.innerHTML =
+            buildWeightedGraphSvg(nodes, edges, true, '0 0 470 300') +
+            '<div class="tviz-table" data-testid="tviz-dij-table"></div>' +
+            '<div class="tviz-msg" data-testid="tviz-msg">&nbsp;</div>';
+        const tableEl = host.querySelector('.tviz-table');
+        const msgEl = host.querySelector('.tviz-msg');
+        tvizPlayer(host, frames, (f) => {
+            host.querySelectorAll('.wgraph-edge').forEach((l) => l.classList.remove('wgraph-cur', 'wgraph-in'));
+            host.querySelectorAll('.wgraph-node').forEach((c) => c.classList.remove('wgraph-cur', 'wgraph-in', 'wgraph-settled'));
+            f.settled.forEach((v) => {
+                const el = host.querySelector('.wgraph-node[data-node="' + v + '"]');
+                if (el) el.classList.add('wgraph-settled');
+            });
+            if (f.cur >= 0) {
+                const el = host.querySelector('.wgraph-node[data-node="' + f.cur + '"]');
+                if (el) el.classList.add('wgraph-cur');
+            }
+            if (f.edge) {
+                const el = host.querySelector('.wgraph-edge[data-edge="' + f.edge[0] + '-' + f.edge[1] + '"]');
+                if (el) el.classList.add('wgraph-cur');
+            }
+            if (f.tree) f.tree.forEach((te) => {
+                const el = host.querySelector('.wgraph-edge[data-edge="' + te[0] + '-' + te[1] + '"]');
+                if (el) el.classList.add('wgraph-in');
+            });
+            tableEl.innerHTML = tvizTableHtml(nodes, f.dist, f.parent, { settled: f.settled, changed: f.changed });
+            msgEl.textContent = tvizLang(f.msg);
+        }, 650);
+    }
+
+    // ── BFS: CLRS fig 22.3 ───────────────────────────────────────────────
+    function renderTeachBFS(host) {
+        const nodes = [
+            { id: 0, label: 'r', x: 60, y: 60 }, { id: 1, label: 's', x: 180, y: 60 },
+            { id: 2, label: 't', x: 300, y: 60 }, { id: 3, label: 'u', x: 420, y: 60 },
+            { id: 4, label: 'v', x: 60, y: 220 }, { id: 5, label: 'w', x: 180, y: 220 },
+            { id: 6, label: 'x', x: 300, y: 220 }, { id: 7, label: 'y', x: 420, y: 220 },
+        ];
+        const edges = [
+            { u: 0, v: 1 }, { u: 0, v: 4 }, { u: 1, v: 5 }, { u: 5, v: 2 }, { u: 5, v: 6 },
+            { u: 2, v: 3 }, { u: 2, v: 6 }, { u: 6, v: 3 }, { u: 6, v: 7 }, { u: 3, v: 7 },
+        ];
+        const V = nodes.length;
+        const L = (i) => nodes[i].label;
+        const adj = nodes.map(() => []);
+        edges.forEach((e) => { adj[e.u].push(e.v); adj[e.v].push(e.u); });
+        adj.forEach((a) => a.sort((p, q) => L(p) < L(q) ? -1 : 1));
+        const SRC = 1; // s
+        const dist = new Array(V).fill(-1); dist[SRC] = 0;
+        const queue = [SRC];
+        const done = [];
+        const frames = [];
+        const snap = (cur, news, msg) => frames.push({
+            dist: dist.slice(), queue: queue.slice(), done: done.slice(), cur, news: news.slice(), msg,
+        });
+        snap(-1, [], {
+            zh: '從 s 出發：dist[s] = 0，s 入列。佇列（FIFO）保證「近的先處理」',
+            en: 'start at s: dist[s] = 0, enqueue s. The FIFO queue guarantees near-first processing',
+        });
+        while (queue.length) {
+            const u = queue.shift();
+            done.push(u);
+            const news = [];
+            for (const v of adj[u]) {
+                if (dist[v] === -1) { dist[v] = dist[u] + 1; queue.push(v); news.push(v); }
+            }
+            snap(u, news, news.length ? {
+                zh: '出列 ' + L(u) + '（dist ' + dist[u] + '）：發現 ' + news.map(L).join(', ') +
+                    ' → dist = ' + (dist[u] + 1) + '，入列',
+                en: 'dequeue ' + L(u) + ' (dist ' + dist[u] + '): discover ' + news.map(L).join(', ') +
+                    ' → dist = ' + (dist[u] + 1) + ', enqueue',
+            } : {
+                zh: '出列 ' + L(u) + '（dist ' + dist[u] + '）：鄰居都見過了',
+                en: 'dequeue ' + L(u) + ' (dist ' + dist[u] + '): all neighbours already seen',
+            });
+        }
+        const lv = [0, 1, 2, 3].map((d) => nodes.filter((n, i) => dist[i] === d).map((n) => n.label).join(','));
+        snap(-1, [], {
+            zh: '完成。分層：0:{' + lv[0] + '} 1:{' + lv[1] + '} 2:{' + lv[2] + '} 3:{' + lv[3] + '}。dist = 最少邊數',
+            en: 'done. Levels: 0:{' + lv[0] + '} 1:{' + lv[1] + '} 2:{' + lv[2] + '} 3:{' + lv[3] + '}. dist = fewest edges',
+        });
+
+        host.innerHTML =
+            buildWeightedGraphSvg(nodes, edges, false, '0 0 480 280') +
+            '<div class="tviz-strip"><strong>Queue:</strong> <span class="tviz-queue" data-testid="tviz-queue"></span>' +
+            ' &nbsp;<strong>dist:</strong> <span class="tviz-dists"></span></div>' +
+            '<div class="tviz-msg" data-testid="tviz-msg">&nbsp;</div>';
+        const qEl = host.querySelector('.tviz-queue');
+        const dEl = host.querySelector('.tviz-dists');
+        const msgEl = host.querySelector('.tviz-msg');
+        tvizPlayer(host, frames, (f) => {
+            nodes.forEach((n, i) => {
+                const el = host.querySelector('.wgraph-node[data-node="' + i + '"]');
+                if (!el) return;
+                el.classList.remove('wgraph-lv0', 'wgraph-lv1', 'wgraph-lv2', 'wgraph-lv3', 'wgraph-cur');
+                if (f.done.indexOf(i) !== -1 || f.dist[i] !== -1) {
+                    if (f.dist[i] >= 0) el.classList.add('wgraph-lv' + Math.min(3, f.dist[i]));
+                }
+                if (f.cur === i) el.classList.add('wgraph-cur');
+            });
+            qEl.textContent = f.queue.map(L).join(' ') || '—';
+            dEl.textContent = nodes.map((n, i) => f.dist[i] === -1 ? '' : n.label + ':' + f.dist[i])
+                .filter(Boolean).join(' ');
+            msgEl.textContent = tvizLang(f.msg);
+        }, 700);
+    }
+
+    // ── DFS: 6-node directed with timestamps + edge classification ───────
+    function renderTeachDFS(host) {
+        const nodes = [
+            { id: 0, label: 'u', x: 80, y: 70 }, { id: 1, label: 'v', x: 230, y: 70 },
+            { id: 2, label: 'w', x: 380, y: 70 }, { id: 3, label: 'x', x: 80, y: 230 },
+            { id: 4, label: 'y', x: 230, y: 230 }, { id: 5, label: 'z', x: 380, y: 230 },
+        ];
+        const edges = [
+            { u: 0, v: 1 }, { u: 0, v: 3 }, { u: 1, v: 4 }, { u: 2, v: 4 }, { u: 2, v: 5 },
+            { u: 3, v: 1 }, { u: 4, v: 3 }, { u: 5, v: 2 },
+        ];
+        // Hand-traced DFS (alphabetical): every event is a frame.
+        // colors: 0=white 1=gray 2=black; type: T/B/F/C per edge when classified.
+        const F = [];
+        const mk = (color, d, f, types, stack, msg, extra) => F.push(Object.assign({
+            color: color.slice(), d: d.slice(), f: f.slice(), types: Object.assign({}, types),
+            stack: stack.slice(), msg,
+        }, extra || {}));
+        const c = [0, 0, 0, 0, 0, 0]; const d = [0, 0, 0, 0, 0, 0]; const fin = [0, 0, 0, 0, 0, 0];
+        const ty = {}; let st = [];
+        mk(c, d, fin, ty, st, {
+            zh: '白=未訪、灰=遞迴中（在堆疊上）、黑=完成。從 u 開始，字母序',
+            en: 'white = unseen, gray = on the recursion stack, black = finished. Start at u, alphabetical order',
+        });
+        const disc = (i, t, viaMsg) => { c[i] = 1; d[i] = t; st.push(i); mk(c, d, fin, ty, st, viaMsg); };
+        const finish = (i, t) => { c[i] = 2; fin[i] = t; st = st.filter((x) => x !== i); mk(c, d, fin, ty, st, {
+            zh: nodes[i].label + ' 完成：f = ' + t + '（鄰居都處理完，出堆疊）',
+            en: nodes[i].label + ' finished: f = ' + t + ' (all neighbours done — pop)',
+        }); };
+        const classify = (u, v, type, msg) => { ty[u + '-' + v] = type; mk(c, d, fin, ty, st, msg); };
+        disc(0, 1, { zh: '發現 u：d = 1（進堆疊）', en: 'discover u: d = 1 (push)' });
+        ty['0-1'] = 'T';
+        disc(1, 2, { zh: 'u→v 樹邊：發現 v，d = 2', en: 'tree edge u→v: discover v, d = 2' });
+        ty['1-4'] = 'T';
+        disc(4, 3, { zh: 'v→y 樹邊：發現 y，d = 3', en: 'tree edge v→y: discover y, d = 3' });
+        ty['4-3'] = 'T';
+        disc(3, 4, { zh: 'y→x 樹邊：發現 x，d = 4', en: 'tree edge y→x: discover x, d = 4' });
+        classify(3, 1, 'B', {
+            zh: 'x→v：v 還是灰色（還在堆疊上）⇒ back edge！這就是環 v→y→x→v',
+            en: 'x→v: v is still GRAY (on the stack) ⇒ BACK edge! That is the cycle v→y→x→v',
+        });
+        finish(3, 5); finish(4, 6); finish(1, 7);
+        classify(0, 3, 'F', {
+            zh: 'u→x：x 已黑且 d[x]=4 > d[u]=1（是後代）⇒ forward edge',
+            en: 'u→x: x is black and d[x]=4 > d[u]=1 (a descendant) ⇒ FORWARD edge',
+        });
+        finish(0, 8);
+        disc(2, 9, { zh: 'u 這棵樹結束；從下一個白點 w 重新開始（DFS 森林）', en: 'tree of u done; restart at the next white node w (DFS forest)' });
+        classify(2, 4, 'C', {
+            zh: 'w→y：y 已黑且不是 w 的後代 ⇒ cross edge（跨樹）',
+            en: 'w→y: y is black and not a descendant of w ⇒ CROSS edge (between trees)',
+        });
+        ty['2-5'] = 'T';
+        disc(5, 10, { zh: 'w→z 樹邊：發現 z，d = 10', en: 'tree edge w→z: discover z, d = 10' });
+        classify(5, 2, 'B', {
+            zh: 'z→w：w 是灰色 ⇒ 又一條 back edge！環 w→z→w',
+            en: 'z→w: w is GRAY ⇒ another BACK edge! cycle w→z→w',
+        });
+        finish(5, 11); finish(2, 12);
+        mk(c, d, fin, ty, st, {
+            zh: '完成。d/f 像括號一樣巢狀；有 back edge ⇔ 圖有環（2 條 back = 2 個環）',
+            en: 'done. d/f nest like parentheses; a BACK edge exists ⇔ the graph has a cycle (2 back = 2 cycles)',
+        });
+
+        host.innerHTML =
+            buildWeightedGraphSvg(nodes, edges, true, '0 0 460 290') +
+            '<div class="tviz-strip"><strong>Stack:</strong> <span class="tviz-stack" data-testid="tviz-stack"></span>' +
+            ' &nbsp;<span class="tviz-legend">T 樹邊 · B 回邊 · F 前向 · C 交叉</span></div>' +
+            '<div class="tviz-msg" data-testid="tviz-msg">&nbsp;</div>';
+        // d/f badges under each node
+        const svg = host.querySelector('svg');
+        nodes.forEach((n) => {
+            const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            t.setAttribute('x', n.x); t.setAttribute('y', n.y + 32);
+            t.setAttribute('text-anchor', 'middle'); t.setAttribute('font-size', '10');
+            t.setAttribute('class', 'tviz-df'); t.setAttribute('data-df', n.id);
+            svg.appendChild(t);
+        });
+        edges.forEach((e) => {
+            const a = nodes[e.u], b = nodes[e.v];
+            // anti-parallel pairs (w⇄z) get their labels pushed to opposite sides
+            const anti = edges.some((o) => o.u === e.v && o.v === e.u);
+            const off = anti ? (e.u < e.v ? 18 : -18) : 8;
+            const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            t.setAttribute('x', (a.x + b.x) / 2 + off); t.setAttribute('y', (a.y + b.y) / 2 - 6);
+            t.setAttribute('text-anchor', 'middle'); t.setAttribute('font-size', '11');
+            t.setAttribute('font-weight', '700');
+            t.setAttribute('class', 'tviz-etype'); t.setAttribute('data-etype', e.u + '-' + e.v);
+            svg.appendChild(t);
+        });
+        const stEl = host.querySelector('.tviz-stack');
+        const msgEl = host.querySelector('.tviz-msg');
+        const typeClass = { T: 'wgraph-in', B: 'tviz-back', F: 'tviz-fwd', C: 'tviz-cross' };
+        tvizPlayer(host, F, (f) => {
+            nodes.forEach((n, i) => {
+                const el = host.querySelector('.wgraph-node[data-node="' + i + '"]');
+                el.classList.remove('tviz-gray', 'tviz-black');
+                if (f.color[i] === 1) el.classList.add('tviz-gray');
+                if (f.color[i] === 2) el.classList.add('tviz-black');
+                const badge = host.querySelector('[data-df="' + i + '"]');
+                badge.textContent = f.d[i] ? (f.d[i] + (f.f[i] ? '/' + f.f[i] : '')) : '';
+            });
+            edges.forEach((e) => {
+                const key = e.u + '-' + e.v;
+                const line = host.querySelector('.wgraph-edge[data-edge="' + key + '"]');
+                const lab = host.querySelector('[data-etype="' + key + '"]');
+                line.classList.remove('wgraph-in', 'tviz-back', 'tviz-fwd', 'tviz-cross');
+                if (f.types[key]) { line.classList.add(typeClass[f.types[key]]); lab.textContent = f.types[key]; }
+                else lab.textContent = '';
+            });
+            stEl.textContent = f.stack.map((i) => nodes[i].label).join(' → ') || '—';
+            msgEl.textContent = tvizLang(f.msg);
+        }, 750);
+    }
+
+    // ── Kruskal & Prim: the SAME 7-node graph ────────────────────────────
+    const TVIZ_MST = {
+        nodes: [
+            { id: 0, label: 'A', x: 70, y: 160 }, { id: 1, label: 'B', x: 180, y: 60 },
+            { id: 2, label: 'C', x: 330, y: 60 }, { id: 3, label: 'D', x: 440, y: 120 },
+            { id: 4, label: 'E', x: 400, y: 260 }, { id: 5, label: 'F', x: 140, y: 270 },
+            { id: 6, label: 'G', x: 265, y: 165 },
+        ],
+        // Distinct weights ⇒ the MST is unique (weight 26) — that is what makes
+        // the Kruskal-vs-Prim comparison airtight.
+        edges: [
+            { u: 0, v: 1, w: 1 }, { u: 0, v: 5, w: 2 }, { u: 1, v: 2, w: 3 }, { u: 0, v: 2, w: 4 },
+            { u: 2, v: 6, w: 5 }, { u: 1, v: 6, w: 6 }, { u: 2, v: 3, w: 7 }, { u: 5, v: 4, w: 8 },
+            { u: 6, v: 4, w: 9 }, { u: 3, v: 4, w: 10 }, { u: 5, v: 6, w: 11 },
+        ],
+    };
+
+    function renderTeachKruskal(host) {
+        const nodes = TVIZ_MST.nodes;
+        const edges = TVIZ_MST.edges.slice().sort((a, b) => a.w - b.w);
+        const V = nodes.length;
+        const L = (i) => nodes[i].label;
+        const parent = Array.from({ length: V }, (_, i) => i);
+        const find = (x) => (parent[x] === x ? x : (parent[x] = find(parent[x])));
+        const frames = [];
+        const state = []; // per sorted edge: 'accept' | 'reject' | 'skip'
+        const snap = (idx, msg, total) => frames.push({ idx, state: state.slice(), msg, total });
+        snap(-1, {
+            zh: '先把 11 條邊按權重排序（下方清單）。逐條嘗試：不成環就收',
+            en: 'sort all 11 edges by weight (list below), then try them in order: take it unless it closes a cycle',
+        }, 0);
+        let total = 0, picked = 0;
+        for (let i = 0; i < edges.length; i++) {
+            const e = edges[i];
+            if (picked === V - 1) {
+                state[i] = 'skip';
+                continue;
+            }
+            const ru = find(e.u), rv = find(e.v);
+            if (ru !== rv) {
+                parent[ru] = rv; total += e.w; picked++;
+                state[i] = 'accept';
+                snap(i, {
+                    zh: '第 ' + (i + 1) + ' 條 ' + L(e.u) + '–' + L(e.v) + '（w=' + e.w + '）：兩端不同樹 → 收下（第 ' + picked + '/' + (V - 1) + ' 條）',
+                    en: 'edge #' + (i + 1) + ' ' + L(e.u) + '–' + L(e.v) + ' (w=' + e.w + '): different trees → take it (' + picked + '/' + (V - 1) + ')',
+                }, total);
+                if (picked === V - 1) {
+                    snap(i, {
+                        zh: '已收滿 V−1 = 6 條 ⇒ MST 完成（總重 ' + total + '）。剩下的邊必成環，全部略過',
+                        en: 'V−1 = 6 edges taken ⇒ MST complete (weight ' + total + '). Every remaining edge would close a cycle — skip them all',
+                    }, total);
+                }
+            } else {
+                state[i] = 'reject';
+                snap(i, {
+                    zh: '第 ' + (i + 1) + ' 條 ' + L(e.u) + '–' + L(e.v) + '（w=' + e.w + '）：' + L(e.u) + ' 和 ' + L(e.v) +
+                        ' 已在同一棵樹（Union-Find 同根）→ 會成環，拒絕 ✗',
+                    en: 'edge #' + (i + 1) + ' ' + L(e.u) + '–' + L(e.v) + ' (w=' + e.w + '): ' + L(e.u) + ' and ' + L(e.v) +
+                        ' share a root in Union-Find → cycle, reject ✗',
+                }, total);
+            }
+        }
+        snap(edges.length, {
+            zh: '完成：MST = 6 條綠邊，總重 26。等一下切到 Prim — 同一張圖、不同策略、同一棵樹',
+            en: 'done: MST = 6 green edges, weight 26. Now open Prim — same graph, different strategy, same tree',
+        }, total);
+
+        host.innerHTML =
+            buildWeightedGraphSvg(nodes, TVIZ_MST.edges, false, '0 0 500 320') +
+            '<div class="kru-list" data-testid="kru-list">' + edges.map((e, i) =>
+                '<span class="kru-chip" data-chip="' + i + '">' + L(e.u) + L(e.v) + '·' + e.w + '</span>').join('') +
+            '</div>' +
+            '<div class="tviz-strip"><strong>MST:</strong> <span class="kru-total">0</span></div>' +
+            '<div class="tviz-msg" data-testid="tviz-msg">&nbsp;</div>';
+        const msgEl = host.querySelector('.tviz-msg');
+        const totEl = host.querySelector('.kru-total');
+        const keyOf = (e) => e.u + '-' + e.v;
+        tvizPlayer(host, frames, (f) => {
+            host.querySelectorAll('.wgraph-edge').forEach((l) => l.classList.remove('wgraph-cur', 'wgraph-in', 'tviz-reject'));
+            edges.forEach((e, i) => {
+                const line = host.querySelector('.wgraph-edge[data-edge="' + keyOf(e) + '"]');
+                const chip = host.querySelector('[data-chip="' + i + '"]');
+                chip.className = 'kru-chip';
+                if (f.state[i] === 'accept') { line.classList.add('wgraph-in'); chip.classList.add('accept'); }
+                else if (f.state[i] === 'reject') { line.classList.add('tviz-reject'); chip.classList.add('reject'); }
+                else if (f.state[i] === 'skip' && f.idx >= edges.length) chip.classList.add('skip');
+                if (i === f.idx && f.state[i]) chip.classList.add('cur');
+            });
+            if (f.idx >= 0 && f.idx < edges.length) {
+                const line = host.querySelector('.wgraph-edge[data-edge="' + keyOf(edges[f.idx]) + '"]');
+                if (line && f.state[f.idx] !== 'reject') line.classList.add('wgraph-cur');
+            }
+            totEl.textContent = f.total;
+            msgEl.textContent = tvizLang(f.msg);
+        }, 800);
+    }
+
+    function renderTeachPrim(host) {
+        const nodes = TVIZ_MST.nodes;
+        const edges = TVIZ_MST.edges;
+        const L = (i) => nodes[i].label;
+        const inT = new Set([0]);
+        const frames = [];
+        const treeEdges = [];
+        const cutList = () => edges.filter((e) => inT.has(e.u) !== inT.has(e.v))
+            .sort((a, b) => a.w - b.w);
+        const snap = (chosen, msg, total) => frames.push({
+            inT: Array.from(inT), tree: treeEdges.slice(), cut: cutList().map((e) => [e.u, e.v]),
+            chosen, msg, total,
+        });
+        snap(null, {
+            zh: '從 A 開始。虛線＝目前的「切」（樹內連到樹外的候選邊）；每步收最便宜的那條',
+            en: 'start from A. Dashed = the current cut (candidate edges leaving the tree); each step takes the cheapest one',
+        }, 0);
+        let total = 0;
+        while (inT.size < nodes.length) {
+            const cands = cutList();
+            const best = cands[0];
+            const newNode = inT.has(best.u) ? best.v : best.u;
+            inT.add(newNode);
+            treeEdges.push([best.u, best.v]);
+            total += best.w;
+            snap([best.u, best.v], {
+                zh: '切上的候選：' + cands.map((e) => L(e.u) + L(e.v) + '(' + e.w + ')').join(' ') +
+                    ' → 收最小 ' + L(best.u) + '–' + L(best.v) + '，' + L(newNode) + ' 進樹',
+                en: 'cut candidates: ' + cands.map((e) => L(e.u) + L(e.v) + '(' + e.w + ')').join(' ') +
+                    ' → take the min ' + L(best.u) + '–' + L(best.v) + ', ' + L(newNode) + ' joins the tree',
+            }, total);
+        }
+        snap(null, {
+            zh: '完成：總重 ' + total + '，與 Kruskal 完全相同的 6 條邊！（權重相異 ⇒ MST 唯一）',
+            en: 'done: weight ' + total + ' — exactly the same 6 edges as Kruskal! (distinct weights ⇒ the MST is unique)',
+        }, total);
+
+        host.innerHTML =
+            buildWeightedGraphSvg(nodes, edges, false, '0 0 500 320') +
+            '<div class="tviz-strip"><strong>MST:</strong> <span class="kru-total">0</span></div>' +
+            '<div class="tviz-msg" data-testid="tviz-msg">&nbsp;</div>';
+        const msgEl = host.querySelector('.tviz-msg');
+        const totEl = host.querySelector('.kru-total');
+        tvizPlayer(host, frames, (f) => {
+            host.querySelectorAll('.wgraph-edge').forEach((l) => l.classList.remove('wgraph-cur', 'wgraph-in', 'tviz-cut'));
+            host.querySelectorAll('.wgraph-node').forEach((c) => c.classList.remove('wgraph-in'));
+            f.cut.forEach((k) => {
+                const el = host.querySelector('.wgraph-edge[data-edge="' + k[0] + '-' + k[1] + '"]');
+                if (el) el.classList.add('tviz-cut');
+            });
+            f.tree.forEach((k) => {
+                const el = host.querySelector('.wgraph-edge[data-edge="' + k[0] + '-' + k[1] + '"]');
+                if (el) { el.classList.remove('tviz-cut'); el.classList.add('wgraph-in'); }
+            });
+            f.inT.forEach((v) => {
+                const el = host.querySelector('.wgraph-node[data-node="' + v + '"]');
+                if (el) el.classList.add('wgraph-in');
+            });
+            if (f.chosen) {
+                const el = host.querySelector('.wgraph-edge[data-edge="' + f.chosen[0] + '-' + f.chosen[1] + '"]');
+                if (el) el.classList.add('wgraph-cur');
+            }
+            totEl.textContent = f.total;
+            msgEl.textContent = tvizLang(f.msg);
+        }, 800);
+    }
+
+    // ── Topological sort: the CLRS "getting dressed" DAG ─────────────────
+    function renderTeachTopo(host) {
+        const items = [
+            { zh: '內褲', en: 'shorts', x: 90, y: 40 }, { zh: '襯衫', en: 'shirt', x: 300, y: 40 },
+            { zh: '襪子', en: 'socks', x: 520, y: 40 }, { zh: '手錶', en: 'watch', x: 520, y: 130 },
+            { zh: '長褲', en: 'pants', x: 90, y: 130 }, { zh: '皮帶', en: 'belt', x: 200, y: 130 },
+            { zh: '領帶', en: 'tie', x: 390, y: 130 }, { zh: '鞋子', en: 'shoes', x: 160, y: 230 },
+            { zh: '外套', en: 'jacket', x: 330, y: 230 },
+        ];
+        // shorts→pants, shorts→shoes, pants→belt, pants→shoes, belt→jacket,
+        // shirt→belt, shirt→tie, tie→jacket, socks→shoes
+        const dag = [[0, 4], [0, 7], [4, 5], [4, 7], [5, 8], [1, 5], [1, 6], [6, 8], [2, 7]];
+        const V = items.length;
+        const label = (i) => tvizLang(items[i]);
+        const indeg0 = new Array(V).fill(0);
+        dag.forEach((e) => indeg0[e[1]]++);
+        const frames = [];
+        const indeg = indeg0.slice();
+        const queue = [];
+        for (let i = 0; i < V; i++) if (indeg[i] === 0) queue.push(i);
+        const order = [];
+        const snap = (cur, dec, msg) => frames.push({
+            indeg: indeg.slice(), queue: queue.slice(), order: order.slice(), cur, dec: dec.slice(), msg,
+        });
+        snap(-1, [], {
+            zh: '每個節點標著 in-degree（還剩幾個前置）。歸零的才能穿：一開始有 4 件',
+            en: 'each node shows its in-degree (prerequisites left). Only zero can go: four items qualify at the start',
+        });
+        while (queue.length) {
+            const u = queue.shift();
+            order.push(u);
+            const dec = [];
+            dag.forEach((e) => {
+                if (e[0] !== u) return;
+                indeg[e[1]]--;
+                dec.push(e[1]);
+                if (indeg[e[1]] === 0) queue.push(e[1]);
+            });
+            snap(u, dec, dec.length ? {
+                zh: '穿上「' + label(u) + '」→ ' + dec.map((v) => '「' + label(v) + '」剩 ' + indeg[v]).join('、') +
+                    dec.filter((v) => indeg[v] === 0).map((v) => '；「' + label(v) + '」歸零，入列').join(''),
+                en: 'put on "' + label(u) + '" → ' + dec.map((v) => '"' + label(v) + '" now ' + indeg[v]).join(', ') +
+                    dec.filter((v) => indeg[v] === 0).map((v) => '; "' + label(v) + '" hits 0 — enqueue').join(''),
+            } : {
+                zh: '穿上「' + label(u) + '」（沒有東西依賴它' + (u === 3 ? ' — 手錶其實放哪都合法！' : '') + '）',
+                en: 'put on "' + label(u) + '" (nothing depends on it' + (u === 3 ? ' — the watch could go anywhere!' : '') + ')',
+            });
+        }
+        snap(-1, [], {
+            zh: '完成順序只是「合法解之一」：只要每條箭頭的起點都在終點前面就合法',
+            en: 'this is just ONE valid order: any order where every arrow points forward is legal',
+        });
+
+        const w = 66, h = 26;
+        let svg = '<svg class="wgraph-svg" viewBox="0 0 620 280" width="100%" xmlns="http://www.w3.org/2000/svg">' +
+            '<defs><marker id="tp-arrow" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">' +
+            '<path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"/></marker></defs>';
+        dag.forEach((e) => {
+            const a = items[e[0]], b = items[e[1]];
+            const dx = b.x - a.x, dy = b.y - a.y;
+            const len = Math.sqrt(dx * dx + dy * dy) || 1;
+            const x1 = a.x + (dx / len) * (w / 2 - 4), y1 = a.y + (dy / len) * (h / 2 + 6);
+            const x2 = b.x - (dx / len) * (w / 2 + 2), y2 = b.y - (dy / len) * (h / 2 + 8);
+            svg += '<line class="wgraph-edge" data-edge="' + e[0] + '-' + e[1] + '" x1="' + x1 + '" y1="' + y1 +
+                   '" x2="' + x2 + '" y2="' + y2 + '" stroke="#94a3b8" stroke-width="2" marker-end="url(#tp-arrow)"/>';
+        });
+        items.forEach((it, i) => {
+            svg += '<g class="tp-node" data-node="' + i + '">' +
+                '<rect x="' + (it.x - w / 2) + '" y="' + (it.y - h / 2) + '" width="' + w + '" height="' + h +
+                '" rx="6" fill="#fff" stroke="#1e40af" stroke-width="2"/>' +
+                '<text x="' + it.x + '" y="' + (it.y + 4) + '" text-anchor="middle" font-size="12" font-weight="700" class="tp-label" data-lbl="' + i + '"></text>' +
+                '<circle class="tp-badge-bg" data-bdg-bg="' + i + '" cx="' + (it.x + w / 2 - 2) + '" cy="' + (it.y - h / 2 + 2) + '" r="8" fill="#dc2626"/>' +
+                '<text class="tp-badge" data-bdg="' + i + '" x="' + (it.x + w / 2 - 2) + '" y="' + (it.y - h / 2 + 5.5) +
+                '" text-anchor="middle" font-size="10" font-weight="700" fill="#fff"></text></g>';
+        });
+        svg += '</svg>';
+        host.innerHTML = svg +
+            '<div class="tviz-strip"><strong>Queue:</strong> <span class="tp-queue" data-testid="tp-queue"></span></div>' +
+            '<div class="tviz-strip"><strong>Order:</strong> <span class="tp-order" data-testid="tp-order"></span></div>' +
+            '<div class="tviz-msg" data-testid="tviz-msg">&nbsp;</div>';
+        const qEl = host.querySelector('.tp-queue');
+        const oEl = host.querySelector('.tp-order');
+        const msgEl = host.querySelector('.tviz-msg');
+        items.forEach((it, i) => { host.querySelector('[data-lbl="' + i + '"]').textContent = label(i); });
+        tvizPlayer(host, frames, (f) => {
+            items.forEach((it, i) => {
+                const g = host.querySelector('.tp-node[data-node="' + i + '"]');
+                const rect = g.querySelector('rect');
+                const bdg = host.querySelector('[data-bdg="' + i + '"]');
+                const bg = host.querySelector('[data-bdg-bg="' + i + '"]');
+                const done = f.order.indexOf(i) !== -1;
+                rect.setAttribute('fill', done ? '#bbf7d0' : (f.indeg[i] === 0 ? '#dbeafe' : '#fff'));
+                rect.setAttribute('stroke', i === f.cur ? '#f59e0b' : (done ? '#16a34a' : '#1e40af'));
+                rect.setAttribute('stroke-width', i === f.cur ? '3' : '2');
+                bdg.textContent = done ? '' : f.indeg[i];
+                bg.setAttribute('fill', done ? 'transparent' : (f.indeg[i] === 0 ? '#2563eb' : '#dc2626'));
+                if (done) bdg.textContent = '';
+            });
+            host.querySelectorAll('.wgraph-edge').forEach((l) => l.classList.remove('wgraph-cur'));
+            if (f.cur >= 0) f.dec.forEach((v) => {
+                const el = host.querySelector('.wgraph-edge[data-edge="' + f.cur + '-' + v + '"]');
+                if (el) el.classList.add('wgraph-cur');
+            });
+            qEl.textContent = f.queue.map(label).join(' , ') || '—';
+            oEl.textContent = f.order.map((i, k) => (k + 1) + '.' + label(i)).join(' → ') || '—';
+            msgEl.textContent = tvizLang(f.msg);
+        }, 800);
+    }
+
+    // ── Floyd-Warshall teaching matrix (classic 4-node with a negative edge)
+    function renderTeachFloyd(host) {
+        const labels = ['A', 'B', 'C', 'D'];
+        const INF = Infinity;
+        const V = 4;
+        // A→C −2, C→D 2, D→B −1, B→A 4, B→C 3 (no negative cycle)
+        const init = [
+            [0, INF, -2, INF],
+            [4, 0, 3, INF],
+            [INF, INF, 0, 2],
+            [INF, -1, INF, 0],
+        ];
+        const frames = [];
+        let dist = init.map((r) => r.slice());
+        frames.push({ k: -1, dist: init.map((r) => r.slice()), changed: [], msg: {
+            zh: '初始 D⁽⁰⁾：只有直接邊（含負權邊 A→C = −2、D→B = −1）。∞ = 還到不了',
+            en: 'initial D⁽⁰⁾: direct edges only (note the negative edges A→C = −2, D→B = −1). ∞ = unreachable yet',
+        } });
+        for (let k = 0; k < V; k++) {
+            const changed = [];
+            const details = [];
+            const next = dist.map((r) => r.slice());
+            for (let i = 0; i < V; i++) {
+                for (let j = 0; j < V; j++) {
+                    if (dist[i][k] + dist[k][j] < dist[i][j]) {
+                        next[i][j] = dist[i][k] + dist[k][j];
+                        changed.push(i + ',' + j);
+                        details.push(labels[i] + '→' + labels[j] + ': ' + dist[i][k] + '+' + dist[k][j] + '=' + next[i][j]);
+                    }
+                }
+            }
+            dist = next;
+            frames.push({ k, dist: dist.map((r) => r.slice()), changed, msg: details.length ? {
+                zh: '開放中繼點 ' + labels[k] + '：' + details.join('；') + '（D[i][j] = min(D[i][j], D[i][k]+D[k][j])）',
+                en: 'allow intermediate ' + labels[k] + ': ' + details.join('; ') + ' (D[i][j] = min(D[i][j], D[i][k]+D[k][j]))',
+            } : {
+                zh: '開放中繼點 ' + labels[k] + '：這一輪沒有任何格子變小',
+                en: 'allow intermediate ' + labels[k] + ': no cell improves this round',
+            } });
+        }
+        frames.push({ k: V, dist: dist.map((r) => r.slice()), changed: [], msg: {
+            zh: '完成：所有點對最短。出現了負值路徑（A→B = −1），但對角線都還是 0 ⇒ 沒有負環',
+            en: 'done: all-pairs shortest. Negative-valued paths appeared (A→B = −1), yet the diagonal stayed 0 ⇒ no negative cycle',
+        } });
+
+        let grid = '<div class="floyd-grid tviz-floyd">';
+        grid += '<div class="floyd-hcell"></div>';
+        for (let j = 0; j < V; j++) grid += '<div class="floyd-hcell" data-fw-col="' + j + '">' + labels[j] + '</div>';
+        for (let i = 0; i < V; i++) {
+            grid += '<div class="floyd-hcell" data-fw-row="' + i + '">' + labels[i] + '</div>';
+            for (let j = 0; j < V; j++) grid += '<div class="floyd-cell" data-fw="' + i + ',' + j + '"></div>';
+        }
+        grid += '</div>';
+        host.innerHTML = grid + '<div class="tviz-msg" data-testid="tviz-msg">&nbsp;</div>';
+        const msgEl = host.querySelector('.tviz-msg');
+        tvizPlayer(host, frames, (f) => {
+            for (let i = 0; i < V; i++) for (let j = 0; j < V; j++) {
+                const cell = host.querySelector('[data-fw="' + i + ',' + j + '"]');
+                const v = f.dist[i][j];
+                cell.textContent = v === INF ? '∞' : v;
+                cell.className = 'floyd-cell' +
+                    (i === j ? ' diag' : '') +
+                    (f.changed.indexOf(i + ',' + j) !== -1 ? ' floyd-chg' : '') +
+                    (v < 0 && i !== j ? ' negv' : '');
+            }
+            for (let x = 0; x < V; x++) {
+                host.querySelector('[data-fw-col="' + x + '"]').classList.toggle('floyd-pivot', x === f.k);
+                host.querySelector('[data-fw-row="' + x + '"]').classList.toggle('floyd-pivot', x === f.k);
+            }
+            msgEl.textContent = tvizLang(f.msg);
+        }, 900);
+    }
+
+    // ── BFS vs DFS side by side on the same graph, in lockstep ───────────
+    function renderTeachDual(host) {
+        const nodes = [
+            { id: 0, label: 'r', x: 45, y: 45 }, { id: 1, label: 's', x: 135, y: 45 },
+            { id: 2, label: 't', x: 225, y: 45 }, { id: 3, label: 'u', x: 315, y: 45 },
+            { id: 4, label: 'v', x: 45, y: 165 }, { id: 5, label: 'w', x: 135, y: 165 },
+            { id: 6, label: 'x', x: 225, y: 165 }, { id: 7, label: 'y', x: 315, y: 165 },
+        ];
+        const edges = [
+            { u: 0, v: 1 }, { u: 0, v: 4 }, { u: 1, v: 5 }, { u: 5, v: 2 }, { u: 5, v: 6 },
+            { u: 2, v: 3 }, { u: 2, v: 6 }, { u: 6, v: 3 }, { u: 6, v: 7 }, { u: 3, v: 7 },
+        ];
+        const L = (i) => nodes[i].label;
+        const adj = nodes.map(() => []);
+        edges.forEach((e) => { adj[e.u].push(e.v); adj[e.v].push(e.u); });
+        adj.forEach((a) => a.sort((p, q) => (L(p) < L(q) ? -1 : 1)));
+        const SRC = 1;
+        // BFS trace
+        const bfsSteps = [];
+        (function () {
+            const seen = new Set([SRC]); const q = [SRC]; const order = [];
+            while (q.length) {
+                const u = q.shift(); order.push(u);
+                adj[u].forEach((v) => { if (!seen.has(v)) { seen.add(v); q.push(v); } });
+                bfsSteps.push({ order: order.slice(), frontier: q.slice() });
+            }
+        })();
+        // DFS trace (stack; push reversed so alphabetical pops first)
+        const dfsSteps = [];
+        (function () {
+            const seen = new Set(); const st = [SRC]; const order = [];
+            while (st.length) {
+                const u = st.pop();
+                if (seen.has(u)) continue;
+                seen.add(u); order.push(u);
+                for (let i = adj[u].length - 1; i >= 0; i--) if (!seen.has(adj[u][i])) st.push(adj[u][i]);
+                dfsSteps.push({ order: order.slice(), frontier: st.filter((x) => !seen.has(x)).slice() });
+            }
+        })();
+        const n = Math.max(bfsSteps.length, dfsSteps.length);
+        const frames = [];
+        frames.push({ step: -1, msg: {
+            zh: '同一張圖、同一個起點 s。左：queue（先進先出）；右：stack（後進先出）。按 Step 讓兩邊各走一步',
+            en: 'same graph, same source s. Left: queue (FIFO); right: stack (LIFO). Each Step advances BOTH by one',
+        } });
+        for (let i = 0; i < n; i++) {
+            const b = bfsSteps[Math.min(i, bfsSteps.length - 1)];
+            const d = dfsSteps[Math.min(i, dfsSteps.length - 1)];
+            frames.push({ step: i, msg: {
+                zh: '第 ' + (i + 1) + ' 步 — BFS 拜訪 ' + L(b.order[b.order.length - 1] ?? b.order[0]) +
+                    '，DFS 拜訪 ' + L(d.order[d.order.length - 1] ?? d.order[0]) + '。順序開始分岔了嗎？',
+                en: 'step ' + (i + 1) + ' — BFS visits ' + L(b.order[b.order.length - 1] ?? b.order[0]) +
+                    ', DFS visits ' + L(d.order[d.order.length - 1] ?? d.order[0]) + '. Watch the orders diverge',
+            } });
+        }
+        frames.push({ step: n, msg: {
+            zh: 'BFS：' + bfsSteps[bfsSteps.length - 1].order.map(L).join(' ') + '（一圈圈）。DFS：' +
+                dfsSteps[dfsSteps.length - 1].order.map(L).join(' ') + '（鑽到底）。差別只有 frontier 的資料結構！',
+            en: 'BFS: ' + bfsSteps[bfsSteps.length - 1].order.map(L).join(' ') + ' (rings). DFS: ' +
+                dfsSteps[dfsSteps.length - 1].order.map(L).join(' ') + ' (dives). The ONLY difference is the frontier data structure!',
+        } });
+
+        const pane = (cls, title) =>
+            '<div class="tdual-pane" data-pane="' + cls + '"><div class="tdual-title">' + title + '</div>' +
+            buildWeightedGraphSvg(nodes, edges, false, '0 0 360 210') +
+            '<div class="tviz-strip"><strong>' + (cls === 'bfs' ? 'Queue' : 'Stack') + ':</strong> ' +
+            '<span class="tdual-frontier"></span></div>' +
+            '<div class="tviz-strip"><strong>Order:</strong> <span class="tdual-order"></span></div></div>';
+        host.innerHTML = '<div class="tdual-wrap">' + pane('bfs', 'BFS · queue') + pane('dfs', 'DFS · stack') + '</div>' +
+            '<div class="tviz-msg" data-testid="tviz-msg">&nbsp;</div>';
+        const msgEl = host.querySelector('.tviz-msg');
+        const draw = (f) => {
+            [['bfs', bfsSteps], ['dfs', dfsSteps]].forEach(([cls, steps]) => {
+                const paneEl = host.querySelector('[data-pane="' + cls + '"]');
+                const idx = Math.min(f.step, steps.length - 1);
+                const s = f.step < 0 ? { order: [], frontier: [SRC] } : steps[idx];
+                nodes.forEach((nd, i) => {
+                    const el = paneEl.querySelector('.wgraph-node[data-node="' + i + '"]');
+                    el.classList.remove('wgraph-in', 'wgraph-cur');
+                    if (s.order.indexOf(i) !== -1) el.classList.add('wgraph-in');
+                    if (s.order.length && s.order[s.order.length - 1] === i && f.step >= 0 && f.step < steps.length)
+                        el.classList.add('wgraph-cur');
+                });
+                paneEl.querySelector('.tdual-frontier').textContent = s.frontier.map(L).join(' ') || '—';
+                paneEl.querySelector('.tdual-order').textContent = s.order.map(L).join(' ') || '—';
+            });
+            msgEl.textContent = tvizLang(f.msg);
+        };
+        tvizPlayer(host, frames, draw, 800);
+    }
+
+    // ── Undirected graph basics: the handshake lemma ─────────────────────
+    function renderTeachGraphBasics(host) {
+        const nodes = [
+            { id: 0, label: 'A', x: 160, y: 40 }, { id: 1, label: 'B', x: 247, y: 90 },
+            { id: 2, label: 'C', x: 247, y: 190 }, { id: 3, label: 'D', x: 160, y: 240 },
+            { id: 4, label: 'E', x: 73, y: 190 }, { id: 5, label: 'F', x: 73, y: 90 },
+        ];
+        const seq = [[0, 1], [1, 2], [0, 2], [2, 3], [3, 4], [4, 5], [1, 5]];
+        const L = (i) => nodes[i].label;
+        const frames = [];
+        const deg = new Array(6).fill(0);
+        frames.push({ upTo: 0, deg: deg.slice(), msg: {
+            zh: '空圖：6 個節點、0 條邊。看好每個節點的度數（degree）',
+            en: 'empty graph: 6 nodes, 0 edges. Keep an eye on every node degree',
+        } });
+        seq.forEach((e, i) => {
+            deg[e[0]]++; deg[e[1]]++;
+            const sum = deg.reduce((a, b) => a + b, 0);
+            frames.push({ upTo: i + 1, deg: deg.slice(), cur: e, msg: {
+                zh: '加入邊 ' + L(e[0]) + '–' + L(e[1]) + '：兩端各 +1 度 ⇒ Σdeg = ' + sum + ' = 2×' + (i + 1) + ' = 2|E| ✓',
+                en: 'add edge ' + L(e[0]) + '–' + L(e[1]) + ': both endpoints gain 1 ⇒ Σdeg = ' + sum + ' = 2×' + (i + 1) + ' = 2|E| ✓',
+            } });
+        });
+        frames.push({ upTo: seq.length, deg: deg.slice(), msg: {
+            zh: '握手定理：每條邊固定貢獻 2 度，所以 Σdeg 永遠是偶數 — 奇數度的節點必為偶數個',
+            en: 'handshake lemma: every edge contributes exactly 2 — so Σdeg is always even, and odd-degree nodes come in pairs',
+        } });
+
+        const allEdges = seq.map((e) => ({ u: e[0], v: e[1], w: null }));
+        host.innerHTML =
+            buildWeightedGraphSvg(nodes, allEdges, false, '0 0 320 280') +
+            '<div class="tviz-strip"><strong>deg:</strong> <span class="tgb-degs"></span>' +
+            ' &nbsp; <strong>Σdeg:</strong> <span class="tgb-sum">0</span> &nbsp; <strong>|E|:</strong> <span class="tgb-e">0</span></div>' +
+            '<div class="tviz-msg" data-testid="tviz-msg">&nbsp;</div>';
+        const msgEl = host.querySelector('.tviz-msg');
+        tvizPlayer(host, frames, (f) => {
+            allEdges.forEach((e, i) => {
+                const el = host.querySelector('.wgraph-edge[data-edge="' + e.u + '-' + e.v + '"]');
+                el.style.opacity = i < f.upTo ? '1' : '0.12';
+                el.classList.toggle('wgraph-cur', !!(f.cur && f.cur[0] === e.u && f.cur[1] === e.v));
+            });
+            host.querySelector('.tgb-degs').textContent = nodes.map((n, i) => n.label + ':' + f.deg[i]).join(' ');
+            host.querySelector('.tgb-sum').textContent = f.deg.reduce((a, b) => a + b, 0);
+            host.querySelector('.tgb-e').textContent = f.upTo;
+            msgEl.textContent = tvizLang(f.msg);
+        }, 700);
+    }
+
+    // ── Adjacency matrix vs adjacency list, filled side by side ──────────
+    function renderTeachAdjList(host) {
+        const nodes = ['A', 'B', 'C', 'D', 'E', 'F'];
+        const seq = [[0, 1], [1, 2], [0, 2], [2, 3], [3, 4], [4, 5], [1, 5]];
+        const V = 6;
+        const frames = [];
+        frames.push({ upTo: 0, q: null, msg: {
+            zh: '同一張圖、兩種存法。左：V×V 矩陣（36 格）；右：每點一條串列',
+            en: 'one graph, two representations. Left: a V×V matrix (36 cells); right: one list per node',
+        } });
+        seq.forEach((e, i) => frames.push({ upTo: i + 1, q: null, cur: e, msg: {
+            zh: '加入 ' + nodes[e[0]] + '–' + nodes[e[1]] + '：矩陣要填「兩格」（對稱），串列在兩邊各加一項',
+            en: 'add ' + nodes[e[0]] + '–' + nodes[e[1]] + ': the matrix fills TWO cells (symmetric); each list gains one entry',
+        } }));
+        frames.push({ upTo: seq.length, q: [0, 3], msg: {
+            zh: '查「A–D 有邊嗎？」矩陣：直接看 [A][D] 一格 = O(1)。串列：得走完 A 的整條串列 = O(deg A)',
+            en: 'query "is A–D an edge?" Matrix: look at cell [A][D] — O(1). List: walk all of A\'s list — O(deg A)',
+        } });
+        frames.push({ upTo: seq.length, q: null, summary: true, msg: {
+            zh: '空間：矩陣 O(V²) = 36 格只用了 14；串列 O(V+E) = 6+14 項。稀疏圖用串列、密圖或要 O(1) 查邊用矩陣',
+            en: 'space: matrix O(V²) = 36 cells for only 14 used; list O(V+E) = 6+14 entries. Sparse ⇒ list; dense or O(1) queries ⇒ matrix',
+        } });
+
+        let mat = '<table class="tadj-mat"><tr><th></th>' + nodes.map((n) => '<th>' + n + '</th>').join('') + '</tr>';
+        for (let i = 0; i < V; i++) {
+            mat += '<tr><th>' + nodes[i] + '</th>';
+            for (let j = 0; j < V; j++) mat += '<td data-m="' + i + ',' + j + '">0</td>';
+            mat += '</tr>';
+        }
+        mat += '</table>';
+        const lists = '<div class="tadj-lists">' + nodes.map((n, i) =>
+            '<div class="tadj-row"><strong>' + n + '</strong> → <span data-l="' + i + '"></span></div>').join('') + '</div>';
+        host.innerHTML = '<div class="tadj-wrap">' + mat + lists + '</div>' +
+            '<div class="tviz-msg" data-testid="tviz-msg">&nbsp;</div>';
+        const msgEl = host.querySelector('.tviz-msg');
+        tvizPlayer(host, frames, (f) => {
+            const adj = nodes.map(() => []);
+            for (let i = 0; i < V; i++) for (let j = 0; j < V; j++)
+                host.querySelector('[data-m="' + i + ',' + j + '"]').className = '';
+            for (let k = 0; k < f.upTo; k++) {
+                const [a, b] = seq[k];
+                adj[a].push(b); adj[b].push(a);
+                host.querySelector('[data-m="' + a + ',' + b + '"]').classList.add('on');
+                host.querySelector('[data-m="' + b + ',' + a + '"]').classList.add('on');
+            }
+            for (let i = 0; i < V; i++) for (let j = 0; j < V; j++) {
+                const cell = host.querySelector('[data-m="' + i + ',' + j + '"]');
+                cell.textContent = cell.classList.contains('on') ? '1' : '0';
+            }
+            if (f.cur) {
+                host.querySelector('[data-m="' + f.cur[0] + ',' + f.cur[1] + '"]').classList.add('chg');
+                host.querySelector('[data-m="' + f.cur[1] + ',' + f.cur[0] + '"]').classList.add('chg');
+            }
+            if (f.q) {
+                host.querySelector('[data-m="' + f.q[0] + ',' + f.q[1] + '"]').classList.add('query');
+                nodes.forEach((n, i) => host.querySelector('[data-l="' + i + '"]').parentElement.classList.toggle('query', i === f.q[0]));
+            } else {
+                host.querySelectorAll('.tadj-row').forEach((r) => r.classList.remove('query'));
+            }
+            nodes.forEach((n, i) => {
+                host.querySelector('[data-l="' + i + '"]').textContent = adj[i].map((x) => nodes[x]).join(' → ') || '∅';
+            });
+            msgEl.textContent = tvizLang(f.msg);
+        }, 800);
+    }
+
+    const TEACHING_EXAMPLES = {
+        'graph-dijkstra': {
+            goal: { zh: '每一步「定案」目前最近的節點，定案後距離永不再變；看 s→t 直達 10 如何被繞路 s→y→t = 8 打敗',
+                    en: 'each step SETTLES the nearest unsettled node, final forever; watch the direct s→t (10) lose to the detour s→y→t (8)' },
+            render: renderTeachDijkstra,
+        },
+        'graph-bfs': {
+            goal: { zh: '佇列（FIFO）讓探索一圈一圈往外擴散 — 同色＝同距離，dist 就是最少邊數',
+                    en: 'the FIFO queue makes exploration expand ring by ring — same colour = same distance = fewest edges' },
+            render: renderTeachBFS,
+        },
+        'graph-dfs': {
+            goal: { zh: '一路鑽到底、用完才回溯：看 d/f 時間戳如何巢狀；紅色 back edge 一出現＝發現了環',
+                    en: 'dive deep, backtrack only when stuck: watch d/f timestamps nest; a red BACK edge = a cycle found' },
+            render: renderTeachDFS,
+        },
+        'graph-kruskal': {
+            goal: { zh: '邊照權重由小到大逐條試；Union-Find 同根 ⇒ 會成環 ⇒ 紅叉拒絕 — 看第 4、6 條被拒的瞬間',
+                    en: 'try edges cheapest-first; same Union-Find root ⇒ cycle ⇒ red-cross reject — watch edges #4 and #6 get refused' },
+            render: renderTeachKruskal,
+        },
+        'graph-prim': {
+            goal: { zh: '樹的「切」上永遠收最便宜的邊（cut property）；最後和 Kruskal 得到一模一樣的 MST',
+                    en: 'always take the cheapest edge crossing the cut; the final MST is exactly the same as Kruskal\'s' },
+            render: renderTeachPrim,
+        },
+        'graph-topo': {
+            goal: { zh: 'in-degree 歸零才能出場（Kahn）；合法順序不只一種 — 手錶放哪裡都行',
+                    en: 'only in-degree 0 may leave (Kahn); many valid orders exist — the watch fits anywhere' },
+            render: renderTeachTopo,
+        },
+        'graph-floyd-warshall': {
+            goal: { zh: '每輪多開放一個中繼點 k：D[i][j] = min(D[i][j], D[i][k]+D[k][j])；對角線保持 0 ⇒ 沒有負環',
+                    en: 'each round unlocks one more intermediate k: D[i][j] = min(D[i][j], D[i][k]+D[k][j]); diagonal stays 0 ⇒ no negative cycle' },
+            render: renderTeachFloyd,
+        },
+        'graph-traversal': {
+            goal: { zh: '兩邊程式碼幾乎相同 — 唯一差別是 frontier 用 queue 還是 stack，探索形狀就完全不同',
+                    en: 'the two codes are nearly identical — swapping the frontier (queue vs stack) completely changes the exploration shape' },
+            render: renderTeachDual,
+        },
+        'graph': {
+            goal: { zh: '每加一條邊，總度數必 +2 ⇒ Σdeg = 2|E|（握手定理）',
+                    en: 'every added edge raises total degree by exactly 2 ⇒ Σdeg = 2|E| (handshake lemma)' },
+            render: renderTeachGraphBasics,
+        },
+        'graph-adjlist': {
+            goal: { zh: '同一張圖、兩種代價：矩陣查邊 O(1) 但佔 O(V²)；串列省空間 O(V+E) 但查邊要走訪',
+                    en: 'one graph, two trade-offs: matrix queries in O(1) but costs O(V²); lists cost O(V+E) but queries walk the list' },
+            render: renderTeachAdjList,
+        },
+        'graph-aoe': {
+            goal: { zh: 'e(i) = l(i)（零鬆弛）的活動串成關鍵路徑 — 它們一延誤，整個專案就延誤',
+                    en: 'activities with e(i) = l(i) (zero slack) form the critical path — delay any of them and the whole project slips' },
+            render: function () { renderGraphAoe(); },
+        },
+    };
+    // ── end teaching examples ─────────────────────────────────────────────
 
     function renderGraph() {
         if (currentMode === 'graph-bfs') {
