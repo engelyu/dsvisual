@@ -19,6 +19,7 @@
             'group.memory':                 'Memory / GC',
             'group.recursion':              'Recursion',
             'group.oop':                    'OOP Concepts',
+            'group.nano-llm':               'nano-LLM',
             'group.patterns':               'Design Patterns',
             'group.patterns-creational':    'Creational',
             'group.patterns-structural':    'Structural',
@@ -79,6 +80,10 @@
             'method.skip-list':             'Skip List',
             'method.count-min-sketch':      'Count-Min Sketch',
             'method.cache-lru':             'LRU Cache',
+            'method.nano-bpe-encode':       'BPE Encode (trie)',
+            'method.nano-compute-graph':    'Compute Graph (DAG)',
+            'method.nano-bpe-train':        'BPE Train (list+heap)',
+            'method.nano-ngram-next':       'n-gram Sampling (hash)',
 
             // Methods — Heaps
             'method.heap-binary':           'Binary Heap',
@@ -247,6 +252,7 @@
             'group.memory':                 '記憶體 / GC',
             'group.recursion':              '遞迴',
             'group.oop':                    'OOP 概念',
+            'group.nano-llm':               'nano-LLM',
             'group.patterns':               '設計模式',
             'group.patterns-creational':    '建立型',
             'group.patterns-structural':    '結構型',
@@ -307,6 +313,10 @@
             'method.skip-list':             '跳躍串列',
             'method.count-min-sketch':      'Count-Min Sketch',
             'method.cache-lru':             'LRU 快取',
+            'method.nano-bpe-encode':       'BPE 編碼（trie）',
+            'method.nano-compute-graph':    '計算圖（DAG）',
+            'method.nano-bpe-train':        'BPE 訓練（串列+heap）',
+            'method.nano-ngram-next':       'n-gram 取樣（hash）',
 
             // Methods — Heaps
             'method.heap-binary':           '二元堆積',

@@ -876,4 +876,66 @@ const descDB = {
             <span class="badge space">Space: O(N)</span>
         </div>
     `,
+    'nano-bpe-encode': `
+        <h3>BPE Encode — Trie Longest Match</h3>
+        <p>Tokenize text against a trained vocabulary by walking a character trie and greedily taking the longest matching piece at each position.</p>
+        <hr>
+        <ul>
+            <li><strong>Trie:</strong> every vocab piece is inserted character-by-character; a node marks where a piece terminates.</li>
+            <li><strong>Greedy walk:</strong> from the current position, follow trie edges as far as possible, remembering the last node that terminated a piece.</li>
+            <li><strong>Fallback:</strong> if no piece matches at all, emit the single character as its own token (byte fallback) so unseen input never blocks encoding.</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Build: O(Σ|piece|)</span>
+            <span class="badge time">Encode: O(|input| · max piece len)</span>
+            <span class="badge space">Space: O(Σ|piece|)</span>
+        </div>
+    `,
+    'nano-compute-graph': `
+        <h3>Compute Graph — Topological Forward Pass</h3>
+        <p>Model a computation as a DAG of operation nodes, derive a topological order from its edges, then evaluate every node once its inputs are ready.</p>
+        <hr>
+        <ul>
+            <li><strong>Topological sort:</strong> DFS post-order from the output node — recurse into each node's predecessors first, then append the node itself once its inputs are placed, so parents always land before dependents.</li>
+            <li><strong>Forward pass:</strong> walk the nodes in that order; each node's op (const/add/mul) reads already-computed predecessor values.</li>
+            <li><strong>DAG guarantee:</strong> because dependencies always precede dependents in the order, every node's inputs are available by the time it is evaluated.</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Topo sort: O(V + E)</span>
+            <span class="badge time">Forward pass: O(V + E)</span>
+            <span class="badge space">Space: O(V + E)</span>
+        </div>
+    `,
+    'nano-bpe-train': `
+        <h3>BPE Train — Pair Count, Heap Select, Merge</h3>
+        <p>Learn an ordered list of merge rules from a corpus by repeatedly counting adjacent symbol pairs, picking the most frequent one, and merging every occurrence.</p>
+        <hr>
+        <ul>
+            <li><strong>Symbol pool (linked list):</strong> each word starts as a chain of single-character symbols; a merge is an O(1) relink, no array shifting.</li>
+            <li><strong>Pair counts (hash map):</strong> scan adjacent symbol pairs and tally their frequency across the whole corpus.</li>
+            <li><strong>Heap select:</strong> push every (count, pair) candidate and take the max — the most frequent pair, with the lexicographically smallest pair winning on ties.</li>
+            <li><strong>Merge:</strong> replace every adjacent occurrence of the chosen pair with the combined symbol, then repeat until no pair repeats or the merge budget is spent.</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Per round: O(N)</span>
+            <span class="badge time">Total: O(N · merges)</span>
+            <span class="badge space">Space: O(N)</span>
+        </div>
+    `,
+    'nano-ngram-next': `
+        <h3>n-gram Sampling — Cumulative Distribution + Binary Search</h3>
+        <p>Sample the next token from an n-gram model's successor counts for a fixed context by turning the counts into a cumulative array and binary-searching a random draw into a bucket.</p>
+        <hr>
+        <ul>
+            <li><strong>Context table (hash map):</strong> training tallies, for every (n-1)-token context, how often each token follows it — a hash map from context key to successor counts.</li>
+            <li><strong>Cumulative array:</strong> a prefix sum over the successor counts turns each token's count into a half-open range on <code>[0, total)</code>.</li>
+            <li><strong>Binary search:</strong> draw <code>r</code> in <code>[0,1)</code>, scale to <code>target = r · total</code>, then binary-search for the first bucket whose cumulative count exceeds the target.</li>
+            <li><strong>Determinism:</strong> the same draw always lands in the same bucket, so a fixed <code>r</code> reproduces a fixed sample — useful for testing and for replaying a generation.</li>
+        </ul>
+        <div class="complexities">
+            <span class="badge time">Build: O(corpus)</span>
+            <span class="badge time">Sample: O(log k)</span>
+            <span class="badge space">Space: O(k)</span>
+        </div>
+    `,
 };

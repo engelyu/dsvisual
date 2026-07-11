@@ -34,8 +34,8 @@ test.describe('Data Structure Visualizer Full Suite', () => {
         const categoryNav = page.locator('[data-testid="category-nav"]');
         const methodSections = page.locator('[data-testid="method-sections"]');
         await expect(categoryNav).toBeVisible();
-        // 1 Overview pill + 13 category groups = 14 pills total.
-        await expect(categoryNav.locator('.category-nav-btn')).toHaveCount(14);
+        // 1 Overview pill + 14 category groups = 15 pills total.
+        await expect(categoryNav.locator('.category-nav-btn')).toHaveCount(15);
         await expect(categoryNav.locator('[data-testid="method-select"]')).toHaveCount(0);
         await expect(methodSections.locator('[data-testid="method-heading-title"]')).toBeVisible();
         await expect(methodSections.locator('[data-method-section="stack-array"]')).toBeVisible();

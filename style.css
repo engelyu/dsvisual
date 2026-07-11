@@ -2703,3 +2703,41 @@ pre.code-panel-body[class*="language-"] {
     line-height: 1.4;
 }
 .rand-btn:hover { background: #334155; }
+
+/* ===== nano-LLM visualizations (bpe-encode, compute-graph, bpe-train, ngram-next) ===== */
+
+/* -- bpe-encode -- */
+.be-input-row { display: flex; flex-wrap: wrap; gap: 2px; margin: 8px 0; font-family: monospace; }
+.be-ch { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; padding: 4px 6px; background: #e2e8f0; border: 1px solid #cbd5e1; border-radius: 5px; font-weight: 700; }
+.be-ch.match { background: #dbeafe; border-color: #93c5fd; color: #1e40af; }
+.be-ch.cursor { border-color: #f59e0b; box-shadow: 0 0 0 2px #fde68a; }
+.be-tokens { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+.be-token { display: inline-block; padding: 4px 10px; background: #fff; border: 2px solid #1e40af; border-radius: 6px; font-family: monospace; font-weight: 700; color: #1e40af; }
+.be-phase { margin-top: 6px; color: #1e40af; font-style: italic; }
+
+/* -- compute-graph -- */
+.cg-nodes { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.cg-node { display: inline-block; padding: 6px 12px; background: #e2e8f0; border: 2px solid #cbd5e1; border-radius: 6px; font-family: monospace; font-weight: 600; color: #475569; transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; }
+.cg-node.done { background: #f0fdf4; border-color: #16a34a; color: #16a34a; }
+.cg-node.active { border-color: #f59e0b; box-shadow: 0 0 0 2px #fde68a; color: #1e293b; }
+.cg-order { margin-top: 6px; font-size: 13px; color: #475569; font-family: monospace; }
+.cg-phase { margin-top: 6px; color: #1e40af; font-style: italic; }
+
+/* -- bpe-train -- */
+.bt-symbols { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+.bt-sym { display: inline-block; padding: 4px 8px; background: #e2e8f0; border: 1px solid #cbd5e1; border-radius: 5px; font-family: monospace; font-weight: 700; }
+.bt-pairs { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+.bt-pair { display: inline-block; padding: 3px 8px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 999px; font-family: monospace; font-size: 12px; color: #475569; }
+.bt-pair.top { background: #dbeafe; border-color: #93c5fd; color: #1e40af; font-weight: 700; }
+.bt-phase { margin-top: 6px; color: #1e40af; font-style: italic; }
+
+/* -- ngram-next -- */
+.ng-bars { display: flex; align-items: flex-end; gap: 6px; margin: 8px 0; min-height: 60px; }
+.ng-bar { display: inline-flex; align-items: flex-start; justify-content: center; min-width: 34px; padding: 4px 8px; background: #93c5fd; border: 1px solid #60a5fa; border-radius: 4px 4px 0 0; font-family: monospace; font-size: 12px; font-weight: 600; color: #1e3a8a; }
+.ng-bar.picked { background: #f59e0b; border-color: #b45309; color: #1e293b; }
+.ng-cum { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 8px 0; }
+.ng-cell { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; padding: 6px; background: #e2e8f0; border: 1px solid #cbd5e1; border-radius: 5px; font-family: monospace; font-weight: 700; }
+.ng-cell.inrange { background: #dbeafe; border-color: #93c5fd; }
+.ng-cell.mid { border-color: #f59e0b; box-shadow: 0 0 0 2px #fde68a; }
+.ng-draw { margin-left: 10px; font-family: monospace; font-size: 12px; color: #7c3aed; font-weight: 600; }
+.ng-phase { margin-top: 6px; color: #1e40af; font-style: italic; }

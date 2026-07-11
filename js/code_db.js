@@ -5718,3 +5718,247 @@ int main() {
 }
 `;
 
+// nano-llm: BpeEncoder — trained vocabulary applied to text via a trie.
+// Greedy LONGEST match at each position runs in time proportional to the
+// match length, not the vocab size (trimmed excerpt of bpe_encoder.hpp).
+const codeNanoBpeEncode = `#include <string>
+#include <vector>
+#include <unordered_map>
+
+// Vocabulary is a list of pieces; a piece's id is its index.
+class BpeEncoder {
+    struct TrieNode {
+        std::unordered_map<char, int> children;  // char -> child node index
+        int id = -1;                             // vocab id if a piece ends here
+    };
+    std::vector<TrieNode> nodes_;                // trie stored in an array
+    std::vector<std::string> vocab_;             // id -> piece text (for lookup)
+
+    void insert(const std::string& p, int id) {
+        int node = 0;
+        for (char c : p) {
+            auto it = nodes_[node].children.find(c);
+            if (it != nodes_[node].children.end()) { node = it->second; continue; }
+            int idx = static_cast<int>(nodes_.size());
+            nodes_.push_back(TrieNode{});
+            nodes_[node].children[c] = idx;
+            node = idx;
+        }
+        nodes_[node].id = id;
+    }
+
+public:
+    explicit BpeEncoder(const std::vector<std::string>& vocab) : vocab_(vocab) {
+        nodes_.push_back(TrieNode{});            // index 0 = root
+        for (int id = 0; id < (int)vocab.size(); ++id) insert(vocab[id], id);
+    }
+
+    // Text -> tokens via greedy longest-match walk over the trie.
+    std::vector<std::string> encode(const std::string& word) const {
+        std::vector<std::string> out;
+        for (size_t i = 0; i < word.size(); ) {
+            int node = 0, bestId = -1;
+            size_t bestLen = 0;
+            for (size_t j = i; j < word.size(); ++j) {
+                auto it = nodes_[node].children.find(word[j]);
+                if (it == nodes_[node].children.end()) break;
+                node = it->second;
+                if (nodes_[node].id != -1) {      // a piece ends here
+                    bestId = nodes_[node].id;
+                    bestLen = j - i + 1;
+                }
+            }
+            std::string tok;
+            if (bestId != -1) {
+                tok = vocab_[bestId];
+            } else {
+                tok = word.substr(i, 1);           // no piece matched: byte fallback,
+                bestLen = 1;                        // emit the character itself
+            }
+            out.push_back(tok);
+            i += bestLen;
+        }
+        return out;
+    }
+};
+`;
+
+// nano-llm: ComputeGraph — a DAG of scalar ops executed in topological order.
+// build_forward() does a DFS post-order walk from the output node, deduping
+// shared nodes with a visited set, so the result is topologically sorted;
+// compute() then evaluates every node in that order. (Simplified from the
+// tensor version in graph.hpp to scalars so the mechanism stands alone.)
+const codeNanoComputeGraph = `#include <vector>
+
+enum class Op { Const, Add, Mul };
+
+class ComputeGraph {
+public:
+    int constant(double v)   { return addNode(Op::Const, -1, -1, v); }
+    int add(int a, int b)    { return addNode(Op::Add, a, b); }
+    int mul(int a, int b)    { return addNode(Op::Mul, a, b); }
+
+    // DFS post-order from the output node => topologically sorted order_.
+    void build_forward(int output) {
+        order_.clear();
+        std::vector<char> seen(nodes_.size(), 0);
+        visit(output, seen);
+    }
+
+    void compute() {
+        for (int id : order_) {
+            GNode& n = nodes_[id];
+            switch (n.op) {
+                case Op::Const: break;                                    // value preset
+                case Op::Add:   n.value = nodes_[n.src0].value + nodes_[n.src1].value; break;
+                case Op::Mul:   n.value = nodes_[n.src0].value * nodes_[n.src1].value; break;
+            }
+        }
+    }
+
+    double value(int node) const { return nodes_[node].value; }
+
+private:
+    struct GNode { Op op; int src0; int src1; double value; };
+    std::vector<GNode> nodes_;
+    std::vector<int>   order_;
+
+    int addNode(Op op, int a, int b, double v = 0.0) {
+        nodes_.push_back(GNode{op, a, b, v});
+        return static_cast<int>(nodes_.size()) - 1;
+    }
+
+    void visit(int node, std::vector<char>& seen) {
+        if (seen[node]) return;                     // dedup shared nodes
+        seen[node] = 1;
+        const GNode& n = nodes_[node];
+        if (n.src0 >= 0) visit(n.src0, seen);       // parents first
+        if (n.src1 >= 0) visit(n.src1, seen);
+        order_.push_back(node);                     // post-order => topological
+    }
+};
+`;
+
+// nano-llm: BpeTrainer — learns an ordered list of BPE merge rules from a
+// corpus. Three data structures cooperate: a doubly-linked list of symbols
+// (array pool, prev/next indices; a merge is an O(1) relink, no shifting),
+// a hash map of adjacent-pair counts, and a max-heap that picks the most
+// frequent pair each round. (Simplified from bpe_trainer.hpp: vocab bookkeeping
+// elided so the count -> select -> merge mechanism stands alone.)
+const codeNanoBpeTrain = `#include <string>
+#include <vector>
+#include <unordered_map>
+#include <queue>
+#include <utility>
+
+using Cand = std::pair<int, std::string>;   // (count, packed pair key)
+
+struct Symbol { std::string piece; int prev; int next; bool dead; };
+struct Merge  { std::string left, right; };
+
+// Heap order: higher count wins; on a tie the lexicographically SMALLEST
+// key wins, so top() is (max count, min key) and merges are deterministic.
+struct Cmp {
+    bool operator()(const Cand& a, const Cand& b) const {
+        if (a.first != b.first) return a.first < b.first;   // more frequent = higher priority
+        return a.second > b.second;                         // tie: smaller key = higher priority
+    }
+};
+
+class BpeTrainer {
+public:
+    std::vector<Merge> train(std::vector<Symbol> pool, int num_merges) {
+        std::vector<Merge> merges;
+        for (int m = 0; m < num_merges; ++m) {
+            // Count adjacent pairs (hash map).
+            std::unordered_map<std::string, int> counts;
+            for (size_t i = 0; i < pool.size(); ++i) {
+                if (pool[i].dead) continue;
+                int n = pool[i].next;
+                if (n == -1) continue;
+                counts[packKey(pool[i].piece, pool[n].piece)]++;
+            }
+            if (counts.empty()) break;
+
+            // Heapify all candidates, take the top (most frequent pair).
+            std::priority_queue<Cand, std::vector<Cand>, Cmp> heap;
+            for (const auto& kv : counts) heap.push({kv.second, kv.first});
+            if (heap.top().first < 2) break;   // stop once no pair repeats
+            const std::string bestKey = heap.top().second;
+
+            std::string L, R;
+            unpackKey(bestKey, L, R);
+            merges.push_back({L, R});
+
+            // Merge every adjacent occurrence of (L,R): O(1) relink of the
+            // linked list, extend left's piece, splice right out.
+            for (size_t i = 0; i < pool.size(); ++i) {
+                if (pool[i].dead) continue;
+                int n = pool[i].next;
+                if (n == -1 || pool[n].dead) continue;
+                if (pool[i].piece == L && pool[n].piece == R) {
+                    pool[i].piece += pool[n].piece;
+                    pool[i].next = pool[n].next;
+                    if (pool[n].next != -1) pool[pool[n].next].prev = static_cast<int>(i);
+                    pool[n].dead = true;
+                }
+            }
+        }
+        return merges;
+    }
+
+private:
+    static std::string packKey(const std::string& a, const std::string& b) {
+        return a + '\\x01' + b;   // \\x01 never appears in ASCII word text
+    }
+    static void unpackKey(const std::string& key, std::string& a, std::string& b) {
+        size_t sep = key.find('\\x01');
+        a = key.substr(0, sep);
+        b = key.substr(sep + 1);
+    }
+};
+`;
+
+const codeNanoNgramNext = `#include <string>
+#include <vector>
+#include <utility>
+
+// Successor counts for one fixed (n-1)-token context, e.g. one entry of the
+// hash map  unordered_map<string, unordered_map<string,int>>  that NgramModel
+// builds while training (context key -> next-token -> count).
+using Candidate = std::pair<std::string, int>;   // (token, count)
+
+// Prefix sum of counts: cumulative[i] = total count of tokens 0..i.
+std::vector<long> cumulativeCounts(const std::vector<Candidate>& candidates) {
+    std::vector<long> cumulative;
+    cumulative.reserve(candidates.size());
+    long running = 0;
+    for (const auto& kv : candidates) {
+        running += kv.second;
+        cumulative.push_back(running);
+    }
+    return cumulative;
+}
+
+// Sample the next token: draw r in [0,1), scale to target = r * total, then
+// binary search for the first bucket whose cumulative count exceeds target.
+// Rule: pick the smallest index i such that target < cumulative[i].
+std::string sampleNext(const std::vector<Candidate>& candidates, double r) {
+    std::vector<long> cumulative = cumulativeCounts(candidates);
+    long total = cumulative.empty() ? 0 : cumulative.back();
+    double target = r * static_cast<double>(total);
+
+    int lo = 0, hi = static_cast<int>(candidates.size()) - 1, ans = hi;
+    while (lo <= hi) {
+        int mid = (lo + hi) / 2;
+        if (target < static_cast<double>(cumulative[mid])) {
+            ans = mid;          // this bucket qualifies; look for an earlier one
+            hi = mid - 1;
+        } else {
+            lo = mid + 1;       // target lies beyond this bucket
+        }
+    }
+    return candidates[ans].first;
+}
+`;
+

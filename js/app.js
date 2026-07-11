@@ -300,6 +300,16 @@ const METHOD_GROUPS = [
             { id: 'pattern-di', title: 'Dependency Injection', file: 'pattern_di.cpp', visualizer: 'pattern', controls: 'pattern' },
         ],
     },
+    {
+        id: 'nano-llm',
+        title: 'nano-LLM',
+        methods: [
+            { id: 'nano-bpe-encode', title: 'BPE Encode (trie)', file: 'nano-bpe-encode.cpp', visualizer: 'bpeEncode', controls: 'bpeEncode' },
+            { id: 'nano-compute-graph', title: 'Compute Graph (DAG)', file: 'nano-compute-graph.cpp', visualizer: 'computeGraph', controls: 'computeGraph' },
+            { id: 'nano-bpe-train', title: 'BPE Train (list+heap)', file: 'nano-bpe-train.cpp', visualizer: 'bpeTrain', controls: 'bpeTrain' },
+            { id: 'nano-ngram-next', title: 'n-gram Sampling (hash)', file: 'nano-ngram-next.cpp', visualizer: 'ngramNext', controls: 'ngramNext' },
+        ],
+    },
 ];
 
 function getMethodGroupById(groupId) {
@@ -369,6 +379,10 @@ function getCodeForMethod(methodId) {
         'skip-list': codeSkipList,
         'count-min-sketch': codeCountMinSketch,
         'cache-lru': codeLruCache,
+        'nano-bpe-encode': codeNanoBpeEncode,
+        'nano-compute-graph': codeNanoComputeGraph,
+        'nano-bpe-train': codeNanoBpeTrain,
+        'nano-ngram-next': codeNanoNgramNext,
         'search-linear': codeSearchLinear,
         'search-binary': codeSearchBinary,
         'search-kmp': codeSearchKMP,
@@ -2433,6 +2447,22 @@ document.addEventListener('DOMContentLoaded', () => {
             codeTitle.textContent = 'lru_cache.cpp';
             codeDisplay.textContent = codeLruCache;
         }
+        else if (currentMode === 'nano-bpe-encode') {
+            codeTitle.textContent = 'nano-bpe-encode.cpp';
+            codeDisplay.textContent = codeNanoBpeEncode;
+        }
+        else if (currentMode === 'nano-compute-graph') {
+            codeTitle.textContent = 'nano-compute-graph.cpp';
+            codeDisplay.textContent = codeNanoComputeGraph;
+        }
+        else if (currentMode === 'nano-bpe-train') {
+            codeTitle.textContent = 'nano-bpe-train.cpp';
+            codeDisplay.textContent = codeNanoBpeTrain;
+        }
+        else if (currentMode === 'nano-ngram-next') {
+            codeTitle.textContent = 'nano-ngram-next.cpp';
+            codeDisplay.textContent = codeNanoNgramNext;
+        }
         else if (currentMode === 'search-linear') { codeTitle.textContent = 'search_linear.cpp'; codeDisplay.textContent = codeSearchLinear; searchContainer.classList.remove('hidden'); searchActions.classList.remove('hidden'); }
         else if (currentMode === 'search-binary') { codeTitle.textContent = 'search_binary.cpp'; codeDisplay.textContent = codeSearchBinary; searchContainer.classList.remove('hidden'); searchActions.classList.remove('hidden'); }
         else if (currentMode === 'search-kmp') {
@@ -2677,6 +2707,10 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (currentMode === 'expr-infix-postfix') renderExprInfixPostfix();
         else if (currentMode === 'list-doubly') renderListDoubly();
         else if (currentMode === 'cache-lru') renderLruCache();
+        else if (currentMode === 'nano-bpe-encode') renderNanoBpeEncode();
+        else if (currentMode === 'nano-compute-graph') renderNanoComputeGraph();
+        else if (currentMode === 'nano-bpe-train') renderNanoBpeTrain();
+        else if (currentMode === 'nano-ngram-next') renderNanoNgramNext();
         else if (['tree-bst', 'tree-avl', 'tree-rb', 'tree-splay'].includes(currentMode)) renderTree();
         else if (['tree-trie', 'tree-radix', 'tree-ternary', 'tree-btree', 'tree-bplus'].includes(currentMode)) renderAdvTrees();
         else if (currentMode === 'search-kmp') renderKMP();
@@ -5954,6 +5988,158 @@ document.addEventListener('DOMContentLoaded', () => {
             st.capacity = cap;
             st.keys = Array.from({ length: len }, () => 1 + Math.floor(Math.random() * 6));
             renderLruCache();
+        };
+    }
+
+    let _bpeEncState = null;
+    function renderNanoBpeEncode() {
+        const host = acquireDynamicVizHost();
+        if (!_bpeEncState) _bpeEncState = { vocab: ['a','b','ab','abc','c'], input: 'aabcabx' };
+        const st = _bpeEncState;
+        const langOf = (m) => (window.I18N && window.I18N.getCurrentLanguage() === 'zh') ? m.zh : m.en;
+        const frames = NanoBpeEncodeViz.buildFrames(st.vocab, st.input).frames;
+        let idx = 0;
+        host.innerHTML =
+            '<div class="ss-controls">' +
+              'vocab <input type="text" class="be-vocab" value="' + st.vocab.join(',') + '">' +
+              'input <input type="text" class="be-input" value="' + st.input + '">' +
+              '<button type="button" class="be-apply">Apply</button>' +
+            '</div>' +
+            '<div class="be-input-row" data-testid="be-input"></div>' +
+            '<div class="be-tokens" data-testid="be-tokens"></div>' +
+            '<div class="ss-phase be-phase"></div>';
+        function paint() {
+            const fr = frames[idx];
+            host.querySelector('.be-input-row').innerHTML = st.input.split('').map((ch, i) => {
+                let cls = 'be-ch';
+                if (i >= fr.matchStart && i < fr.matchEnd) cls += ' match';
+                if (i === fr.cursor) cls += ' cursor';
+                return '<span class="' + cls + '">' + ch + '</span>';
+            }).join('');
+            host.querySelector('.be-tokens').innerHTML = fr.tokens.map((t) =>
+                '<span class="be-token">' + t + '</span>').join('');
+            host.querySelector('.be-phase').textContent = langOf(fr.msg);
+        }
+        function step() { if (idx < frames.length - 1) { idx++; paint(); return idx < frames.length - 1; } return false; }
+        function reset() { idx = 0; paint(); }
+        host.appendChild(buildStepControls(step, reset, 600));
+        paint();
+        host.querySelector('.be-apply').onclick = () => {
+            const vocab = host.querySelector('.be-vocab').value.split(',').map((s) => s.trim()).filter(Boolean);
+            const input = host.querySelector('.be-input').value.trim();
+            if (vocab.length && input) { st.vocab = vocab; st.input = input; renderNanoBpeEncode(); }
+        };
+    }
+
+    let _cgState = null;
+    function renderNanoComputeGraph() {
+        const host = acquireDynamicVizHost();
+        if (!_cgState) _cgState = { preset: 'mul-add' };
+        const presets = {
+            'mul-add': { nodes: [ {id:'a',op:'const',val:2}, {id:'b',op:'const',val:3}, {id:'m',op:'mul'}, {id:'c',op:'const',val:4}, {id:'s',op:'add'} ],
+                         edges: [ ['a','m'],['b','m'],['m','s'],['c','s'] ] },
+        };
+        const langOf = (m) => (window.I18N && window.I18N.getCurrentLanguage() === 'zh') ? m.zh : m.en;
+        const frames = NanoComputeGraphViz.buildFrames(presets[_cgState.preset]).frames;
+        const nodes = presets[_cgState.preset].nodes;
+        let idx = 0;
+        host.innerHTML =
+            '<div class="cg-nodes" data-testid="cg-nodes"></div>' +
+            '<div class="cg-order" data-testid="cg-order"></div>' +
+            '<div class="ss-phase cg-phase"></div>';
+        function paint() {
+            const fr = frames[idx];
+            host.querySelector('.cg-nodes').innerHTML = nodes.map((n) => {
+                let cls = 'cg-node';
+                if (fr.evaluated.indexOf(n.id) >= 0) cls += ' done';
+                if (n.id === fr.active) cls += ' active';
+                const v = (fr.values[n.id] != null) ? ' = ' + fr.values[n.id] : '';
+                return '<span class="' + cls + '">' + n.id + ':' + n.op + v + '</span>';
+            }).join('');
+            host.querySelector('.cg-order').textContent = 'topo: ' + fr.order.join(' → ');
+            host.querySelector('.cg-phase').textContent = langOf(fr.msg);
+        }
+        function step() { if (idx < frames.length - 1) { idx++; paint(); return idx < frames.length - 1; } return false; }
+        function reset() { idx = 0; paint(); }
+        host.appendChild(buildStepControls(step, reset, 700));
+        paint();
+    }
+
+    let _bpeTrainState = null;
+    function renderNanoBpeTrain() {
+        const host = acquireDynamicVizHost();
+        if (!_bpeTrainState) _bpeTrainState = { corpus: 'a,b,a,b,a,b,c', merges: 3 };
+        const st = _bpeTrainState;
+        const langOf = (m) => (window.I18N && window.I18N.getCurrentLanguage() === 'zh') ? m.zh : m.en;
+        const corpus = st.corpus.split(',').map((s) => s.trim()).filter(Boolean);
+        const frames = NanoBpeTrainViz.buildFrames(corpus, st.merges).frames;
+        let idx = 0;
+        host.innerHTML =
+            '<div class="ss-controls">' +
+              'corpus <input type="text" class="bt-corpus" value="' + st.corpus + '">' +
+              'merges <input type="number" class="bt-merges" min="1" max="10" value="' + st.merges + '" style="width:56px">' +
+              '<button type="button" class="bt-apply">Apply</button>' +
+            '</div>' +
+            '<div class="bt-symbols" data-testid="bt-symbols"></div>' +
+            '<div class="bt-pairs" data-testid="bt-pairs"></div>' +
+            '<div class="ss-phase bt-phase"></div>';
+        function paint() {
+            const fr = frames[idx];
+            host.querySelector('.bt-symbols').innerHTML = fr.symbols.map((s) => '<span class="bt-sym">' + s + '</span>').join('');
+            host.querySelector('.bt-pairs').innerHTML = (fr.pairCounts || []).slice(0, 8).map(([p, c]) =>
+                '<span class="bt-pair' + (p === fr.top ? ' top' : '') + '">' + p + ' ×' + c + '</span>').join('');
+            host.querySelector('.bt-phase').textContent = langOf(fr.msg);
+        }
+        function step() { if (idx < frames.length - 1) { idx++; paint(); return idx < frames.length - 1; } return false; }
+        function reset() { idx = 0; paint(); }
+        host.appendChild(buildStepControls(step, reset, 800));
+        paint();
+        host.querySelector('.bt-apply').onclick = () => {
+            const c = host.querySelector('.bt-corpus').value;
+            const m = parseInt(host.querySelector('.bt-merges').value, 10);
+            if (c && Number.isFinite(m) && m >= 1) { st.corpus = c; st.merges = m; renderNanoBpeTrain(); }
+        };
+    }
+
+    let _ngramState = null;
+    function renderNanoNgramNext() {
+        const host = acquireDynamicVizHost();
+        if (!_ngramState) _ngramState = { cand: 'the:5,a:3,cat:2', r: 0.5 };
+        const st = _ngramState;
+        const langOf = (m) => (window.I18N && window.I18N.getCurrentLanguage() === 'zh') ? m.zh : m.en;
+        const cand = st.cand.split(',').map((p) => { const [t, c] = p.split(':'); return [t.trim(), parseInt(c, 10)]; })
+                        .filter(([t, c]) => t && Number.isFinite(c));
+        const frames = NanoNgramNextViz.buildFrames(cand, st.r).frames;
+        let idx = 0;
+        host.innerHTML =
+            '<div class="ss-controls">' +
+              'dist <input type="text" class="ng-cand" value="' + st.cand + '">' +
+              'r <input type="number" step="0.05" min="0" max="0.999" class="ng-r" value="' + st.r + '" style="width:70px">' +
+              '<button type="button" class="ng-apply">Apply</button>' +
+            '</div>' +
+            '<div class="ng-bars" data-testid="ng-bars"></div>' +
+            '<div class="ng-cum" data-testid="ng-cum"></div>' +
+            '<div class="ss-phase ng-phase"></div>';
+        function paint() {
+            const fr = frames[idx];
+            host.querySelector('.ng-bars').innerHTML = fr.candidates.map(([t, c], i) =>
+                '<span class="ng-bar' + (fr.picked === t ? ' picked' : '') + '" style="height:' + (10 + c * 12) + 'px">' + t + ':' + c + '</span>').join('');
+            host.querySelector('.ng-cum').innerHTML = (fr.cumulative || []).map((v, i) => {
+                let cls = 'ng-cell';
+                if (fr.status === 'bsearch' && i >= fr.lo && i <= fr.hi) cls += ' inrange';
+                if (i === fr.mid) cls += ' mid';
+                return '<span class="' + cls + '">' + v + '</span>';
+            }).join('') + (fr.draw ? '<span class="ng-draw">draw=' + fr.draw.toFixed(2) + '</span>' : '');
+            host.querySelector('.ng-phase').textContent = langOf(fr.msg);
+        }
+        function step() { if (idx < frames.length - 1) { idx++; paint(); return idx < frames.length - 1; } return false; }
+        function reset() { idx = 0; paint(); }
+        host.appendChild(buildStepControls(step, reset, 700));
+        paint();
+        host.querySelector('.ng-apply').onclick = () => {
+            const c = host.querySelector('.ng-cand').value;
+            const r = parseFloat(host.querySelector('.ng-r').value);
+            if (c && Number.isFinite(r) && r >= 0 && r < 1) { st.cand = c; st.r = r; renderNanoNgramNext(); }
         };
     }
 
