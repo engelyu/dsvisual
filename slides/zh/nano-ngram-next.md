@@ -52,7 +52,7 @@ while (lo <= hi) {
     if (target < cumulative[mid]) { ans = mid; hi = mid - 1; }
     else lo = mid + 1;
 }
-return candidates[ans].first;   // 抽中的 token
+return candidates[ans].first;   // sampled token
 ```
 
 ---

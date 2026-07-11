@@ -21185,4 +21185,181 @@ SLIDES_DB["recursion"] = {
         ] }
     ]
 };
+
+SLIDES_DB["nano-bpe-encode"] = {
+  "category": "nano-LLM",
+  "title": { "zh": "BPE 編碼(Trie 最長匹配)", "en": "BPE Encode (Trie Longest-Match)" },
+  "slides": [
+      { "heading": { "zh": "詞彙表 Trie", "en": "Vocabulary Trie" },
+        "blocks": [
+          { "type": "paragraph", "text": { "zh": "將詞彙表(vocab)中每個 token 逐字元插入 trie,終止節點標記該 token 的 id。", "en": "Insert every token of the vocabulary into a trie character by character; the terminal node stores that token's id." } },
+          { "type": "note", "text": { "zh": "Trie 的大小與詞彙表所有 token 字元數總和成正比:$O(\\Sigma|\\text{token}|)$。", "en": "The trie size is proportional to the total number of characters across all vocab tokens: $O(\\Sigma|\\text{token}|)$." } }
+        ] },
+      { "heading": { "zh": "貪婪最長匹配 (Greedy Longest Match)", "en": "Greedy Longest Match" },
+        "blocks": [
+          { "type": "steps", "items": [
+            { "zh": "從輸入目前位置出發,沿 trie 邊盡量往下走。", "en": "Starting at the current input position, walk down the trie edges as far as possible." },
+            { "zh": "每經過一個終止節點,就記錄「目前為止」最長的匹配 token。", "en": "Each time you pass a terminal node, record the longest matching token *so far*." },
+            { "zh": "走到無法再往下走(或輸入結尾)時,採用記錄的最長 token。", "en": "When you can no longer descend (or hit the end of input), emit the recorded longest token." },
+            { "zh": "若從起點就無法匹配任何 token,退回輸出單一字元(byte fallback),確保未知輸入仍可編碼。", "en": "If nothing matches from the start, fall back to emitting a single character (byte fallback), so unknown input can still be encoded." }
+          ] },
+          { "type": "code", "lang": "cpp", "code": "int node = 0, bestId = -1; size_t bestLen = 0;\nfor (size_t j = i; j < word.size(); ++j) {\n    auto it = nodes_[node].children.find(word[j]);\n    if (it == nodes_[node].children.end()) break;\n    node = it->second;\n    if (nodes_[node].id != -1) { bestId = nodes_[node].id; bestLen = j - i + 1; }\n}\nif (bestId == -1) { bestId = vocab_.id(std::string(1, word[i])); bestLen = 1; }" }
+        ] },
+      { "heading": { "zh": "複雜度", "en": "Complexity" },
+        "blocks": [
+          { "type": "bullets", "items": [
+            { "zh": "建立 trie:$O(\\Sigma|\\text{token}|)$", "en": "Build trie: $O(\\Sigma|\\text{token}|)$" },
+            { "zh": "編碼:$O(|\\text{input}| \\times \\text{max token len})$,與詞彙表大小無關", "en": "Encode: $O(|\\text{input}| \\times \\text{max token len})$, independent of vocabulary size" },
+            { "zh": "空間:$O(\\Sigma|\\text{token}|)$", "en": "Space: $O(\\Sigma|\\text{token}|)$" }
+          ] }
+        ] },
+      { "heading": { "zh": "小結", "en": "Summary" },
+        "blocks": [
+          { "type": "bullets", "items": [
+            { "zh": "Trie 讓最長匹配的每一步只與匹配長度成正比,而非整個詞彙表大小。", "en": "The trie makes each step of the longest match cost only as much as the match length, not the whole vocabulary size." },
+            { "zh": "貪婪策略保證每次都取最長可用 token(例如 `a`、`b`、`ab` 皆在表中時,`ab` 優先於 `a`+`b`)。", "en": "The greedy strategy always takes the longest available token (e.g. with `a`, `b`, `ab` all in the vocab, `ab` beats `a`+`b`)." },
+            { "zh": "Byte fallback 確保任何字元都能被編碼,不會因未登錄詞而中斷。", "en": "Byte fallback guarantees any character can be encoded, so an out-of-vocabulary piece never breaks encoding." }
+          ] }
+        ] }
+    ]
+};
+
+SLIDES_DB["nano-compute-graph"] = {
+  "category": "nano-LLM",
+  "title": { "zh": "計算圖（DAG）拓撲前向傳遞", "en": "Compute Graph (DAG) Topological Forward Pass" },
+  "slides": [
+      { "heading": { "zh": "計算圖 = DAG", "en": "Compute Graph = DAG" },
+        "blocks": [
+          { "type": "paragraph", "text": { "zh": "把一次計算表示成有向無環圖(DAG):每個節點是一個運算(const / add / mul / …),邊表示「輸入依賴」。", "en": "A single computation is a directed acyclic graph (DAG): each node is an operation (const / add / mul / …), and edges represent input dependencies." } },
+          { "type": "note", "text": { "zh": "節點必須等所有輸入節點都算完,才能被求值。", "en": "A node can only be evaluated once all of its input nodes have been computed." } }
+        ] },
+      { "heading": { "zh": "拓撲排序 (DFS 後序)", "en": "Topological Order (DFS post-order)" },
+        "blocks": [
+          { "type": "steps", "items": [
+            { "zh": "從輸出節點開始做深度優先走訪(DFS)。", "en": "Start a depth-first traversal from the output node." },
+            { "zh": "進入一個節點時,先遞迴走訪它的所有輸入(父)節點。", "en": "On entering a node, recurse into all of its input (parent) nodes first." },
+            { "zh": "等所有輸入都走訪完,才把自己加入拓撲序(後序)——如此依賴永遠排在被依賴者之前;用 visited 集合避免重複走訪共用子節點。", "en": "Only after every input has been visited, append the node itself to the order (post-order) — so a dependency always precedes what depends on it; a visited set avoids re-visiting shared inputs." }
+          ] },
+          { "type": "code", "lang": "cpp", "code": "void build_forward(int output) {\n    order_.clear();\n    std::vector<char> seen(nodes_.size(), 0);\n    visit(output, seen);          // DFS post-order => topological order\n}\nvoid visit(int node, std::vector<char>& seen) {\n    if (seen[node]) return;\n    seen[node] = 1;\n    if (n.src0 >= 0) visit(n.src0, seen);   // parents first\n    if (n.src1 >= 0) visit(n.src1, seen);\n    order_.push_back(node);                 // post-order => topo order\n}" }
+        ] },
+      { "heading": { "zh": "前向傳遞 (Forward Pass)", "en": "Forward Pass" },
+        "blocks": [
+          { "type": "paragraph", "text": { "zh": "依照拓撲序逐一求值:因為依賴永遠排在被依賴者之前,求值當下所有輸入值必定已就緒。", "en": "Evaluate node by node in topological order: because a dependency is always ordered before the node that uses it, all input values are guaranteed ready at evaluation time." } },
+          { "type": "code", "lang": "cpp", "code": "for (int id : order_) {\n    switch (n.op) {\n        case Op::Add: n.value = elementwise(...); break;\n        case Op::Mul: n.value = elementwise(...); break;\n        // ...\n    }\n}" }
+        ] },
+      { "heading": { "zh": "複雜度", "en": "Complexity" },
+        "blocks": [
+          { "type": "bullets", "items": [
+            { "zh": "拓撲排序:$O(V + E)$", "en": "Topological order: $O(V + E)$" },
+            { "zh": "前向傳遞:$O(V + E)$", "en": "Forward pass: $O(V + E)$" },
+            { "zh": "空間:$O(V + E)$", "en": "Space: $O(V + E)$" }
+          ] }
+        ] },
+      { "heading": { "zh": "小結", "en": "Summary" },
+        "blocks": [
+          { "type": "bullets", "items": [
+            { "zh": "DAG + 拓撲序,是任何計算圖框架(如 ggml、PyTorch autograd)排程求值順序的基礎。", "en": "A DAG + topological order is the foundation for how any compute-graph framework (ggml, PyTorch autograd) schedules evaluation." },
+            { "zh": "只要圖無環,拓撲序保證每個節點求值時輸入已就緒。", "en": "As long as the graph is acyclic, the topological order guarantees a node's inputs are ready when it is evaluated." },
+            { "zh": "共用子節點(多個節點依賴同一輸入)只需以 visited 集合去重,避免重複求值。", "en": "Shared sub-nodes (several nodes depending on the same input) are handled by a visited set, avoiding redundant evaluation." }
+          ] }
+        ] }
+    ]
+};
+
+SLIDES_DB["nano-bpe-train"] = {
+  "category": "nano-LLM",
+  "title": { "zh": "BPE 訓練:計數 → 選最大 → 合併", "en": "BPE Training: count → select max → merge" },
+  "slides": [
+      { "heading": { "zh": "BPE 訓練要學什麼?", "en": "What does BPE training learn?" },
+        "blocks": [
+          { "type": "paragraph", "text": { "zh": "從語料中學出一份「合併規則」(merge rules),之後編碼時依序套用這些規則,把常見的相鄰符號合併成新的一個符號(sub-word piece)。", "en": "From a corpus, learn a set of **merge rules**; at encode time these rules are applied in order to fuse frequent adjacent symbols into a new symbol (a sub-word piece)." } },
+          { "type": "note", "text": { "zh": "三種資料結構分工:串列存符號、雜湊表計數、heap 選出最大配對。", "en": "Three data structures divide the work: a list holds the symbols, a hash table counts, and a heap selects the top pair." } }
+        ] },
+      { "heading": { "zh": "符號池(雙向串列)", "en": "Symbol Pool (doubly linked list)" },
+        "blocks": [
+          { "type": "paragraph", "text": { "zh": "每個字先拆成單一字元的符號鏈,`prev`/`next` 是陣列索引;合併時只需重新接線(relink),不必搬移陣列。", "en": "Each word is first split into a chain of single-character symbols; `prev`/`next` are array indices, so a merge only needs to relink — no array shifting." } },
+          { "type": "code", "lang": "cpp", "code": "struct Symbol { std::string piece; int prev; int next; bool dead; };" }
+        ] },
+      { "heading": { "zh": "統計相鄰配對(雜湊表)", "en": "Count Adjacent Pairs (hash table)" },
+        "blocks": [
+          { "type": "paragraph", "text": { "zh": "掃過所有還活著的符號,累計每個相鄰配對出現的次數。", "en": "Sweep over all live symbols and tally how often each adjacent pair occurs." } },
+          { "type": "code", "lang": "cpp", "code": "std::unordered_map<std::string, int> counts;\nfor (size_t i = 0; i < pool.size(); ++i) {\n    if (pool[i].dead) continue;\n    int n = pool[i].next;\n    if (n == -1) continue;\n    counts[packKey(pool[i].piece, pool[n].piece)]++;\n}" }
+        ] },
+      { "heading": { "zh": "選出最大配對(Heap)", "en": "Select the Top Pair (heap)" },
+        "blocks": [
+          { "type": "paragraph", "text": { "zh": "把每個 (次數, 配對) 候選都丟進 max-heap,heap 頂就是這一輪要合併的配對;次數相同時取字典序最小的配對打破平手,確保結果可重現。", "en": "Push every (count, pair) candidate into a max-heap; the heap top is the pair to merge this round. Ties are broken by the lexicographically **smallest** pair so the result is reproducible." } },
+          { "type": "code", "lang": "cpp", "code": "// Cmp: higher count wins; on ties, the lexicographically smaller key wins.\nstd::priority_queue<Cand, std::vector<Cand>, Cmp> heap;\nfor (const auto& kv : counts) heap.push({kv.second, kv.first});\nif (heap.top().first < 2) break;                // stop when no pair repeats\nconst std::string bestKey = heap.top().second;  // (max count, min key)" }
+        ] },
+      { "heading": { "zh": "合併(Merge)", "en": "Merge" },
+        "blocks": [
+          { "type": "paragraph", "text": { "zh": "把配對中每一次相鄰出現都合併成一個新符號:左符號的文字擴充、右符號從串列中摘除(`dead = true`)。", "en": "Fuse every adjacent occurrence of the pair into one new symbol: extend the left symbol's text and remove the right symbol from the list (`dead = true`)." } },
+          { "type": "code", "lang": "cpp", "code": "pool[i].piece += pool[n].piece;\npool[i].next = pool[n].next;\npool[n].dead = true;" },
+          { "type": "paragraph", "text": { "zh": "重複「計數 → 選最大 → 合併」直到沒有配對再重複出現,或用完合併預算。", "en": "Repeat \"count → select max → merge\" until no pair repeats anymore, or the merge budget is used up." } }
+        ] },
+      { "heading": { "zh": "複雜度", "en": "Complexity" },
+        "blocks": [
+          { "type": "bullets", "items": [
+            { "zh": "每一輪:掃描 + 計數 + 合併皆為 $O(N)$", "en": "Per round: scan + count + merge are each $O(N)$" },
+            { "zh": "總計:$O(N \\times \\text{merges})$", "en": "Total: $O(N \\times \\text{merges})$" },
+            { "zh": "空間:$O(N)$", "en": "Space: $O(N)$" }
+          ] }
+        ] },
+      { "heading": { "zh": "小結", "en": "Summary" },
+        "blocks": [
+          { "type": "bullets", "items": [
+            { "zh": "串列讓合併變成 O(1) 的接線動作,不必像陣列一樣整體搬移。", "en": "The linked list turns a merge into an $O(1)$ relink, avoiding the whole-array shift an array would need." },
+            { "zh": "雜湊表負責「這一輪誰最常見」,heap 負責「選出最常見的那一個」。", "en": "The hash table answers \"who is most frequent this round\"; the heap answers \"select the single most frequent one\"." },
+            { "zh": "這正是 SentencePiece / BPE 分詞器訓練階段的核心迴圈。", "en": "This is exactly the core loop of the SentencePiece / BPE tokenizer training phase." }
+          ] }
+        ] }
+    ]
+};
+
+SLIDES_DB["nano-ngram-next"] = {
+  "category": "nano-LLM",
+  "title": { "zh": "n-gram 取樣:累積分布 + 二分搜尋", "en": "n-gram Sampling: cumulative distribution + binary search" },
+  "slides": [
+      { "heading": { "zh": "n-gram 取樣要學什麼?", "en": "What does n-gram sampling learn?" },
+        "blocks": [
+          { "type": "paragraph", "text": { "zh": "給定固定的 (n-1)-token 上下文,n-gram 模型記錄了「下一個 token」的出現次數分布。取樣時要把這份次數分布轉成累積陣列,再用二分搜尋把一個隨機亂數對應到正確的 token。", "en": "Given a fixed (n-1)-token context, an n-gram model records the count distribution of the \"next token\". To sample, turn that count distribution into a cumulative array, then use binary search to map a random number to the right token." } },
+          { "type": "note", "text": { "zh": "兩種資料結構分工:雜湊表存上下文 → 次數,累積陣列 + 二分搜尋做取樣。", "en": "Two data structures divide the work: a hash table stores context → counts; a cumulative array + binary search does the sampling." } }
+        ] },
+      { "heading": { "zh": "上下文計數表(雜湊表)", "en": "Context Count Table (hash table)" },
+        "blocks": [
+          { "type": "paragraph", "text": { "zh": "訓練時,每個 (n-1)-token 上下文都對應一份「下一個 token 出現次數」的表,存在雜湊表裡:context key → (next token → count)。", "en": "During training, each (n-1)-token context maps to a table of \"next-token counts\", stored in a hash table: context key → (next token → count)." } },
+          { "type": "code", "lang": "cpp", "code": "std::unordered_map<std::string,\n    std::unordered_map<int, int>> table_;" }
+        ] },
+      { "heading": { "zh": "累積陣列(前綴和)", "en": "Cumulative Array (prefix sum)" },
+        "blocks": [
+          { "type": "paragraph", "text": { "zh": "把某個上下文底下的候選 token 依序取出次數,做前綴和,得到累積陣列;累積陣列把每個 token 對應到 `[0, total)` 上的一段區間。", "en": "Take the candidate tokens' counts under a context in order and prefix-sum them into a cumulative array; the cumulative array maps each token to a slice of $[0, total)$." } },
+          { "type": "code", "lang": "cpp", "code": "std::vector<long> cumulative;\nlong running = 0;\nfor (const auto& kv : candidates) {\n    running += kv.second;\n    cumulative.push_back(running);\n}" }
+        ] },
+      { "heading": { "zh": "取樣(二分搜尋)", "en": "Sampling (binary search)" },
+        "blocks": [
+          { "type": "paragraph", "text": { "zh": "抽一個 `r ∈ [0,1)`,乘上總次數得到 `target = r · total`,再二分搜尋「第一個累積次數大於 target 的位置」——這就是抽中的 token。", "en": "Draw `r ∈ [0,1)`, multiply by the total to get `target = r · total`, then binary-search for \"the first position whose cumulative count exceeds target\" — that is the sampled token." } },
+          { "type": "code", "lang": "cpp", "code": "int lo = 0, hi = (int)candidates.size() - 1, ans = hi;\nwhile (lo <= hi) {\n    int mid = (lo + hi) / 2;\n    if (target < cumulative[mid]) { ans = mid; hi = mid - 1; }\n    else lo = mid + 1;\n}\nreturn candidates[ans].first;   // sampled token" }
+        ] },
+      { "heading": { "zh": "邊界規則", "en": "Boundary Rule" },
+        "blocks": [
+          { "type": "paragraph", "text": { "zh": "固定規則:選出**第一個滿足 `target < cumulative[i]` 的索引 i**。因此當 `target` 恰好落在邊界上(例如等於前一個 bucket 的累積次數),會落入下一個 bucket——這與 JS 視覺化步驟使用的是同一條規則,結果保證一致。", "en": "Fixed rule: pick **the first index i with `target < cumulative[i]`**. So when `target` lands exactly on a boundary (equal to the previous bucket's cumulative count), it falls into the next bucket — the same rule the JS visualization steps use, so the results match." } }
+        ] },
+      { "heading": { "zh": "複雜度", "en": "Complexity" },
+        "blocks": [
+          { "type": "bullets", "items": [
+            { "zh": "建表:訓練整個語料為 $O(\\text{corpus size})$", "en": "Build table: training over the whole corpus is $O(\\text{corpus size})$" },
+            { "zh": "取樣:累積陣列建好後,每次抽樣為 $O(\\log k)$(k = 候選 token 數)", "en": "Sample: once the cumulative array is built, each draw is $O(\\log k)$ (k = number of candidate tokens)" },
+            { "zh": "空間:$O(k)$", "en": "Space: $O(k)$" }
+          ] }
+        ] },
+      { "heading": { "zh": "小結", "en": "Summary" },
+        "blocks": [
+          { "type": "bullets", "items": [
+            { "zh": "雜湊表負責「這個上下文底下,誰出現過幾次」。", "en": "The hash table answers \"under this context, who has occurred how many times\"." },
+            { "zh": "累積陣列 + 二分搜尋負責「把一個隨機亂數,轉成一個具體的 token」。", "en": "The cumulative array + binary search answers \"turn a random number into a concrete token\"." },
+            { "zh": "固定的 `r` 永遠對應固定的 token,取樣具備可重現性,方便測試與除錯。", "en": "A fixed `r` always maps to a fixed token, so sampling is reproducible — handy for testing and debugging." }
+          ] }
+        ] }
+    ]
+};
+
 module.exports = SLIDES_DB;

@@ -15,24 +15,24 @@ category: "nano-LLM"
 
 ---
 
-## 拓撲排序 (Kahn's Algorithm)
+## 拓撲排序 (DFS 後序)
 
-1. 計算每個節點的入度(in-degree,未求值的依賴數)。
-2. 把入度為 0 的節點放入佇列。
-3. 取出節點加入拓撲序,並將其後繼節點的入度減一;若減到 0 就加入佇列。
+1. 從輸出節點開始做深度優先走訪(DFS)。
+2. 進入一個節點時,先遞迴走訪它的所有輸入(父)節點。
+3. 等所有輸入都走訪完,才把自己加入拓撲序(後序)——如此依賴永遠排在被依賴者之前;用 visited 集合避免重複走訪共用子節點。
 
 ```cpp
 void build_forward(int output) {
     order_.clear();
     std::vector<char> seen(nodes_.size(), 0);
-    visit(output, seen);          // DFS 後序走訪 => 拓撲序
+    visit(output, seen);          // DFS post-order => topological order
 }
 void visit(int node, std::vector<char>& seen) {
     if (seen[node]) return;
     seen[node] = 1;
-    if (n.src0 >= 0) visit(n.src0, seen);   // 先走父節點
+    if (n.src0 >= 0) visit(n.src0, seen);   // parents first
     if (n.src1 >= 0) visit(n.src1, seen);
-    order_.push_back(node);                 // 後序 => 拓撲序
+    order_.push_back(node);                 // post-order => topo order
 }
 ```
 

@@ -46,10 +46,11 @@ for (size_t i = 0; i < pool.size(); ++i) {
 把每個 (次數, 配對) 候選都丟進 max-heap,heap 頂就是這一輪要合併的配對;次數相同時取字典序最小的配對打破平手,確保結果可重現。
 
 ```cpp
-// Cmp:次數大者優先;次數相同時 key 字典序小者優先。
+// Cmp: higher count wins; on ties, the lexicographically smaller key wins.
 std::priority_queue<Cand, std::vector<Cand>, Cmp> heap;
 for (const auto& kv : counts) heap.push({kv.second, kv.first});
-const std::string bestKey = heap.top().second;  // (最大次數, 最小 key)
+if (heap.top().first < 2) break;                // stop when no pair repeats
+const std::string bestKey = heap.top().second;  // (max count, min key)
 ```
 
 ---
