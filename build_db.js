@@ -89,6 +89,14 @@ const mappings = {
     'matrix_sparse.cpp': 'codeMatrixSparse',
     'poly_padd.cpp': 'codePolyPadd',
     'magic_square.cpp': 'codeMagicSquare',
+    'magic_latin.cpp': 'codeMagicLatin',
+    'magic_torus.cpp': 'codeMagicTorus',
+    'magic_formula.cpp': 'codeMagicFormula',
+    'magic_symmetry.cpp': 'codeMagicSymmetry',
+    'nano_bpe_encode.cpp': 'codeNanoBpeEncode',
+    'nano_compute_graph.cpp': 'codeNanoComputeGraph',
+    'nano_bpe_train.cpp': 'codeNanoBpeTrain',
+    'nano_ngram_next.cpp': 'codeNanoNgramNext',
     'maze_stack.cpp': 'codeMazeStack',
     'list_doubly.cpp': 'codeListDoubly',
     'list_equivalence.cpp': 'codeListEquivalence',
@@ -109,10 +117,11 @@ const mappings = {
 let out = '// Auto-generated code DB for visualization\n';
 for (const [file, varName] of Object.entries(mappings)) {
     const cpath = 'cpp/' + file;
-    if (fs.existsSync(cpath)) {
-        const content = fs.readFileSync(cpath, 'utf8');
-        out += `const ${varName} = \`${content.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;\n\n`;
+    if (!fs.existsSync(cpath)) {
+        throw new Error('build_db: missing cpp file for mapping ' + file + ' -> ' + varName);
     }
+    const content = fs.readFileSync(cpath, 'utf8');
+    out += `const ${varName} = \`${content.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;\n\n`;
 }
 
 

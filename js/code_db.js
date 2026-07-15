@@ -5257,6 +5257,7 @@ const codeMagicLatin = `// Why the Siamese magic square works: every value split
 // permutation of 0..n-1), so every row/col/diagonal sums to the same constant.
 #include <algorithm>
 #include <cassert>
+#include <iomanip>
 #include <iostream>
 #include <vector>
 using namespace std;
@@ -5279,6 +5280,13 @@ bool isPermutation(vector<int> v) {  // true iff v is a rearrangement of 0..n-1
     return true;
 }
 
+void printGrid(const vector<vector<int>>& g, int n) {
+    for (const auto& row : g) {
+        for (int v : row) cout << setw(3) << v;
+        cout << "\\n";
+    }
+}
+
 int main() {
     int n = 5;  // n must be odd.
     auto square = siamese(n);
@@ -5291,6 +5299,24 @@ int main() {
             a[r][c] = (v - 1) / n; b[r][c] = (v - 1) % n;    // digit planes
             assert(v == n * a[r][c] + b[r][c] + 1);          // decomposition identity
         }
+
+    cout << "Siamese magic square (n=" << n << "):\\n";
+    printGrid(square, n);
+
+    cout << "\\nHigh-digit plane a = (v-1)/n  [Latin square]:\\n";
+    printGrid(a, n);
+
+    cout << "\\nLow-digit plane  b = (v-1)%n  [Latin square]:\\n";
+    printGrid(b, n);
+
+    cout << "\\nDecomposition check v = n*a + b + 1 for every cell:\\n";
+    for (int r = 0; r < n; ++r) {
+        for (int c = 0; c < n; ++c) {
+            cout << square[r][c] << "=" << n << "*" << a[r][c] << "+" << b[r][c] << "+1";
+            if (c + 1 < n) cout << "  ";
+        }
+        cout << "\\n";
+    }
 
     for (int i = 0; i < n; ++i) {
         vector<int> colA(n), colB(n);
@@ -5308,7 +5334,8 @@ int main() {
     for (int i = 0; i < n; ++i) { diag += square[i][i]; anti += square[i][n - 1 - i]; }
     assert(diag == magicSum && anti == magicSum);
 
-    cout << "Magic sum = " << magicSum << " (every row/col/diagonal verified)\\n";
+    cout << "\\nMagic sum = " << magicSum
+         << " (every row/col/diagonal verified; a and b are Latin squares)\\n";
 }
 `;
 
@@ -5318,6 +5345,7 @@ const codeMagicTorus = `// Siamese magic square, viewed as a walk on a torus: th
 // consecutive up-left steps never wraps: it is one straight diagonal that
 // simply crosses a tile border. A break re-anchors the walk to the center
 // tile and starts the next straight diagonal.
+#include <iomanip>
 #include <iostream>
 #include <vector>
 using namespace std;
@@ -5332,6 +5360,8 @@ int main() {
         sq[row][col] = v;
         if (v == n * n) break;
 
+        // Toroidal wrap: indices are taken mod n, so stepping "up" from row 0
+        // wraps to row n-1, and stepping "left" from col 0 wraps to col n-1.
         int up = (row - 1 + n) % n;    // step vector (-1, -1), wrapped mod n
         int left = (col - 1 + n) % n;
 
@@ -5341,15 +5371,22 @@ int main() {
             ++runs;                    // a break starts a new straight diagonal
         } else {
             row = up;
-            col = left;                // run continues: one more up-left step
+            col = left;                // run continues: one more up-left step (wraps on the torus)
         }
     }
 
+    cout << "Filled square (n=" << n << ", toroidal Siamese walk):\\n";
+    for (const auto& r : sq) {
+        for (int v : r) cout << setw(3) << v;
+        cout << "\\n";
+    }
+
     int magicSum = n * (n * n + 1) / 2;
-    cout << "n=" << n << "  magic sum=" << magicSum
+    cout << "\\nn=" << n << "  magic sum=" << magicSum
          << "  runs=" << runs << "  breaks=" << breaks << "\\n";
     // runs == n and breaks == n-1: each run tiles to one straight diagonal on
-    // the 3n x 3n plane; each break re-anchors the walk to the center tile.
+    // the 3n x 3n plane (indices wrap mod n on the torus); each break
+    // re-anchors the walk to the center tile.
 }
 `;
 
@@ -5359,6 +5396,7 @@ const codeMagicFormula = `// Closed-form O(1) getValue: no n x n array is ever s
 // (i, j) mod n, so any single cell can be computed directly:
 //   a = (i - j + (n-1)/2) mod n
 //   b = (i - 2*j + (n-1)) mod n
+#include <iomanip>
 #include <iostream>
 using namespace std;
 
@@ -5375,14 +5413,31 @@ int main() {
 
     // Fill the whole square by calling getValue independently per cell —
     // no n x n array is stored; each call is O(1) time, O(1) extra space.
+    cout << "Magic square from the closed-form formula (n=" << n << "):\\n";
     for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) cout << getValue(n, i, j) << '\\t';
+        for (int j = 0; j < n; ++j) cout << setw(3) << getValue(n, i, j);
         cout << '\\n';
     }
 
     // Query one arbitrary cell directly — O(1), independent of every other cell.
     int qi = 2, qj = 3;
-    cout << "value(" << qi << "," << qj << ") = " << getValue(n, qi, qj) << '\\n';
+    cout << "\\nvalue(" << qi << "," << qj << ") = " << getValue(n, qi, qj) << '\\n';
+
+    // Fidelity check: no array was ever stored, yet every row, column, and
+    // both diagonals must sum to the magic constant M = n*(n^2+1)/2.
+    int magicSum = n * (n * n + 1) / 2;
+    bool ok = true;
+    for (int i = 0; i < n; ++i) {
+        int rowSum = 0, colSum = 0;
+        for (int j = 0; j < n; ++j) { rowSum += getValue(n, i, j); colSum += getValue(n, j, i); }
+        if (rowSum != magicSum || colSum != magicSum) ok = false;
+    }
+    int diag = 0, anti = 0;
+    for (int i = 0; i < n; ++i) { diag += getValue(n, i, i); anti += getValue(n, i, n - 1 - i); }
+    if (diag != magicSum || anti != magicSum) ok = false;
+
+    cout << "Magic sum = " << magicSum
+         << "  (rows/cols/diagonals all match: " << (ok ? "yes" : "NO") << ")\\n";
 }
 `;
 
@@ -5392,6 +5447,7 @@ const codeMagicSymmetry = `// The 8 symmetries of a square form the dihedral gro
 // diagonal sums to M) is invariant under the group action.
 #include <algorithm>
 #include <cassert>
+#include <iomanip>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -5447,15 +5503,396 @@ bool isMagic(const Grid& g, int n) {
     return diag == M && anti == M;
 }
 
+void printGrid(const Grid& g) {
+    for (const auto& row : g) {
+        for (int v : row) cout << setw(3) << v;
+        cout << "\\n";
+    }
+}
+
 int main() {
     int n = 5;  // n must be odd.
     Grid square = siamese(n);
     assert(isMagic(square, n));
+    int magicSum = n * (n * n + 1) / 2;
 
-    Grid rotated = applyOp(square, "r90", n);
-    assert(isMagic(rotated, n));  // magic sum is invariant under the D4 action
+    cout << "Original Siamese magic square (n=" << n << ", magic sum=" << magicSum << "):\\n";
+    printGrid(square);
 
-    cout << "Magic sum = " << n * (n * n + 1) / 2 << " (still magic after r90)\\n";
+    // Apply all 8 elements of D4 (the orbit of the square under the group
+    // action) and confirm the magic property is invariant under each one.
+    for (const auto& op : OPS) {
+        Grid transformed = applyOp(square, op, n);
+        bool stillMagic = isMagic(transformed, n);
+        assert(stillMagic);  // magic sum is invariant under the D4 action
+        cout << "\\n-- op: " << op << "  (still magic: " << (stillMagic ? "yes" : "NO") << ") --\\n";
+        printGrid(transformed);
+    }
+
+    cout << "\\nMagic sum = " << magicSum
+         << " (still magic after all 8 D4 symmetries: id, r90, r180, r270, "
+         << "flipH, flipV, transpose, antiT)\\n";
+}
+`;
+
+const codeNanoBpeEncode = `#include <iostream>
+#include <string>
+#include <vector>
+#include <unordered_map>
+using namespace std;
+
+// Vocabulary is a list of pieces; a piece's id is its index.
+class BpeEncoder {
+    struct TrieNode {
+        unordered_map<char, int> children;  // char -> child node index
+        int id = -1;                        // vocab id if a piece ends here
+    };
+    vector<TrieNode> nodes_;                // trie stored in an array
+    vector<string> vocab_;                  // id -> piece text (for lookup)
+
+    void insert(const string& p, int id) {
+        int node = 0;
+        for (char c : p) {
+            auto it = nodes_[node].children.find(c);
+            if (it != nodes_[node].children.end()) { node = it->second; continue; }
+            int idx = static_cast<int>(nodes_.size());
+            nodes_.push_back(TrieNode{});
+            nodes_[node].children[c] = idx;
+            node = idx;
+        }
+        nodes_[node].id = id;
+    }
+
+public:
+    explicit BpeEncoder(const vector<string>& vocab) : vocab_(vocab) {
+        nodes_.push_back(TrieNode{});            // index 0 = root
+        for (int id = 0; id < (int)vocab.size(); ++id) insert(vocab[id], id);
+    }
+
+    // Text -> tokens via greedy longest-match walk over the trie.
+    vector<string> encode(const string& word) const {
+        vector<string> out;
+        for (size_t i = 0; i < word.size(); ) {
+            int node = 0, bestId = -1;
+            size_t bestLen = 0;
+            for (size_t j = i; j < word.size(); ++j) {
+                auto it = nodes_[node].children.find(word[j]);
+                if (it == nodes_[node].children.end()) break;
+                node = it->second;
+                if (nodes_[node].id != -1) {      // a piece ends here
+                    bestId = nodes_[node].id;
+                    bestLen = j - i + 1;
+                }
+            }
+            string tok;
+            if (bestId != -1) {
+                tok = vocab_[bestId];
+            } else {
+                tok = word.substr(i, 1);           // no piece matched: byte fallback,
+                bestLen = 1;                        // emit the character itself
+            }
+            out.push_back(tok);
+            i += bestLen;
+        }
+        return out;
+    }
+};
+
+int main() {
+    // A tiny learned vocabulary (as if produced by BPE training on "banana"-like text).
+    vector<string> vocab = {"a", "n", "b", "an", "na", "ana", "anan", "banana"};
+    BpeEncoder enc(vocab);
+
+    for (const string& word : {string("banana"), string("bandana")}) {
+        vector<string> tokens = enc.encode(word);
+        cout << word << " -> ";
+        for (size_t i = 0; i < tokens.size(); ++i) {
+            if (i) cout << " | ";
+            cout << tokens[i];
+        }
+        cout << "  (" << tokens.size() << " tokens)\\n";
+    }
+    return 0;
+}
+`;
+
+const codeNanoComputeGraph = `#include <iostream>
+#include <vector>
+using namespace std;
+
+enum class Op { Const, Add, Mul };
+
+// A tiny computation graph: nodes are built bottom-up, then a DFS from the
+// output node (build_forward) produces a topological order, and compute()
+// evaluates every node exactly once in that order.
+class ComputeGraph {
+public:
+    int constant(double v)   { return addNode(Op::Const, -1, -1, v); }
+    int add(int a, int b)    { return addNode(Op::Add, a, b); }
+    int mul(int a, int b)    { return addNode(Op::Mul, a, b); }
+
+    // DFS post-order from the output node => topologically sorted order_.
+    void build_forward(int output) {
+        order_.clear();
+        vector<char> seen(nodes_.size(), 0);
+        visit(output, seen);
+    }
+
+    void compute() {
+        for (int id : order_) {
+            GNode& n = nodes_[id];
+            switch (n.op) {
+                case Op::Const: break;                                    // value preset
+                case Op::Add:   n.value = nodes_[n.src0].value + nodes_[n.src1].value; break;
+                case Op::Mul:   n.value = nodes_[n.src0].value * nodes_[n.src1].value; break;
+            }
+        }
+    }
+
+    double value(int node) const { return nodes_[node].value; }
+    const vector<int>& order() const { return order_; }
+
+private:
+    struct GNode { Op op; int src0; int src1; double value; };
+    vector<GNode> nodes_;
+    vector<int>   order_;
+
+    int addNode(Op op, int a, int b, double v = 0.0) {
+        nodes_.push_back(GNode{op, a, b, v});
+        return static_cast<int>(nodes_.size()) - 1;
+    }
+
+    void visit(int node, vector<char>& seen) {
+        if (seen[node]) return;                     // dedup shared nodes
+        seen[node] = 1;
+        const GNode& n = nodes_[node];
+        if (n.src0 >= 0) visit(n.src0, seen);       // parents first
+        if (n.src1 >= 0) visit(n.src1, seen);
+        order_.push_back(node);                     // post-order => topological
+    }
+};
+
+int main() {
+    // Build:  a = 2, b = 3, c = 4
+    //         d = a + b        (= 5)
+    //         e = d * c        (= 20)
+    ComputeGraph g;
+    int a = g.constant(2.0);
+    int b = g.constant(3.0);
+    int c = g.constant(4.0);
+    int d = g.add(a, b);
+    int e = g.mul(d, c);
+
+    g.build_forward(e);
+    g.compute();
+
+    cout << "topological order: ";
+    for (int id : g.order()) cout << id << " ";
+    cout << "\\n";
+    cout << "d = a + b = " << g.value(d) << "\\n";
+    cout << "e = d * c = " << g.value(e) << "\\n";
+    return 0;
+}
+`;
+
+const codeNanoBpeTrain = `#include <iostream>
+#include <string>
+#include <vector>
+#include <unordered_map>
+#include <queue>
+#include <utility>
+using namespace std;
+
+using Cand = pair<int, string>;   // (count, packed pair key)
+
+struct Symbol { string piece; int prev; int next; bool dead; };
+struct Merge  { string left, right; };
+
+// Heap order: higher count wins; on a tie the lexicographically SMALLEST
+// key wins, so top() is (max count, min key) and merges are deterministic.
+struct Cmp {
+    bool operator()(const Cand& a, const Cand& b) const {
+        if (a.first != b.first) return a.first < b.first;   // more frequent = higher priority
+        return a.second > b.second;                         // tie: smaller key = higher priority
+    }
+};
+
+class BpeTrainer {
+public:
+    vector<Merge> train(vector<Symbol> pool, int num_merges) {
+        vector<Merge> merges;
+        for (int m = 0; m < num_merges; ++m) {
+            // Count adjacent pairs (hash map).
+            unordered_map<string, int> counts;
+            for (size_t i = 0; i < pool.size(); ++i) {
+                if (pool[i].dead) continue;
+                int n = pool[i].next;
+                if (n == -1) continue;
+                counts[packKey(pool[i].piece, pool[n].piece)]++;
+            }
+            if (counts.empty()) break;
+
+            // Heapify all candidates, take the top (most frequent pair).
+            priority_queue<Cand, vector<Cand>, Cmp> heap;
+            for (const auto& kv : counts) heap.push({kv.second, kv.first});
+            if (heap.top().first < 2) break;   // stop once no pair repeats
+            const string bestKey = heap.top().second;
+
+            string L, R;
+            unpackKey(bestKey, L, R);
+            merges.push_back({L, R});
+
+            // Merge every adjacent occurrence of (L,R): O(1) relink of the
+            // linked list, extend left's piece, splice right out.
+            for (size_t i = 0; i < pool.size(); ++i) {
+                if (pool[i].dead) continue;
+                int n = pool[i].next;
+                if (n == -1 || pool[n].dead) continue;
+                if (pool[i].piece == L && pool[n].piece == R) {
+                    pool[i].piece += pool[n].piece;
+                    pool[i].next = pool[n].next;
+                    if (pool[n].next != -1) pool[pool[n].next].prev = static_cast<int>(i);
+                    pool[n].dead = true;
+                }
+            }
+        }
+        return merges;
+    }
+
+private:
+    static string packKey(const string& a, const string& b) {
+        return a + '\\x01' + b;   // \\x01 never appears in ASCII word text
+    }
+    static void unpackKey(const string& key, string& a, string& b) {
+        size_t sep = key.find('\\x01');
+        a = key.substr(0, sep);
+        b = key.substr(sep + 1);
+    }
+};
+
+// Build a doubly-linked symbol pool from a corpus of words, each word split
+// into its individual characters (the usual BPE starting point) and joined
+// end-to-end with a piece boundary (next == -1) so pairs never merge across
+// separate words.
+static vector<Symbol> makePool(const vector<string>& words) {
+    vector<Symbol> pool;
+    for (const string& w : words) {
+        int start = static_cast<int>(pool.size());
+        for (size_t i = 0; i < w.size(); ++i) {
+            int idx = static_cast<int>(pool.size());
+            int prev = (i == 0) ? -1 : idx - 1;
+            pool.push_back(Symbol{string(1, w[i]), prev, -1, false});
+            if (i > 0) pool[idx - 1].next = idx;
+        }
+        (void)start;
+    }
+    return pool;
+}
+
+int main() {
+    vector<string> corpus = {"low", "lower", "newest", "widest"};
+    vector<Symbol> pool = makePool(corpus);
+
+    BpeTrainer trainer;
+    vector<Merge> merges = trainer.train(pool, 6);
+
+    cout << merges.size() << " merges learned:\\n";
+    for (size_t i = 0; i < merges.size(); ++i) {
+        cout << "  " << (i + 1) << ": \\"" << merges[i].left << "\\" + \\"" << merges[i].right
+             << "\\" -> \\"" << merges[i].left + merges[i].right << "\\"\\n";
+    }
+    return 0;
+}
+`;
+
+const codeNanoNgramNext = `#include <iostream>
+#include <string>
+#include <vector>
+#include <utility>
+#include <unordered_map>
+#include <algorithm>
+#include <sstream>
+using namespace std;
+
+// Successor counts for one fixed (n-1)-token context, e.g. one entry of the
+// hash map  unordered_map<string, unordered_map<string,int>>  that NgramModel
+// builds while training (context key -> next-token -> count).
+using Candidate = pair<string, int>;   // (token, count)
+
+// Prefix sum of counts: cumulative[i] = total count of tokens 0..i.
+vector<long> cumulativeCounts(const vector<Candidate>& candidates) {
+    vector<long> cumulative;
+    cumulative.reserve(candidates.size());
+    long running = 0;
+    for (const auto& kv : candidates) {
+        running += kv.second;
+        cumulative.push_back(running);
+    }
+    return cumulative;
+}
+
+// Sample the next token: draw r in [0,1), scale to target = r * total, then
+// binary search for the first bucket whose cumulative count exceeds target.
+// Rule: pick the smallest index i such that target < cumulative[i].
+string sampleNext(const vector<Candidate>& candidates, double r) {
+    vector<long> cumulative = cumulativeCounts(candidates);
+    long total = cumulative.empty() ? 0 : cumulative.back();
+    double target = r * static_cast<double>(total);
+
+    int lo = 0, hi = static_cast<int>(candidates.size()) - 1, ans = hi;
+    while (lo <= hi) {
+        int mid = (lo + hi) / 2;
+        if (target < static_cast<double>(cumulative[mid])) {
+            ans = mid;          // this bucket qualifies; look for an earlier one
+            hi = mid - 1;
+        } else {
+            lo = mid + 1;       // target lies beyond this bucket
+        }
+    }
+    return candidates[ans].first;
+}
+
+// Build a bigram (n=2) frequency table from a corpus: context -> next-token -> count.
+static unordered_map<string, unordered_map<string, int>> trainBigram(const vector<string>& tokens) {
+    unordered_map<string, unordered_map<string, int>> model;
+    for (size_t i = 0; i + 1 < tokens.size(); ++i) {
+        model[tokens[i]][tokens[i + 1]]++;
+    }
+    return model;
+}
+
+// Turn one context's next-token counts into a candidate list ordered by
+// (count desc, token asc) so a deterministic pick (highest count, ties broken
+// by the smaller token) lands at index 0.
+static vector<Candidate> orderedCandidates(const unordered_map<string, int>& counts) {
+    vector<Candidate> out(counts.begin(), counts.end());
+    sort(out.begin(), out.end(), [](const Candidate& a, const Candidate& b) {
+        if (a.second != b.second) return a.second > b.second;
+        return a.first < b.first;
+    });
+    return out;
+}
+
+int main() {
+    vector<string> corpus = {
+        "the", "cat", "sat", "on", "the", "mat",
+        "the", "cat", "ran", "on", "the", "mat",
+        "a", "dog", "sat", "a", "cat", "sat"
+    };
+    auto model = trainBigram(corpus);
+
+    for (const string& context : {string("the"), string("sat")}) {
+        vector<Candidate> candidates = orderedCandidates(model[context]);
+        cout << "context \\"" << context << "\\": ";
+        for (size_t i = 0; i < candidates.size(); ++i) {
+            if (i) cout << ", ";
+            cout << candidates[i].first << "=" << candidates[i].second;
+        }
+        // r = 0.0 deterministically hits the first (highest-count) bucket.
+        string predicted = sampleNext(candidates, 0.0);
+        cout << "  -> predict \\"" << predicted << "\\"\\n";
+    }
+    return 0;
 }
 `;
 
@@ -5950,250 +6387,6 @@ int main() {
     cache.put(3, 30);               // capacity reached, evicts key 2 (LRU)
     cout << cache.get(2) << endl;   // -1, key 2 was evicted
     return 0;
-}
-`;
-
-// nano-llm: BpeEncoder — trained vocabulary applied to text via a trie.
-// Greedy LONGEST match at each position runs in time proportional to the
-// match length, not the vocab size (trimmed excerpt of bpe_encoder.hpp).
-const codeNanoBpeEncode = `#include <string>
-#include <vector>
-#include <unordered_map>
-
-// Vocabulary is a list of pieces; a piece's id is its index.
-class BpeEncoder {
-    struct TrieNode {
-        std::unordered_map<char, int> children;  // char -> child node index
-        int id = -1;                             // vocab id if a piece ends here
-    };
-    std::vector<TrieNode> nodes_;                // trie stored in an array
-    std::vector<std::string> vocab_;             // id -> piece text (for lookup)
-
-    void insert(const std::string& p, int id) {
-        int node = 0;
-        for (char c : p) {
-            auto it = nodes_[node].children.find(c);
-            if (it != nodes_[node].children.end()) { node = it->second; continue; }
-            int idx = static_cast<int>(nodes_.size());
-            nodes_.push_back(TrieNode{});
-            nodes_[node].children[c] = idx;
-            node = idx;
-        }
-        nodes_[node].id = id;
-    }
-
-public:
-    explicit BpeEncoder(const std::vector<std::string>& vocab) : vocab_(vocab) {
-        nodes_.push_back(TrieNode{});            // index 0 = root
-        for (int id = 0; id < (int)vocab.size(); ++id) insert(vocab[id], id);
-    }
-
-    // Text -> tokens via greedy longest-match walk over the trie.
-    std::vector<std::string> encode(const std::string& word) const {
-        std::vector<std::string> out;
-        for (size_t i = 0; i < word.size(); ) {
-            int node = 0, bestId = -1;
-            size_t bestLen = 0;
-            for (size_t j = i; j < word.size(); ++j) {
-                auto it = nodes_[node].children.find(word[j]);
-                if (it == nodes_[node].children.end()) break;
-                node = it->second;
-                if (nodes_[node].id != -1) {      // a piece ends here
-                    bestId = nodes_[node].id;
-                    bestLen = j - i + 1;
-                }
-            }
-            std::string tok;
-            if (bestId != -1) {
-                tok = vocab_[bestId];
-            } else {
-                tok = word.substr(i, 1);           // no piece matched: byte fallback,
-                bestLen = 1;                        // emit the character itself
-            }
-            out.push_back(tok);
-            i += bestLen;
-        }
-        return out;
-    }
-};
-`;
-
-// nano-llm: ComputeGraph — a DAG of scalar ops executed in topological order.
-// build_forward() does a DFS post-order walk from the output node, deduping
-// shared nodes with a visited set, so the result is topologically sorted;
-// compute() then evaluates every node in that order. (Simplified from the
-// tensor version in graph.hpp to scalars so the mechanism stands alone.)
-const codeNanoComputeGraph = `#include <vector>
-
-enum class Op { Const, Add, Mul };
-
-class ComputeGraph {
-public:
-    int constant(double v)   { return addNode(Op::Const, -1, -1, v); }
-    int add(int a, int b)    { return addNode(Op::Add, a, b); }
-    int mul(int a, int b)    { return addNode(Op::Mul, a, b); }
-
-    // DFS post-order from the output node => topologically sorted order_.
-    void build_forward(int output) {
-        order_.clear();
-        std::vector<char> seen(nodes_.size(), 0);
-        visit(output, seen);
-    }
-
-    void compute() {
-        for (int id : order_) {
-            GNode& n = nodes_[id];
-            switch (n.op) {
-                case Op::Const: break;                                    // value preset
-                case Op::Add:   n.value = nodes_[n.src0].value + nodes_[n.src1].value; break;
-                case Op::Mul:   n.value = nodes_[n.src0].value * nodes_[n.src1].value; break;
-            }
-        }
-    }
-
-    double value(int node) const { return nodes_[node].value; }
-
-private:
-    struct GNode { Op op; int src0; int src1; double value; };
-    std::vector<GNode> nodes_;
-    std::vector<int>   order_;
-
-    int addNode(Op op, int a, int b, double v = 0.0) {
-        nodes_.push_back(GNode{op, a, b, v});
-        return static_cast<int>(nodes_.size()) - 1;
-    }
-
-    void visit(int node, std::vector<char>& seen) {
-        if (seen[node]) return;                     // dedup shared nodes
-        seen[node] = 1;
-        const GNode& n = nodes_[node];
-        if (n.src0 >= 0) visit(n.src0, seen);       // parents first
-        if (n.src1 >= 0) visit(n.src1, seen);
-        order_.push_back(node);                     // post-order => topological
-    }
-};
-`;
-
-// nano-llm: BpeTrainer — learns an ordered list of BPE merge rules from a
-// corpus. Three data structures cooperate: a doubly-linked list of symbols
-// (array pool, prev/next indices; a merge is an O(1) relink, no shifting),
-// a hash map of adjacent-pair counts, and a max-heap that picks the most
-// frequent pair each round. (Simplified from bpe_trainer.hpp: vocab bookkeeping
-// elided so the count -> select -> merge mechanism stands alone.)
-const codeNanoBpeTrain = `#include <string>
-#include <vector>
-#include <unordered_map>
-#include <queue>
-#include <utility>
-
-using Cand = std::pair<int, std::string>;   // (count, packed pair key)
-
-struct Symbol { std::string piece; int prev; int next; bool dead; };
-struct Merge  { std::string left, right; };
-
-// Heap order: higher count wins; on a tie the lexicographically SMALLEST
-// key wins, so top() is (max count, min key) and merges are deterministic.
-struct Cmp {
-    bool operator()(const Cand& a, const Cand& b) const {
-        if (a.first != b.first) return a.first < b.first;   // more frequent = higher priority
-        return a.second > b.second;                         // tie: smaller key = higher priority
-    }
-};
-
-class BpeTrainer {
-public:
-    std::vector<Merge> train(std::vector<Symbol> pool, int num_merges) {
-        std::vector<Merge> merges;
-        for (int m = 0; m < num_merges; ++m) {
-            // Count adjacent pairs (hash map).
-            std::unordered_map<std::string, int> counts;
-            for (size_t i = 0; i < pool.size(); ++i) {
-                if (pool[i].dead) continue;
-                int n = pool[i].next;
-                if (n == -1) continue;
-                counts[packKey(pool[i].piece, pool[n].piece)]++;
-            }
-            if (counts.empty()) break;
-
-            // Heapify all candidates, take the top (most frequent pair).
-            std::priority_queue<Cand, std::vector<Cand>, Cmp> heap;
-            for (const auto& kv : counts) heap.push({kv.second, kv.first});
-            if (heap.top().first < 2) break;   // stop once no pair repeats
-            const std::string bestKey = heap.top().second;
-
-            std::string L, R;
-            unpackKey(bestKey, L, R);
-            merges.push_back({L, R});
-
-            // Merge every adjacent occurrence of (L,R): O(1) relink of the
-            // linked list, extend left's piece, splice right out.
-            for (size_t i = 0; i < pool.size(); ++i) {
-                if (pool[i].dead) continue;
-                int n = pool[i].next;
-                if (n == -1 || pool[n].dead) continue;
-                if (pool[i].piece == L && pool[n].piece == R) {
-                    pool[i].piece += pool[n].piece;
-                    pool[i].next = pool[n].next;
-                    if (pool[n].next != -1) pool[pool[n].next].prev = static_cast<int>(i);
-                    pool[n].dead = true;
-                }
-            }
-        }
-        return merges;
-    }
-
-private:
-    static std::string packKey(const std::string& a, const std::string& b) {
-        return a + '\\x01' + b;   // \\x01 never appears in ASCII word text
-    }
-    static void unpackKey(const std::string& key, std::string& a, std::string& b) {
-        size_t sep = key.find('\\x01');
-        a = key.substr(0, sep);
-        b = key.substr(sep + 1);
-    }
-};
-`;
-
-const codeNanoNgramNext = `#include <string>
-#include <vector>
-#include <utility>
-
-// Successor counts for one fixed (n-1)-token context, e.g. one entry of the
-// hash map  unordered_map<string, unordered_map<string,int>>  that NgramModel
-// builds while training (context key -> next-token -> count).
-using Candidate = std::pair<std::string, int>;   // (token, count)
-
-// Prefix sum of counts: cumulative[i] = total count of tokens 0..i.
-std::vector<long> cumulativeCounts(const std::vector<Candidate>& candidates) {
-    std::vector<long> cumulative;
-    cumulative.reserve(candidates.size());
-    long running = 0;
-    for (const auto& kv : candidates) {
-        running += kv.second;
-        cumulative.push_back(running);
-    }
-    return cumulative;
-}
-
-// Sample the next token: draw r in [0,1), scale to target = r * total, then
-// binary search for the first bucket whose cumulative count exceeds target.
-// Rule: pick the smallest index i such that target < cumulative[i].
-std::string sampleNext(const std::vector<Candidate>& candidates, double r) {
-    std::vector<long> cumulative = cumulativeCounts(candidates);
-    long total = cumulative.empty() ? 0 : cumulative.back();
-    double target = r * static_cast<double>(total);
-
-    int lo = 0, hi = static_cast<int>(candidates.size()) - 1, ans = hi;
-    while (lo <= hi) {
-        int mid = (lo + hi) / 2;
-        if (target < static_cast<double>(cumulative[mid])) {
-            ans = mid;          // this bucket qualifies; look for an earlier one
-            hi = mid - 1;
-        } else {
-            lo = mid + 1;       // target lies beyond this bucket
-        }
-    }
-    return candidates[ans].first;
 }
 `;
 
