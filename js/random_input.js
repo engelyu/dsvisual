@@ -210,6 +210,19 @@
       case 'tree-traversal':
       case 'tree-threaded': return { vals: valSeq(rng, difficulty) };
       case 'list-doubly': return { vals: valSeq(rng, difficulty), circular: rng() < 0.5 };
+      case 'list-equivalence': {
+        if (difficulty === 'edge') return rng() < 0.5 ? { n: 1, pairs: [] } : { n: randInt(rng, 4, 6), pairs: [] };
+        if (difficulty === 'special') {
+          const n = randInt(rng, 8, 10); const pairs = [];
+          for (let i = 0; i < n - 1; i++) pairs.push([i, i + 1]);
+          return { n: n, pairs: pairs };
+        }
+        const n = difficulty === 'large' ? 12 : randInt(rng, 8, 10);
+        const m = difficulty === 'large' ? randInt(rng, 10, 14) : randInt(rng, 6, 8);
+        const pairs = [];
+        for (let k = 0; k < m; k++) { const a = randInt(rng, 0, n - 1), b = randInt(rng, 0, n - 1); if (a !== b) pairs.push([a, b]); }
+        return { n: n, pairs: pairs };
+      }
       case 'sort': return { data: valSeq(rng, difficulty) };
       case 'sort-external': return { data: valSeq(rng, difficulty), M: 4 };
       case 'huffman': return { text: huffmanText(rng, difficulty) };

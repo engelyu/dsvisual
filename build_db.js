@@ -91,6 +91,7 @@ const mappings = {
     'magic_square.cpp': 'codeMagicSquare',
     'maze_stack.cpp': 'codeMazeStack',
     'list_doubly.cpp': 'codeListDoubly',
+    'list_equivalence.cpp': 'codeListEquivalence',
     'search_fibonacci.cpp': 'codeSearchFibonacci',
     'search_interpolation.cpp': 'codeSearchInterpolation',
     'tree_threaded.cpp': 'codeTreeThreaded',

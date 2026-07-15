@@ -35,6 +35,7 @@
             'method.deque':                 'Deque (Double-Ended Queue)',
             'method.maze-stack':            'Maze (Stack Backtracking)',
             'method.list-doubly':           'Doubly / Circular Linked List',
+            'method.list-equivalence':      'Equivalence Classes (Linked List)',
 
             // Methods — Trees
             'method.tree-bst':              'Binary Search Tree',
@@ -272,6 +273,7 @@
             'method.deque':                 '雙端佇列',
             'method.maze-stack':            '迷宮(堆疊回溯)',
             'method.list-doubly':           '雙向 / 環狀串列',
+            'method.list-equivalence':      '等價類(鏈結串列)',
 
             // Methods — Trees
             'method.tree-bst':              '二元搜尋樹',

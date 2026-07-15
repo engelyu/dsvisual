@@ -20999,6 +20999,46 @@ SLIDES_DB["maze-stack"] = {
       ] }
   ]
 };
+SLIDES_DB["list-equivalence"] = {
+  "category": "Linear Structures",
+  "title": { "zh": "等價類(鏈結串列)", "en": "Equivalence Classes (Linked List)" },
+  "slides": [
+    { "heading": { "zh": "等價關係", "en": "Equivalence Relations" },
+      "blocks": [
+        { "type": "paragraph", "text": { "zh": "關係 ~ 若同時滿足自反性、對稱性、遞移性,則稱為等價關係;它會把集合切成互不相交的「等價類」。", "en": "A relation ~ that is reflexive, symmetric, and transitive is an equivalence relation; it partitions a set into disjoint equivalence classes." } },
+        { "type": "bullets", "items": [
+          { "zh": "自反性: i ~ i", "en": "Reflexive: i ~ i" },
+          { "zh": "對稱性: i ~ j ⟹ j ~ i", "en": "Symmetric: i ~ j ⟹ j ~ i" },
+          { "zh": "遞移性: i ~ j 且 j ~ k ⟹ i ~ k", "en": "Transitive: i ~ j and j ~ k ⟹ i ~ k" }
+        ] }
+      ] },
+    { "heading": { "zh": "鏈結串列表示相鄰關係", "en": "Linked-List Adjacency Representation" },
+      "blocks": [
+        { "type": "paragraph", "text": { "zh": "每輸入一對 (i, j),把 j 插入 i 的鏈結串列頭端,並把 i 插入 j 的鏈結串列頭端(頭插法,O(1))。", "en": "For each input pair (i, j), head-insert j into i's list and i into j's list (head insertion, O(1))." } },
+        { "type": "note", "text": { "zh": "n 個節點各自維護一條鄰接串列(seq[i]),取代 n×n 的關係矩陣,節省空間。", "en": "Each of the n nodes keeps its own adjacency list (seq[i]) instead of an n×n relation matrix — much less space." } },
+        { "type": "code", "lang": "cpp", "file": "list_equivalence.cpp", "code": "for (auto& p : rel) {\n    seq[p.first].push_back(p.second);\n    seq[p.second].push_back(p.first);\n}" }
+      ] },
+    { "heading": { "zh": "兩階段找出等價類", "en": "Two-Phase Find" },
+      "blocks": [
+        { "type": "steps", "items": [
+          { "zh": "建立階段:掃描所有輸入對,建出鄰接串列。", "en": "Build phase: scan all input pairs and build the adjacency lists." },
+          { "zh": "找尋階段:對每個尚未標記的節點 i,用堆疊做走訪(push/pop/scan),收集所有可達節點。", "en": "Find phase: for each unmarked node i, traverse with a stack (push/pop/scan), collecting every reachable node." },
+          { "zh": "堆疊清空即得到一個連通分量(等價類);換下一個未處理節點,重複直到所有節點都標記完成。", "en": "When the stack empties, that set is one connected component (equivalence class); move to the next unprocessed node and repeat until all are marked." }
+        ] },
+        { "type": "code", "lang": "cpp", "file": "list_equivalence.cpp", "code": "stack<int> st; st.push(i); out[i] = true;\nwhile (!st.empty()) {\n    int j = st.top(); st.pop();\n    for (int k : seq[j])\n        if (!out[k]) { out[k] = true; st.push(k); }\n}" }
+      ] },
+    { "heading": { "zh": "對照:互斥集合(Union-Find)", "en": "Contrast: Union-Find (Disjoint Set)" },
+      "blocks": [
+        { "type": "table", "headers": [{ "zh": "面向", "en": "Aspect" }, { "zh": "鏈結串列 + 堆疊走訪", "en": "Linked List + Stack Traversal" }, { "zh": "Union-Find (樹狀)", "en": "Union-Find (Tree/DSU)" }],
+          "rows": [
+            [{ "zh": "資料結構", "en": "Data structure" }, { "zh": "每節點一條鄰接串列", "en": "One adjacency list per node" }, { "zh": "森林,每棵樹一個代表元", "en": "Forest, one representative per tree" }],
+            [{ "zh": "合併關係對", "en": "Merging a pair" }, { "zh": "O(1) 頭插,不做真正合併", "en": "O(1) head-insert, no real merge" }, { "zh": "union() 依 rank/size 合併樹", "en": "union() merges trees by rank/size" }],
+            [{ "zh": "查詢等價類", "en": "Querying classes" }, { "zh": "需整趟堆疊走訪 O(n+e)", "en": "Requires a full stack traversal O(n+e)" }, { "zh": "find() 搭配路徑壓縮近乎 O(1)", "en": "find() with path compression is near O(1)" }]
+          ] },
+        { "type": "note", "text": { "zh": "兩者解相同問題(切割成等價類),但 Union-Find 為「查詢多於合併」的場景做了攤銷優化,鏈結串列版本較直觀地展示了原始關係。", "en": "Both solve the same partitioning problem, but Union-Find amortizes repeated queries via path compression, while the linked-list version shows the raw relation more directly." } }
+      ] }
+  ]
+};
 SLIDES_DB["list-doubly"] = {
   "category": "Linear Structures",
   "title": { "zh": "雙向 / 環狀串列", "en": "Doubly / Circular Linked List" },
