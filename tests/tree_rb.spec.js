@@ -1,12 +1,6 @@
 const { test, expect } = require('@playwright/test');
+const { loadMethod } = require('./helpers');
 const path = require('path');
-
-async function loadMethod(page, methodId) {
-    const navItem = page.locator(`.category-nav-item:has(.category-nav-method[data-method-id="${methodId}"])`);
-    await navItem.locator('.category-nav-btn').click();
-    await navItem.locator(`.category-nav-method[data-method-id="${methodId}"]`).click();
-    await expect(page.locator(`[data-method-section="${methodId}"]`)).toHaveAttribute('data-runtime-state', 'active');
-}
 
 test.describe('tree-rb (紅黑樹旋轉觀測站)', () => {
     test.beforeEach(async ({ page }) => {
