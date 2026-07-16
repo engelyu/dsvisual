@@ -1118,7 +1118,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function loadExamples(methodId) { try { return ExamplesStore.load(localStorage, methodId); } catch (e) { return []; } }
     function saveExample(methodId, text, defaultText) { try { ExamplesStore.save(localStorage, methodId, text, defaultText); } catch (e) { /* ignore */ } }
-    function buildExamplesSelect(methodId, defaultText, currentText) {
+    function buildExamplesSelect(methodId, defaultText) {
         var lang = (window.I18N && I18N.getCurrentLanguage) ? I18N.getCurrentLanguage() : 'en';
         var escAttr = function (s) { return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;'); };
         var escText = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); };
