@@ -161,6 +161,15 @@ For each mode id the domain owns, **remove** from `app.js`:
   handler, state `let`, or `reg(...)` line still present means the migration
   is incomplete.
 
+## Migrated domains
+
+- **hash** — `js/domains/hash.js` (reference implementation, Phase B Task 1).
+- **graph** — `js/domains/graph.js` (graph, graph-adjlist, graph-traversal,
+  graph-bfs, graph-dfs, graph-kruskal, graph-dijkstra, graph-topo,
+  graph-prim, graph-bellman-ford, graph-floyd-warshall). DONE — verified via
+  `npm run test:all` (286 unit + 207 Playwright, all green) and a grep of
+  `app.js` for graph render/handler/state names, all clean.
+
 ## Remaining domains to migrate
 
 Each of these is a separate future plan; the state slices below are what a
@@ -180,24 +189,6 @@ once earlier domains are migrated):
   extracted into named functions as part of the move.
 - Existing reset in `switchMode`: `stackData = []; qArr = new Array(5).fill(null); qFront = 0; qRear = -1; qCount = 0;`
   and `if (currentMode === 'list-array' || currentMode === 'list-linked') mainListData = [];`
-
-### graph (graph, graph-adjlist, graph-traversal, graph-bfs, graph-dfs, graph-kruskal, graph-dijkstra, graph-topo, graph-prim, graph-bellman-ford, graph-floyd-warshall)
-- State: `edges`, `weightedEdges`, `mstEdgeKeys`, `graphCandidateEdgeKey`,
-  `dijkstraDistances`, `dijkstraVisited`, `shortestPathEdges`, `topoOrder`,
-  `topoVisited`, `topoEdges` (BFS/DFS/adjacency vars are local to the
-  renderers that use them, not module state).
-- Renderers: `renderGraph` (largest single renderer in app.js, ~420 lines,
-  covers graph/adjlist/kruskal/bfs/dfs/dijkstra/topo panes — consider
-  whether it should be split per-mode during migration rather than moved
-  verbatim), `renderGraphDual`, `renderPrim`, `renderBellmanFord`,
-  `renderFloydWarshall`.
-- Handlers: `runKruskalMST`, `runDijkstra`, `runTopoSort`, plus inlined
-  button listeners for add/clear.
-- Existing reset in `switchMode`: `edges = freshEdges(); weightedEdges = freshWeightedEdges(); mstEdgeKeys.clear(); graphCandidateEdgeKey = null;`
-  — note `dijkstraDistances`/`dijkstraVisited`/`shortestPathEdges`/
-  `topoOrder`/`topoVisited`/`topoEdges` are NOT currently reset on mode
-  switch; decide whether that's a pre-existing bug to fix during migration
-  or intentional (Dijkstra/topo re-run always overwrites them before read).
 
 ### tree (tree-bst, tree-avl, tree-splay, tree-trie, tree-radix, tree-ternary, tree-btree, tree-bplus, tree-rb)
 - State: `bstRoot`, `trieRoot`, `radixRoot`, `tstRoot`, `btreeData`,
