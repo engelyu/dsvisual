@@ -3046,3 +3046,21 @@ table.et-tt tr.et-tt-cur { background: #fef9c3; }
 .ar-stats { margin-top: 6px; font-weight: bold; }
 .ar-stats.ar-ok { color: #16a34a; }
 .ar-stats.ar-err { color: #dc2626; }
+
+/* tree-catalan */
+.cat-ns { display: flex; gap: 6px; margin-bottom: 8px; }
+.cat-nbtn { padding: 4px 12px; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 999px; cursor: pointer; font-size: 13px; }
+.cat-nbtn.active { background: #1a4d8f; color: #fff; border-color: #1a4d8f; }
+.cat-groups { display: flex; flex-direction: column; gap: 10px; margin: 8px 0; }
+.cat-group { border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 8px; }
+.cat-ghead { font-weight: 700; font-size: 13px; margin-bottom: 4px; color: #1a4d8f; }
+.cat-shapes { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; }
+.cat-shape { border: 1px solid #eef2f7; border-radius: 4px; background: #fff; }
+.cat-empty { display: inline-block; width: 64px; height: 66px; line-height: 66px; text-align: center; color: #94a3b8; border: 1px dashed #cbd5e1; border-radius: 4px; }
+.cat-total { font-weight: 700; margin-top: 6px; }
+.cat-verdict { margin-top: 4px; font-weight: bold; }
+.cat-verdict.cat-ok { color: #16a34a; }
+.cat-seqwrap { margin-top: 12px; overflow-x: auto; }
+.cat-seqtitle { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+table.cat-seq { border-collapse: collapse; font-family: 'Fira Code', monospace; font-size: 12px; }
+table.cat-seq th, table.cat-seq td { border: 1px solid #cbd5e1; padding: 2px 8px; text-align: center; }

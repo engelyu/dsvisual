@@ -895,6 +895,15 @@ const descDB = {
             <span class="badge space">Space: O(2^h) worst case</span>
         </div>
     `,
+    'tree-catalan': `
+        <h3>Counting Binary Trees — Catalan Numbers</h3>
+        <p>The number of distinct binary-tree shapes with <code>n</code> nodes is the <em>n</em>th Catalan number <code>Cₙ</code>. Splitting on the root — <code>i</code> nodes on the left, <code>n−1−i</code> on the right — gives the recurrence <code>Cₙ = Σᵢ Cᵢ·Cₙ₋₁₋ᵢ</code>, since any left shape pairs with any right shape.</p>
+        <p>It has the closed form <code>Cₙ = C(2n, n)/(n+1)</code>, giving the sequence 1, 1, 2, 5, 14, 42, 132, 429, … The viz enumerates and draws every shape for small <code>n</code>, grouped by the split so the picture equals the recurrence.</p>
+        <div class="complexities">
+            <span class="badge time">Enumerate: O(Cₙ · n)</span>
+            <span class="badge space">Cₙ grows ~4ⁿ / n^1.5</span>
+        </div>
+    `,
     'nano-bpe-encode': `
         <h3>BPE Encode — Trie Longest Match</h3>
         <p>Tokenize text against a trained vocabulary by walking a character trie and greedily taking the longest matching piece at each position.</p>

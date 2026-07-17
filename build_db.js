@@ -109,6 +109,7 @@ const mappings = {
     'tree_general_binary.cpp': 'codeTreeGeneralBinary',
     'tree_reconstruct.cpp': 'codeTreeReconstruct',
     'tree_array_rep.cpp': 'codeTreeArrayRep',
+    'tree_catalan.cpp': 'codeTreeCatalan',
     'game_tree.cpp': 'codeGameTree',
     'gc_memory.cpp': 'codeGcMemory',
     'file_isam.cpp': 'codeFileIsam',
