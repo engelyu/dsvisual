@@ -1387,6 +1387,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const patternActions = document.getElementById('pattern-actions');
     const patternModeSelect = document.getElementById('pattern-mode-select');
+    const PATTERN_OPTION_LABELS = {};
+    Array.from(patternModeSelect.options).forEach((o) => { PATTERN_OPTION_LABELS[o.value] = o.textContent; });
     const btnPatternDemo = document.getElementById('btn-pattern-demo');
     const btnPatternReset = document.getElementById('btn-pattern-reset');
     const patternContainer = document.getElementById('pattern-container');
@@ -1852,7 +1854,15 @@ document.addEventListener('DOMContentLoaded', () => {
             patternActions.classList.remove('hidden');
             const views = patternContainer.querySelectorAll('.pattern-view');
             views.forEach(v => v.classList.add('hidden'));
-            
+            const patGroup = METHOD_GROUPS.find((g) => g.methods.some((m) => m.id === currentMode));
+            if (patGroup) {
+                patternModeSelect.innerHTML = patGroup.methods.map((m) => {
+                    const v = m.id.replace(/^pattern-/, '');
+                    const label = PATTERN_OPTION_LABELS[v] || m.title;
+                    return '<option value="' + v + '">' + label + '</option>';
+                }).join('');
+            }
+
             if (currentMode === 'pattern-singleton') {
                 codeTitle.textContent = 'pattern_singleton.cpp';
                 codeDisplay.textContent = codePatternSingleton;
